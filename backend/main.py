@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Security
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 import os
 import models
@@ -37,7 +37,8 @@ def read_root():
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "healthy", "database": os.getenv("DATABASE_URL", "not configured")}
+    db_configured = "configured" if os.getenv("DATABASE_URL") else "not configured"
+    return {"status": "healthy", "database": db_configured}
 
 @app.post("/api/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -76,5 +77,5 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/api/me", response_model=schemas.UserResponse)
-def get_current_user_info(current_user: models.User = Depends(auth.get_current_user)):
+async def get_current_user_info(current_user: models.User = Depends(auth.get_current_user)):
     return current_user

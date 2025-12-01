@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -23,7 +25,7 @@ function App() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/me', {
+      const response = await fetch(`${API_URL}/api/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -51,7 +53,7 @@ function App() {
       : formData;
 
     try {
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
