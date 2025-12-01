@@ -1,0 +1,180 @@
+Overview
+This document covers the User Registration and Authentication modules of the Hospital Management System. Person 3 is responsible for implementing secure user account creation, credential storage, login functionality, and access control across the entire system.
+
+Key Personas Involved
+* Admin
+* Doctor
+* Receptionist
+
+Key Functionalities
+
+Admin
+The Admin manages authentication and user account lifecycle. Relevant responsibilities include:
+
+Account & Authentication Management
+* Process and validate registration submissions for all user types
+* Authenticate user credentials and control access permissions
+* Manage user accounts, including status verification and onboarding outcomes
+* Receive system notifications regarding successful or failed registrations and act accordingly
+
+Doctor
+Doctors manage their own access credentials.
+
+Core Responsibilities
+* Submit registration details to create their system account
+* Log in using authenticated username/password credentials
+* Receive feedback on registration and login attempts
+
+Receptionist
+Receptionists manage their own access and assist with user registrations.
+
+Core Responsibilities
+* Access and complete user registration forms for account creation
+* Receive notifications for successful or failed user registrations
+* Log in securely to access receptionist functionalities
+
+================================================================================
+Activity 5: Register Users and Onboard Accounts
+================================================================================
+
+User Action 1: Display Registration Form
+Description:
+As a Receptionist, I want to view and fill out a registration form so that I can create a new user account for myself or others in the Hospital Management System.
+* The registration form is displayed to the user and includes fields for username, password, and password confirmation.
+* The registration form requires all fields to be filled before allowing submission.
+* The user can submit the registration form and the data is sent to the backend via HTTP POST.
+* If the registration is successful, the user is notified and redirected to the login page.
+* If the registration fails, the user is notified and redirected back to the registration page.
+
+User Action 2: Submit Registration Form
+Description:
+As a Doctor, I want to submit my registration details so that my account can be created and I can access the system.
+* The registration form must require the user to enter a username, password, and password confirmation before submission is allowed.
+* The registration form must not be submitted unless all required fields are filled.
+* Upon submission, the registration details must be sent to the backend via HTTP POST for processing.
+* The backend must attempt to insert the submitted credentials into the database upon receiving the registration data.
+* If the registration is successful, the user must be notified with a success message and redirected to the login page.
+* If the registration fails, the user must be notified with a failure message and redirected back to the registration page.
+
+User Action 3: Process Registration in Backend
+Description:
+As an Admin, I want the backend to securely process and store user registration data so that new accounts are properly created in the database.
+* The backend receives registration data submitted from the registration form via HTTP POST.
+* The backend validates that all required fields (username, password, password confirmation) are present in the registration data.
+* The backend attempts to insert the new user credentials into the database.
+* If the database insertion is successful, the backend triggers a success notification and redirects the user to the login page.
+* If the database insertion fails, the backend triggers a failure notification and redirects the user back to the registration page.
+* User credentials are stored securely in the database upon successful registration.
+
+User Action 4: Check Registration Outcome
+Description:
+As an Admin, I want the system to verify if registration was successful or failed so that users receive accurate feedback and the database remains consistent.
+* The system must determine if the registration attempt was successful or failed based on the result of the database operation.
+* If registration is successful, the user must be notified with a success message and redirected to the login page.
+* If registration fails, the user must be notified with a failure message and redirected back to the registration page.
+* The database must only contain new user credentials if the registration was successful.
+* Users must receive feedback immediately after the registration attempt, indicating the outcome.
+
+User Action 5: Notify Registration Success
+Description:
+As a Receptionist, I want to be notified when my registration is successful so that I can proceed to log in and use the system.
+* The system displays a notification to the user when registration is successful.
+* The user is redirected to the login page after successful registration.
+* The notification clearly indicates that registration was completed successfully.
+* The notification and redirection occur only if the user credentials are successfully inserted into the database.
+
+User Action 6: Notify Registration Failure
+Description:
+As a Doctor, I want to be notified if my registration fails so that I can correct any errors and try again.
+* The system displays a clear notification to the user when registration fails.
+* The user is redirected back to the registration page after a failed registration attempt.
+* The notification message indicates that registration was unsuccessful and prompts the user to try again.
+* The registration failure notification is shown immediately after the backend determines that user credentials were not inserted into the database.
+* The user can reattempt registration after being notified of the failure.
+
+================================================================================
+Activity 6: Authenticate Users and Provision System Access
+================================================================================
+
+User Action 1: Display Login Form
+Description:
+As a Receptionist, I want to see a login form requiring my username and password so that I can securely access the Hospital Management System.
+* The login form is displayed to the user when accessing the Hospital Management System.
+* The login form requires both a username and a password before allowing submission.
+* The user can enter their username and password and submit the login form.
+* If the submitted credentials are valid, the user is authenticated and granted access to the Hospital Management System home page.
+* If the submitted credentials are invalid, an error message is displayed and the user is redirected back to the login page to retry.
+
+User Action 2: Submit Login Credentials
+Description:
+As a Doctor, I want to submit my username and password so that I can authenticate and gain access to the system.
+* The login form is displayed and requires both username and password before allowing submission.
+* When the user submits the login form, the entered credentials are sent to the backend for authentication.
+* If the submitted credentials match a stored user record, the user is authenticated and granted access to the Hospital Management System home page.
+* If the submitted credentials do not match any stored user record, an error message is displayed and the user is redirected back to the login page to retry.
+
+User Action 3: Authenticate User Credentials
+Description:
+As an Admin, I want the system to verify submitted credentials against stored records so that only authorized users can access the Hospital Management System.
+* The login form is displayed and requires both username and password before allowing submission.
+* When a user submits the login form, the entered credentials are sent to the backend for authentication.
+* The backend retrieves the user record from the database and compares the submitted credentials with the stored records.
+* If the credentials are valid, the user is authenticated and granted access to the Hospital Management System home page.
+* If the credentials are invalid, an error message is displayed and the user is redirected back to the login page to retry.
+* Only authenticated users are able to access the Hospital Management System.
+
+User Action 4: Grant System Access
+Description:
+As a Receptionist, I want to be granted access to the system upon successful authentication so that I can perform my duties.
+* The login form is displayed and requires both username and password before allowing submission.
+* When valid credentials are submitted, the user is authenticated and redirected to the Hospital Management System home page.
+* If invalid credentials are submitted, an error message is displayed and the user is redirected back to the login page to retry.
+* Only authenticated users are granted access to the system; unauthenticated users cannot proceed beyond the login page.
+
+User Action 5: Handle Authentication Failure
+Description:
+As a Doctor, I want to receive an error message and be prompted to retry if my login fails so that I know my credentials were incorrect and can attempt again.
+* When a user submits invalid login credentials, an error message is displayed indicating that the username or password is incorrect.
+* After authentication failure, the user is redirected back to the login page to attempt login again.
+* The login form is presented again after a failed authentication, allowing the user to re-enter credentials.
+* No access to the Hospital Management System is granted unless valid credentials are provided.
+
+================================================================================
+Database Tables Owned
+================================================================================
+* users - User credentials and account information
+* sessions - User session management (if applicable)
+
+================================================================================
+API Endpoints Owned
+================================================================================
+* /auth/register - User registration
+* /auth/login - User authentication
+* /auth/logout - User logout
+* /auth/session - Session validation
+
+================================================================================
+Security Considerations
+================================================================================
+* Passwords must be hashed before storage (use bcrypt or similar)
+* Implement rate limiting on login attempts to prevent brute force attacks
+* Use secure session tokens with appropriate expiration
+* Validate password confirmation matches password on registration
+* Sanitize all user inputs to prevent SQL injection
+
+================================================================================
+Dependencies
+================================================================================
+* Depends on: None (foundational module)
+* Depended on by: All other modules (Person 1 & Person 2) for authorization
+
+================================================================================
+Integration Points for Other Teams
+================================================================================
+Person 3 should provide the following interfaces for Person 1 and Person 2:
+
+1. Authentication middleware/decorator for protected routes
+2. Current user context/session access
+3. Role-based access control (Admin vs Doctor vs Receptionist)
+4. Redirect to login page for unauthenticated requests
+

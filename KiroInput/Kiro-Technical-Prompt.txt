@@ -1,0 +1,28 @@
+﻿Enterprise React/FastAPI/PostgreSQL
+Role: Act as a Senior Principal Software Architect and Lead Developer.
+Objective: Architect and generate code for a production-ready, enterprise-grade web application.
+Tech Stack:
+1. Frontend: React.js (utilizing TypeScript for type safety).
+2. Backend: FastAPI (Python).
+3. Database: PostgreSQL.
+Strict Engineering Standards:
+1. Architecture & Modularity:
+   * Backend: Implement the Service-Repository Pattern. Keep business logic separate from API routes and database queries. Use Dependency Injection within FastAPI.
+   * Frontend: Use a Feature-based folder structure. Separate logic (custom hooks) from UI (presentation components).
+   * Database: Ensure normalized schema design. Use SQLAlchemy 2.0 (Async) or SQLModel for ORM interactions.
+2. Data Validation & Type Safety:
+   * Strictly use Pydantic v2 models for all backend request/response schemas.
+   * Strictly use TypeScript interfaces/types for all frontend props, state, and API responses.
+   * Ensure the frontend and backend types mirror each other perfectly.
+3. Security, Reliability & Observability:
+   * Logging: Implement structured logging (e.g., JSON format using structlog or standard logging with a JSON formatter) on the backend. Log all request lifecycles, errors, and critical business actions. Ensure sensitive PII/secrets are masked.
+   * Error Handling: Implement robust error handling. The backend must return structured JSON error responses (not raw stack traces).
+   * Security: Sanitize all inputs. Use environment variables for all sensitive configuration (DB URLs, API Keys).
+4. Testing Standards:
+   * Backend: Use Pytest with pytest-asyncio for asynchronous testing. Include unit tests for services and integration tests for API endpoints. Target high code coverage.
+   * Frontend: Use Vitest or Jest with React Testing Library. Focus on testing user interactions and component rendering rather than implementation details.
+   * Integration: Ensure critical user flows (e.g., authentication, complex forms) are covered by integration tests that mock the database or external services where appropriate.
+5. UI/UX Quality:
+   * The UI must be responsive, accessible, and professional.
+   * Use Tailwind CSS for styling (or a component library like MUI/Chakra if preferred, but styled consistently).
+   * Implement loading states (skeletons/spinners) and error boundaries.

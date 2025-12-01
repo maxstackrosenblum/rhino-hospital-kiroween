@@ -1,0 +1,218 @@
+Overview
+This document covers the Patient and Doctor management modules of the Hospital Management System. Person 1 is responsible for implementing all CRUD operations, search/list functionality, and data management for patients and doctors.
+
+Key Personas Involved
+* Admin
+* Doctor
+* Receptionist
+
+Key Functionalities
+
+Admin
+The Admin has oversight of patient and doctor data. Relevant responsibilities include:
+
+Patient Management
+* Register new patients and securely store their medical and personal information
+* Update patient records while maintaining data accuracy and integrity
+* Delete patient records with confirmation prompts to prevent accidental removal
+* View, search, and filter patient lists for administrative or reporting purposes
+
+Staff Management (Doctors)
+* Register and manage doctors, including adding, updating, and deleting doctor profiles
+* View, search, and filter lists of doctors
+
+Doctor
+Doctors interact with patient data for clinical purposes.
+
+Core Responsibilities
+* Search and view patient records to access clinical information
+
+Receptionist
+Receptionists manage patient intake on the front lines.
+
+Core Responsibilities
+* Perform patient management tasks: add, update, search/list, and delete records
+* Register new patients and capture required personal and medical details
+* Edit patient information when changes are needed
+
+================================================================================
+Activity 1: Manage Patient Records
+================================================================================
+
+User Action 1: Initiate Patient Management Action
+Description:
+As a Receptionist, I want to initiate patient management actions so that I can efficiently manage patient records for hospital operations.
+* The system allows the user to select a patient management action type: Add, Update, Search/List, or Delete, from the main interface.
+* When the user chooses to add a new patient, the system displays a patient registration form with required fields and validates the input before submission.
+* When the user chooses to search for or list patients, the system displays a paginated table of patient records with options to edit or delete each record.
+* When the user chooses to update an existing patient, the system allows selection of a patient and displays a pre-filled update form for editing patient details.
+* When the user chooses to delete a patient, the system allows selection of a patient and confirms the deletion action before removing the record from the system.
+* The system provides feedback to the user after each action (add, update, delete) indicating success or failure.
+
+User Action 2: Add New Patient
+Description:
+As a Receptionist, I want to add new patient details so that new patients can be registered and their information is available for clinical and administrative use.
+* The receptionist can access the 'Add Patient' form from the hospital management system interface.
+* The 'Add Patient' form requires entry of all mandatory patient fields including first name, last name, gender, phone, city, email, age, and address.
+* The form validates that all required fields are completed before allowing submission.
+* Upon successful submission, the new patient record is inserted into the database and is immediately available for search and listing.
+* The system provides feedback to the receptionist confirming successful registration or indicating any errors in the data entry process.
+* The newly added patient appears in the patient list and can be accessed for future update or deletion actions.
+
+User Action 3: Register Patient in System
+Description:
+As an Admin, I want the system to store new patient records so that patient data is securely saved and accessible for future reference.
+* The user can access the 'Add Patient' form from the hospital management system interface.
+* The 'Add Patient' form requires entry of all mandatory patient fields including first name, last name, gender, phone, city, email, age, and address.
+* The system validates that all required fields are filled and displays an error if any are missing or invalid.
+* Upon successful submission, the backend inserts the new patient record into the database.
+* The user receives confirmation that the patient has been registered successfully.
+* If the registration fails due to incorrect data or system error, the user is notified with an appropriate error message.
+* The new patient record is immediately available for search and listing in the patient management system.
+
+User Action 4: Search or List Patients
+Description:
+As a Doctor, I want to search for or list patients so that I can quickly access patient information for clinical decision-making.
+* The user can access a search or list interface for patients from the hospital management system.
+* The system displays a paginated table of patient records with relevant details such as name, gender, age, contact information, and address.
+* The user can enter search criteria (such as name, mobile number, or other patient attributes) to filter the patient list.
+* The system retrieves and displays only those patient records that match the entered search criteria.
+* The user can view all patients in the system when no search criteria are entered.
+* The patient list includes options to edit or delete each patient record.
+* The system provides feedback if no matching patient records are found for the entered search criteria.
+* The patient list is updated in real time after any edit or delete action is performed.
+
+User Action 5: Select Patient to Edit
+Description:
+As a Receptionist, I want to select a patient to edit so that I can update their information when changes are needed.
+* The user can view a list of patients with an option to select a patient for editing.
+* When a patient is selected, the system displays a form pre-filled with the patient's current details.
+* The form includes all editable patient fields such as first name, last name, gender, phone, city, email, age, and address.
+* The system retrieves and displays the correct patient information based on the selected patient identifier.
+* If the patient record cannot be found, the system displays an appropriate error message to the user.
+* The user can proceed to update the patient information only after selecting a patient from the list.
+
+User Action 6: Update Patient Details
+Description:
+As a Receptionist, I want to update patient details so that patient records remain accurate and up-to-date.
+* The user can select a patient from the list to edit, and the update form is pre-filled with the patient's current details.
+* The update form validates all required fields before allowing submission (e.g., first name, last name, gender, phone, city, email, age, address).
+* The user can modify patient details and submit the updated information to the backend system.
+* The backend system updates the patient record in the database with the new details provided.
+* The user receives feedback indicating whether the update was successful or if there was an error.
+* The updated patient information is immediately reflected in the patient list after a successful update.
+
+User Action 7: Process Patient Update in System
+Description:
+As an Admin, I want the system to process and save updated patient information so that the database reflects the latest patient data.
+* When the admin submits updated patient information, the backend receives all required fields and validates the input before processing.
+* The system updates the patient record in the database with the new information provided by the admin.
+* If the update is successful, the system provides a confirmation message to the admin indicating the patient record was updated.
+* If the update fails due to invalid data or system error, the admin receives an error message and is prompted to try again.
+* The updated patient information is immediately reflected in subsequent searches or listings of patient records.
+* All changes to patient data are auditable and maintain data integrity throughout the update process.
+
+User Action 8: Select Patient to Delete
+Description:
+As an Admin, I want to select a patient to delete so that I can remove outdated or incorrect patient records from the system.
+* The admin can view a list of all patients in the system with an option to delete each patient record.
+* When the admin selects a patient to delete, the system prompts for confirmation before proceeding.
+* Upon confirmation, the selected patient record is removed from the database.
+* After deletion, the admin is redirected to the admin home page and receives feedback that the patient record was successfully deleted.
+* If the deletion fails, the admin receives an error message and the patient record remains in the system.
+* Only authorized users (admin) can access the delete patient functionality.
+
+User Action 9: Delete Patient from System
+Description:
+As an Admin, I want the system to delete patient records so that the database remains clean and only contains relevant patient information.
+* When an admin selects a patient to delete, the system prompts for confirmation before proceeding with the deletion.
+* Upon confirmation, the system removes the selected patient record from the database.
+* After deletion, the system redirects the admin to the admin home page or patient list view.
+* The deleted patient no longer appears in any patient search or list results.
+* If the deletion fails, the system displays an error message to the admin.
+
+================================================================================
+Activity 2: Manage Doctor Registration and Records
+================================================================================
+
+User Action 1: Fill Doctor Registration Form
+Description:
+As an Admin, I want to fill out a doctor registration form with required details so that I can onboard new doctors efficiently and ensure all necessary information is collected.
+* The doctor registration form must include fields for unique ID, first name, last name, gender, phone, city, email, age, address, and qualification.
+* Client-side validation must ensure all required fields are filled before allowing form submission.
+* Upon successful submission, the form data must be sent via HTTP POST to the backend for processing and storage.
+* If the registration is successful, the admin must receive a success alert and be redirected to the admin home page.
+* If the registration fails, the admin must receive an error alert and be redirected back to the add doctor form for correction.
+
+User Action 2: Submit Doctor Registration
+Description:
+As an Admin, I want to submit the completed doctor registration form so that the doctor's information is processed and stored in the system.
+* The admin can submit the doctor registration form only after all required fields are filled and client-side validation passes
+* Upon form submission, the doctor's details are sent via HTTP POST to the backend for processing and storage
+* If the registration is successful, the admin receives a success alert and is redirected to the admin home page
+* If the registration fails, the admin receives an error alert and is redirected back to the add doctor form for correction
+* The backend processes the registration by inserting the doctor's details into the database, including all required fields such as ID, name, gender, phone, city, email, age, address, and qualification
+
+User Action 3: Process Doctor Registration
+Description:
+As an Admin, I want the system to process and validate doctor registration data so that only accurate and complete records are added to the database.
+* The system must validate all required fields on the doctor registration form before allowing submission, including unique ID, first name, last name, gender, phone, city, email, age, address, and qualification.
+* Upon form submission, the system must send the doctor registration data to the backend for processing via HTTP POST.
+* The backend must attempt to insert the new doctor record into the database only if all validations pass.
+* If the registration is successful, the system must display a success alert to the admin and redirect to the admin home page.
+* If the registration fails, the system must display an error alert and redirect the admin back to the add doctor form for correction.
+* The system must handle backend errors gracefully and log exceptions without exposing sensitive information to the admin.
+
+User Action 4: Notify Registration Success
+Description:
+As an Admin, I want to receive a success notification and be redirected to the admin home page when a doctor is registered successfully so that I know the process was completed.
+* When a doctor registration is successful, the admin receives a visible success notification alert.
+* After a successful doctor registration, the admin is automatically redirected to the admin home page.
+* The success notification is only shown if the doctor record is inserted into the database without errors.
+* If the registration is not successful, no success notification is shown and the admin is not redirected to the admin home page.
+
+User Action 5: Notify Registration Failure
+Description:
+As an Admin, I want to receive an error notification and be redirected back to the registration form if doctor registration fails so that I can correct any issues and try again.
+* If doctor registration fails during submission, the admin receives an error alert notification indicating the failure
+* After the error notification, the admin is automatically redirected back to the doctor registration form
+* The registration form is reloaded with the ability for the admin to correct and resubmit the doctor details
+
+User Action 6: View Doctor List
+Description:
+As an Admin, I want to view a searchable and filterable list of all registered doctors so that I can easily find and manage doctor records.
+* The admin can access a page displaying a list of all registered doctors with their details including ID, first name, last name, gender, mobile, city, email, age, address, date, and qualification.
+* The admin can use a search bar to filter the doctor list by first name or last name.
+* The doctor list updates in real-time or upon search submission to reflect the search criteria entered by the admin.
+* Each doctor record in the list provides options for editing or deleting the record.
+* The admin can view the full list of doctors when no search criteria are entered.
+
+User Action 7: Search and Manage Doctors
+Description:
+As an Admin, I want to search for doctors by name and access options to edit or delete their records so that I can keep doctor information up-to-date and accurate.
+* The admin can view a list of all registered doctors with their details displayed in a table format.
+* The admin can use a search bar to filter the list of doctors by first or last name.
+* The search results update dynamically to show only doctors matching the entered search criteria.
+* Each doctor record in the list includes options to edit or delete the record.
+* Selecting the edit option for a doctor navigates the admin to the appropriate page or form for editing the doctor's details.
+* Selecting the delete option for a doctor prompts for confirmation before removing the record from the list.
+* If no doctors match the search criteria, the list displays an appropriate message indicating no results found.
+
+================================================================================
+Database Tables Owned
+================================================================================
+* patients - All patient records
+* doctors - All doctor records
+
+================================================================================
+API Endpoints Owned
+================================================================================
+* /patients/* - All patient CRUD operations
+* /doctors/* - All doctor CRUD operations
+
+================================================================================
+Dependencies
+================================================================================
+* Depends on: Authentication module (Person 3) for user session/authorization
+* Depended on by: None (independent entity management)
+

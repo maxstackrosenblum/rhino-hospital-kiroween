@@ -1,0 +1,169 @@
+Overview
+This document covers the Receptionist and Hospital Worker management modules of the Hospital Management System. Person 2 is responsible for implementing all onboarding, registration, and record management for administrative staff members.
+
+Key Personas Involved
+* Admin
+
+Key Functionalities
+
+Admin
+The Admin has oversight of receptionist and hospital worker data. Relevant responsibilities include:
+
+Staff Management (Receptionists & Workers)
+* Register and onboard receptionists and hospital workers with proper validation
+* View, search, and filter lists of receptionists and hospital staff
+* Process and validate registration submissions for receptionists and workers
+* Receive system notifications regarding successful or failed registrations and act accordingly
+
+================================================================================
+Activity 3: Manage Receptionist Onboarding and Records
+================================================================================
+
+User Action 1: Display Add Receptionist Form
+Description:
+As an Admin, I want to view a web form for entering new receptionist details so that I can onboard new receptionists efficiently and ensure all required information is collected.
+* The Add Receptionist form is displayed to the Admin user and includes fields for first name, last name, and phone number.
+* All required fields in the Add Receptionist form must be filled before the form can be submitted.
+* Submitting the form sends the receptionist details to the backend via HTTP POST for processing.
+* If the receptionist record is inserted successfully, the Admin is notified with a success message and redirected to the admin home page.
+* If the receptionist record insertion fails due to incorrect data, the Admin is alerted and redirected back to the Add Receptionist form for correction.
+
+User Action 2: Submit Receptionist Registration
+Description:
+As an Admin, I want to submit the receptionist registration form so that the new receptionist's details are sent to the backend for processing and storage.
+* The receptionist registration form must display all required fields for first name, last name, and phone number before submission.
+* Submitting the registration form sends receptionist details to the backend via HTTP POST for processing.
+* The backend must validate the submitted receptionist details and record the current date and time of registration.
+* If the receptionist record is inserted successfully into the database, the user is notified of success and redirected to the admin home page.
+* If the receptionist record insertion fails due to incorrect data, the user is alerted and redirected back to the registration form for correction.
+
+User Action 3: Process Receptionist Submission
+Description:
+As an Admin, I want the backend to validate and process receptionist registration submissions so that only valid data is inserted into the system and errors are handled appropriately.
+* The backend must receive receptionist registration submissions via HTTP POST and extract all required fields (first name, last name, phone).
+* The backend must validate that all required receptionist fields are present and not empty before attempting to insert into the database.
+* The backend must record the current date and time for each receptionist registration and include it in the database record.
+* If the receptionist record is inserted successfully, the system must notify the user of success and redirect to the admin home page.
+* If the receptionist record insertion fails due to incorrect or missing data, the system must alert the user and redirect back to the add receptionist form for correction.
+* No receptionist record should be inserted into the database if required fields are missing or invalid.
+
+User Action 4: Handle Successful Receptionist Registration
+Description:
+As an Admin, I want to be notified when a receptionist is registered successfully so that I know the onboarding process is complete and can proceed with other tasks.
+* When a receptionist registration is successful, the admin receives a notification indicating the success of the operation.
+* After successful registration, the system redirects the admin to the admin home page.
+* The notification of successful registration is displayed immediately after the receptionist record is inserted into the database.
+* No notification of success is shown if the receptionist registration fails.
+
+User Action 5: Handle Failed Receptionist Registration
+Description:
+As an Admin, I want to be alerted if receptionist registration fails due to incorrect data so that I can correct the information and resubmit the form.
+* When receptionist registration fails due to incorrect data, the system displays an alert message to the admin indicating the failure.
+* After a failed registration attempt, the admin is redirected back to the add receptionist form to correct and resubmit the information.
+* The system does not insert any receptionist record into the database if the submitted data is incorrect or incomplete.
+* The admin can immediately attempt to correct the data and resubmit the form after being notified of the failure.
+
+User Action 6: View and Manage Receptionist List
+Description:
+As an Admin, I want to view, search, edit, and delete receptionist records in a dynamic table so that I can efficiently manage receptionist information and keep records up to date.
+* The receptionist list displays all registered receptionists in a dynamic table format.
+* The receptionist list can be filtered by first name or last name using a search input.
+* Each receptionist record in the table includes options to edit or delete the record.
+* Editing a receptionist record allows the admin to update the receptionist's details and save changes.
+* Deleting a receptionist record removes the receptionist from the list and the database.
+* The table updates in real time to reflect any changes made by editing or deleting records.
+* If no receptionist matches the search query, the table displays an empty result or appropriate message.
+
+================================================================================
+Activity 4: Manage Hospital Worker Registration and Records
+================================================================================
+
+User Action 1: Navigate to Add Worker Page
+Description:
+As an Admin, I want to access the 'Add Worker' page and view a registration form so that I can begin registering a new hospital worker with all required details.
+* The Admin can successfully navigate to the 'Add Worker' page from the main navigation menu.
+* The 'Add Worker' page displays a registration form with required fields for first name, last name, and phone number.
+* The registration form enforces client-side validation to ensure all required fields are filled before submission.
+* If the Admin submits the form with missing required fields, an error message is displayed and the form is not submitted.
+* Upon successful submission of the form, the data is sent to the backend for processing.
+
+User Action 2: Submit Worker Registration Form
+Description:
+As an Admin, I want to submit the completed worker registration form so that the new worker's details are sent to the backend for processing and addition to the database.
+* The worker registration form requires first name, last name, and phone number fields to be completed before submission.
+* Client-side validation prevents submission if any required field is missing.
+* Upon form submission, the entered worker details are sent to the backend for processing.
+* If the backend successfully adds the new worker to the database, the admin receives a success notification and is redirected to the confirmation or worker list page.
+* If the backend fails to add the worker due to a database error or invalid data, the admin receives an error notification and is prompted to correct the issue or retry.
+
+User Action 3: Process Worker Registration
+Description:
+As an Admin, I want the system to process the submitted worker registration data so that the new worker record is correctly stored in the database.
+* The system receives the submitted worker registration form and extracts the required fields: first name, last name, and phone number.
+* The backend attempts to insert the new worker record into the database using the provided registration data.
+* If the database operation is successful, the new worker record is stored and the admin is notified of successful registration.
+* If the database operation fails due to an error or invalid data, the admin is notified of the failure and prompted to correct the issue or retry.
+* The system ensures that only valid and complete worker registration data is processed and stored in the database.
+
+User Action 4: Check Worker Registration Result
+Description:
+As an Admin, I want the system to check if the worker registration was successful or failed so that I receive appropriate feedback and can take further action if needed.
+* The system determines if the worker registration was successful or failed after the admin submits the registration form.
+* If the registration is successful, the admin receives a notification confirming the worker was added and is redirected to the appropriate page.
+* If the registration fails due to a database error or invalid data, the admin receives an error notification and is prompted to correct the issue or retry.
+
+User Action 5: Handle Worker Registration Success
+Description:
+As an Admin, I want to be notified when a worker is registered successfully so that I can confirm the addition and proceed with other administrative tasks.
+* When a worker registration is successful, the admin receives a clear notification confirming the addition.
+* The system redirects the admin to the worker list or confirmation page after successful registration.
+* The notification of success is displayed immediately after the registration is processed and before any further actions can be taken.
+* The newly registered worker appears in the worker list accessible to the admin after successful registration.
+* No notification of failure is shown when the registration is successful.
+
+User Action 6: Handle Worker Registration Failure
+Description:
+As an Admin, I want to be notified if worker registration fails so that I can correct any errors and retry the registration process.
+* If worker registration fails due to a database error or invalid data, the admin is notified with a clear error message indicating the failure.
+* The system prompts the admin to correct any errors in the registration form and allows them to retry the registration process.
+* The registration failure notification is displayed immediately after the failed attempt, without requiring the admin to refresh or navigate away from the page.
+* No worker record is added to the database if the registration fails.
+
+User Action 7: Access Admin Worker List Page
+Description:
+As an Admin, I want to access the worker list page so that I can view all registered hospital workers and manage their records efficiently.
+* The admin can successfully navigate to the Admin Worker List page from the application interface.
+* The Admin Worker List page displays a table containing all registered hospital workers with their relevant details.
+* The admin can enter a search query to filter workers by first or last name, and the results update accordingly in the table.
+* The admin can view the full list of workers when no search criteria are entered.
+* The worker list is fetched from the database and displayed without errors.
+* The table of workers is styled and readable for management purposes.
+
+User Action 8: Search or View Workers
+Description:
+As an Admin, I want to search for workers by name or view the full list so that I can quickly find and manage specific worker records.
+* The admin can access the worker list page and view all registered workers displayed in a table format.
+* The admin can enter a search query to filter workers by first or last name and see only matching results in the list.
+* The search results update dynamically to reflect the entered search criteria without requiring a page reload.
+* If no search criteria are entered, the full list of workers is displayed.
+* The admin can view all relevant details for each worker in the list, including first name, last name, and phone number.
+* The system displays an appropriate message if no workers match the search criteria.
+
+================================================================================
+Database Tables Owned
+================================================================================
+* receptionists - All receptionist records
+* workers - All hospital worker records
+
+================================================================================
+API Endpoints Owned
+================================================================================
+* /receptionists/* - All receptionist CRUD operations
+* /workers/* - All worker CRUD operations
+
+================================================================================
+Dependencies
+================================================================================
+* Depends on: Authentication module (Person 3) for user session/authorization
+* Depended on by: None (independent entity management)
+
