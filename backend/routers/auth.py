@@ -20,14 +20,15 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
             detail="Email or username already registered"
         )
     
-    # Create new user
+    # Create new user with default role 'undefined'
     hashed_password = auth_utils.get_password_hash(user.password)
     new_user = models.User(
         email=user.email,
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        role="undefined"
     )
     db.add(new_user)
     db.commit()
