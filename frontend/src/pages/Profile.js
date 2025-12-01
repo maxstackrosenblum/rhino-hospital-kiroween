@@ -9,7 +9,8 @@ function Profile({ user, token, onUserUpdate }) {
     email: user.email,
     first_name: user.first_name,
     last_name: user.last_name,
-    password: ''
+    password: '',
+    role: user.role
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -28,6 +29,7 @@ function Profile({ user, token, onUserUpdate }) {
     if (profileData.first_name !== user.first_name) updateData.first_name = profileData.first_name;
     if (profileData.last_name !== user.last_name) updateData.last_name = profileData.last_name;
     if (profileData.password) updateData.password = profileData.password;
+    if (profileData.role !== user.role) updateData.role = profileData.role;
 
     if (Object.keys(updateData).length === 0) {
       setError('No changes to save');
@@ -104,6 +106,24 @@ function Profile({ user, token, onUserUpdate }) {
               value={profileData.password}
               onChange={handleProfileChange}
             />
+          </div>
+          <div className="form-group">
+            <label>Role</label>
+            <select
+              name="role"
+              value={profileData.role}
+              onChange={handleProfileChange}
+              disabled={user.role !== 'admin'}
+              className={user.role !== 'admin' ? 'disabled-select' : ''}
+            >
+              <option value="undefined">Undefined</option>
+              <option value="admin">Admin</option>
+              <option value="doctor">Doctor</option>
+              <option value="receptionist">Receptionist</option>
+            </select>
+            {user.role !== 'admin' && (
+              <small className="help-text">Only admins can change roles</small>
+            )}
           </div>
           {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}

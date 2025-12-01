@@ -32,6 +32,13 @@ function Navbar({ user, onLogout }) {
       <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
         <span className="logo-text">Hospital Management System</span>
       </div>
+      <div className="navbar-menu">
+        {user.role === 'admin' && (
+          <button className="nav-link" onClick={() => navigate('/users')}>
+            Staff
+          </button>
+        )}
+      </div>
       <div className="user-menu">
         <button className="user-button" onClick={() => setDropdownOpen(!dropdownOpen)} title={`${user.first_name} ${user.last_name}`}>
           <div className="user-avatar">

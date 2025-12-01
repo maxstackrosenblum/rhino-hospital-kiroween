@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import Users from './pages/Users';
 import Login from './pages/Login';
 import './App.css';
 
@@ -14,6 +15,12 @@ function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Initialize theme on app load
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -84,6 +91,11 @@ function App() {
           <Route path="/settings" element={
             <ProtectedRoute user={user}>
               <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/users" element={
+            <ProtectedRoute user={user}>
+              <Users user={user} token={token} />
             </ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/" replace />} />
