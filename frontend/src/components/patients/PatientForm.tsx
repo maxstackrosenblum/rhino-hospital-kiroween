@@ -10,18 +10,19 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Patient } from "../../types";
+import { Patient, PatientProfileCreate, PatientUpdate } from "../../types";
 
 interface PatientFormProps {
-  mode: "create" | "update";
+  mode: "profile" | "update";
   initialData?: Patient;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: PatientProfileCreate | PatientUpdate) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
   submitError?: string | null;
 }
 
 interface FormData {
+  // User fields (for update mode)
   first_name: string;
   last_name: string;
   gender: string;
@@ -30,6 +31,10 @@ interface FormData {
   email: string;
   age: string;
   address: string;
+  // Patient-specific fields
+  medical_record_number: string;
+  emergency_contact: string;
+  insurance_info: string;
 }
 
 interface FormErrors {
@@ -41,6 +46,9 @@ interface FormErrors {
   email?: string;
   age?: string;
   address?: string;
+  medical_record_number?: string;
+  emergency_contact?: string;
+  insurance_info?: string;
 }
 
 const INITIAL_FORM_DATA: FormData = {
@@ -52,6 +60,9 @@ const INITIAL_FORM_DATA: FormData = {
   email: "",
   age: "",
   address: "",
+  medical_record_number: "",
+  emergency_contact: "",
+  insurance_info: "",
 };
 
 function PatientForm({
@@ -78,6 +89,9 @@ function PatientForm({
         email: initialData.email,
         age: initialData.age.toString(),
         address: initialData.address,
+        medical_record_number: initialData.medical_record_number || "",
+        emergency_contact: initialData.emergency_contact || "",
+        insurance_info: initialData.insurance_info || "",
       });
     } else {
       setFormData(INITIAL_FORM_DATA);
@@ -152,14 +166,24 @@ function PatientForm({
   const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
 
-    newErrors.first_name = validateRequired(formData.first_name, "First name");
-    newErrors.last_name = validateRequired(formData.last_name, "Last name");
-    newErrors.gender = validateRequired(formData.gender, "Gender");
-    newErrors.phone = validatePhone(formData.phone);
-    newErrors.city = validateRequired(formData.city, "City");
-    newErrors.email = validateEmail(formData.email);
-    newErrors.age = validateAge(formData.age);
-    newErrors.address = validateRequired(formData.address, "Address");
+    // For profile mode, only validate patient-specific fields
+    // For update mode, validate all fields
+    if (mode === "update") {
+      newErrors.first_name = validateRequired(
+        formData.first_name,
+        "First name"
+      );
+      newErrors.last_name = validateRequired(formData.last_name, "Last name");
+      newErrors.gender = validateRequired(formData.gender, "Gender");
+      newErrors.phone = validatePhone(formData.phone);
+      newErrors.city = validateRequired(formData.city, "City");
+      newErrors.email = validateEmail(formData.email);
+      newErrors.age = validateAge(formData.age);
+      newErrors.address = validateRequired(formData.address, "Address");
+    }
+
+    // Patient-specific fields are optional for both modes
+    // No required validation for patient-specific fields
 
     // Remove undefined errors
     Object.keys(newErrors).forEach((key) => {
@@ -228,6 +252,15 @@ function PatientForm({
       case "address":
         newErrors.address = validateRequired(formData.address, "Address");
         break;
+      case "medical_record_number":
+        // Optional field, no validation needed
+        break;
+      case "emergency_contact":
+        // Optional field, no validation needed
+        break;
+      case "insurance_info":
+        // Optional field, no validation needed
+        break;
     }
     setErrors(newErrors);
   };
@@ -252,19 +285,34 @@ function PatientForm({
       return;
     }
 
-    // Convert form data to appropriate type
-    const submitData = {
-      first_name: formData.first_name.trim(),
-      last_name: formData.last_name.trim(),
-      gender: formData.gender,
-      phone: formData.phone.trim(),
-      city: formData.city.trim(),
-      email: formData.email.trim(),
-      age: parseInt(formData.age),
-      address: formData.address.trim(),
-    };
-
-    onSubmit(submitData);
+    // Convert form data to appropriate type based on mode
+    if (mode === "profile") {
+      // Profile completion - only patient-specific fields
+      const submitData: PatientProfileCreate = {
+        medical_record_number:
+          formData.medical_record_number.trim() || undefined,
+        emergency_contact: formData.emergency_contact.trim() || undefined,
+        insurance_info: formData.insurance_info.trim() || undefined,
+      };
+      onSubmit(submitData);
+    } else {
+      // Update mode - all fields
+      const submitData: PatientUpdate = {
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
+        gender: formData.gender,
+        phone: formData.phone.trim(),
+        city: formData.city.trim(),
+        email: formData.email.trim(),
+        age: parseInt(formData.age),
+        address: formData.address.trim(),
+        medical_record_number:
+          formData.medical_record_number.trim() || undefined,
+        emergency_contact: formData.emergency_contact.trim() || undefined,
+        insurance_info: formData.insurance_info.trim() || undefined,
+      };
+      onSubmit(submitData);
+    }
   };
 
   // Check if form is valid
@@ -279,134 +327,205 @@ function PatientForm({
       )}
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {/* Name Fields */}
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <TextField
-            name="first_name"
-            label="First Name"
-            value={formData.first_name}
-            onChange={handleChange}
-            onBlur={() => handleBlur("first_name")}
-            error={touched.first_name && !!errors.first_name}
-            helperText={touched.first_name && errors.first_name}
-            fullWidth
-            required
-            disabled={isSubmitting}
-          />
-          <TextField
-            name="last_name"
-            label="Last Name"
-            value={formData.last_name}
-            onChange={handleChange}
-            onBlur={() => handleBlur("last_name")}
-            error={touched.last_name && !!errors.last_name}
-            helperText={touched.last_name && errors.last_name}
-            fullWidth
-            required
-            disabled={isSubmitting}
-          />
-        </Box>
+        {/* User Fields - Only show in update mode */}
+        {mode === "update" && (
+          <>
+            {/* Name Fields */}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                name="first_name"
+                label="First Name"
+                value={formData.first_name}
+                onChange={handleChange}
+                onBlur={() => handleBlur("first_name")}
+                error={touched.first_name && !!errors.first_name}
+                helperText={touched.first_name && errors.first_name}
+                fullWidth
+                required
+                disabled={isSubmitting}
+                size="small"
+              />
+              <TextField
+                name="last_name"
+                label="Last Name"
+                value={formData.last_name}
+                onChange={handleChange}
+                onBlur={() => handleBlur("last_name")}
+                error={touched.last_name && !!errors.last_name}
+                helperText={touched.last_name && errors.last_name}
+                fullWidth
+                required
+                disabled={isSubmitting}
+                size="small"
+              />
+            </Box>
 
-        {/* Gender and Age */}
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <FormControl
-            fullWidth
-            required
-            error={touched.gender && !!errors.gender}
-            disabled={isSubmitting}
-          >
-            <InputLabel>Gender</InputLabel>
-            <Select
-              name="gender"
-              value={formData.gender}
-              label="Gender"
-              onChange={(e) => handleSelectChange("gender", e.target.value)}
-              onBlur={() => handleBlur("gender")}
-            >
-              <MenuItem value="male">Male</MenuItem>
-              <MenuItem value="female">Female</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
-            </Select>
-            {touched.gender && errors.gender && (
-              <FormHelperText>{errors.gender}</FormHelperText>
-            )}
-          </FormControl>
+            {/* Gender and Age */}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <FormControl
+                fullWidth
+                required
+                error={touched.gender && !!errors.gender}
+                disabled={isSubmitting}
+                size="small"
+              >
+                <InputLabel>Gender</InputLabel>
+                <Select
+                  name="gender"
+                  value={formData.gender}
+                  label="Gender"
+                  onChange={(e) => handleSelectChange("gender", e.target.value)}
+                  onBlur={() => handleBlur("gender")}
+                >
+                  <MenuItem value="male">Male</MenuItem>
+                  <MenuItem value="female">Female</MenuItem>
+                  <MenuItem value="other">Other</MenuItem>
+                </Select>
+                {touched.gender && errors.gender && (
+                  <FormHelperText>{errors.gender}</FormHelperText>
+                )}
+              </FormControl>
 
-          <TextField
-            name="age"
-            label="Age"
-            type="number"
-            value={formData.age}
-            onChange={handleChange}
-            onBlur={() => handleBlur("age")}
-            error={touched.age && !!errors.age}
-            helperText={touched.age && errors.age}
-            fullWidth
-            required
-            disabled={isSubmitting}
-            slotProps={{
-              htmlInput: { min: 0, max: 150 },
-            }}
-          />
-        </Box>
+              <TextField
+                name="age"
+                label="Age"
+                type="number"
+                value={formData.age}
+                onChange={handleChange}
+                onBlur={() => handleBlur("age")}
+                error={touched.age && !!errors.age}
+                helperText={touched.age && errors.age}
+                fullWidth
+                required
+                disabled={isSubmitting}
+                size="small"
+                slotProps={{
+                  htmlInput: { min: 0, max: 150 },
+                }}
+              />
+            </Box>
 
-        {/* Contact Information */}
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <TextField
-            name="phone"
-            label="Phone"
-            value={formData.phone}
-            onChange={handleChange}
-            onBlur={() => handleBlur("phone")}
-            error={touched.phone && !!errors.phone}
-            helperText={touched.phone && errors.phone}
-            fullWidth
-            required
-            disabled={isSubmitting}
-          />
-          <TextField
-            name="email"
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            onBlur={() => handleBlur("email")}
-            error={touched.email && !!errors.email}
-            helperText={touched.email && errors.email}
-            fullWidth
-            required
-            disabled={isSubmitting}
-          />
-        </Box>
+            {/* Contact Information */}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                name="phone"
+                label="Phone"
+                value={formData.phone}
+                onChange={handleChange}
+                onBlur={() => handleBlur("phone")}
+                error={touched.phone && !!errors.phone}
+                helperText={touched.phone && errors.phone}
+                fullWidth
+                required
+                disabled={isSubmitting}
+                size="small"
+              />
+              <TextField
+                name="email"
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={() => handleBlur("email")}
+                error={touched.email && !!errors.email}
+                helperText={touched.email && errors.email}
+                fullWidth
+                required
+                disabled={isSubmitting}
+                size="small"
+              />
+            </Box>
 
-        {/* City */}
+            {/* City */}
+            <TextField
+              name="city"
+              label="City"
+              value={formData.city}
+              onChange={handleChange}
+              onBlur={() => handleBlur("city")}
+              error={touched.city && !!errors.city}
+              helperText={touched.city && errors.city}
+              fullWidth
+              required
+              disabled={isSubmitting}
+              size="small"
+            />
+
+            {/* Address */}
+            <TextField
+              name="address"
+              label="Address"
+              value={formData.address}
+              onChange={handleChange}
+              onBlur={() => handleBlur("address")}
+              error={touched.address && !!errors.address}
+              helperText={touched.address && errors.address}
+              fullWidth
+              multiline
+              rows={3}
+              required
+              disabled={isSubmitting}
+              size="small"
+            />
+          </>
+        )}
+
+        {/* Patient-Specific Fields */}
         <TextField
-          name="city"
-          label="City"
-          value={formData.city}
+          name="medical_record_number"
+          label="Medical Record Notes"
+          value={formData.medical_record_number}
           onChange={handleChange}
-          onBlur={() => handleBlur("city")}
-          error={touched.city && !!errors.city}
-          helperText={touched.city && errors.city}
+          onBlur={() => handleBlur("medical_record_number")}
+          error={
+            touched.medical_record_number && !!errors.medical_record_number
+          }
+          helperText={
+            touched.medical_record_number && errors.medical_record_number
+              ? errors.medical_record_number
+              : "Optional: Medical record notes and information"
+          }
           fullWidth
-          required
+          multiline
+          rows={4}
           disabled={isSubmitting}
+          size="small"
         />
 
-        {/* Address */}
         <TextField
-          name="address"
-          label="Address"
-          value={formData.address}
+          name="emergency_contact"
+          label="Emergency Contact"
+          value={formData.emergency_contact}
           onChange={handleChange}
-          onBlur={() => handleBlur("address")}
-          error={touched.address && !!errors.address}
-          helperText={touched.address && errors.address}
+          onBlur={() => handleBlur("emergency_contact")}
+          error={touched.emergency_contact && !!errors.emergency_contact}
+          helperText={
+            touched.emergency_contact && errors.emergency_contact
+              ? errors.emergency_contact
+              : "Optional: Emergency contact information"
+          }
+          fullWidth
+          disabled={isSubmitting}
+          size="small"
+        />
+
+        <TextField
+          name="insurance_info"
+          label="Insurance Information"
+          value={formData.insurance_info}
+          onChange={handleChange}
+          onBlur={() => handleBlur("insurance_info")}
+          error={touched.insurance_info && !!errors.insurance_info}
+          helperText={
+            touched.insurance_info && errors.insurance_info
+              ? errors.insurance_info
+              : "Optional: Insurance details and coverage information"
+          }
           fullWidth
           multiline
           rows={3}
-          required
           disabled={isSubmitting}
+          size="small"
         />
 
         {/* Action Buttons */}
@@ -422,11 +541,11 @@ function PatientForm({
             disabled={isSubmitting || !isFormValid}
           >
             {isSubmitting
-              ? mode === "create"
-                ? "Creating..."
+              ? mode === "profile"
+                ? "Completing Profile..."
                 : "Updating..."
-              : mode === "create"
-              ? "Create Patient"
+              : mode === "profile"
+              ? "Complete Profile"
               : "Update Patient"}
           </Button>
         </Box>

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 import auth as auth_utils
 import models
 import schemas
@@ -20,15 +21,20 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
             detail="Email or username already registered"
         )
     
-    # Create new user with default role 'undefined'
+    # Create new user with provided role or default 'undefined'
     hashed_password = auth_utils.get_password_hash(user.password)
     new_user = models.User(
         email=user.email,
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
+        phone=user.phone,
+        city=user.city,
+        age=user.age,
+        address=user.address,
+        gender=user.gender,
         hashed_password=hashed_password,
-        role="undefined"
+        role=user.role.value if user.role else "undefined"
     )
     db.add(new_user)
     db.commit()
@@ -60,3 +66,46 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     
     access_token = auth_utils.create_access_token(data={"sub": db_user.username})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/me/profile-status", response_model=schemas.ProfileCompletionStatus)
+async def get_current_user_profile_status(
+    current_user: models.User = Depends(auth_utils.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user's profile completion status"""
+    from sqlalchemy import and_
+    
+    has_role_specific_profile = False
+    profile_completed_at = None
+    requires_profile_completion = current_user.role in [models.UserRole.PATIENT, models.UserRole.DOCTOR]
+    
+    if current_user.role == models.UserRole.PATIENT:
+        patient = db.query(models.Patient).filter(
+            and_(
+                models.Patient.user_id == current_user.id,
+                models.Patient.deleted_at.is_(None)
+            )
+        ).first()
+        if patient:
+            has_role_specific_profile = True
+            profile_completed_at = patient.created_at
+            
+    elif current_user.role == models.UserRole.DOCTOR:
+        doctor = db.query(models.Doctor).filter(
+            and_(
+                models.Doctor.user_id == current_user.id,
+                models.Doctor.deleted_at.is_(None)
+            )
+        ).first()
+        if doctor:
+            has_role_specific_profile = True
+            profile_completed_at = doctor.created_at
+    
+    return schemas.ProfileCompletionStatus(
+        user_id=current_user.id,
+        role=current_user.role,
+        has_role_specific_profile=has_role_specific_profile,
+        profile_completed_at=profile_completed_at,
+        requires_profile_completion=requires_profile_completion
+    )

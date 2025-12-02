@@ -1,4 +1,8 @@
-import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
+import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  AccountCircle as ProfileIcon,
+} from "@mui/icons-material";
 import {
   Box,
   CircularProgress,
@@ -20,6 +24,7 @@ interface DoctorsTableProps {
   isLoading: boolean;
   onEdit: (doctor: Doctor) => void;
   onDelete: (doctor: Doctor) => void;
+  onCompleteProfile: (doctor: Doctor) => void;
 }
 
 function DoctorsTable({
@@ -28,21 +33,21 @@ function DoctorsTable({
   isLoading,
   onEdit,
   onDelete,
+  onCompleteProfile,
 }: DoctorsTableProps) {
   return (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell sx={{ fontWeight: 600 }}>User ID</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Doctor ID</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Gender</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Age</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>City</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Qualification</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Address</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Department</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Specialization</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Registered</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
           </TableRow>
@@ -90,47 +95,99 @@ function DoctorsTable({
             </TableRow>
           ) : (
             doctors.map((doctor) => (
-              <TableRow key={doctor.id} hover>
+              <TableRow key={doctor.user_id} hover>
                 <TableCell>
                   <Typography variant="body2" fontWeight={500}>
-                    {doctor.doctor_id}
+                    {doctor.user_id}
                   </Typography>
+                </TableCell>
+                <TableCell>
+                  {doctor.doctor_id ? (
+                    <Typography variant="body2" fontWeight={500}>
+                      {doctor.doctor_id}
+                    </Typography>
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontStyle="italic"
+                    >
+                      Not set
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell>
                   {doctor.first_name} {doctor.last_name}
                 </TableCell>
-                <TableCell sx={{ textTransform: "capitalize" }}>
-                  {doctor.gender}
-                </TableCell>
-                <TableCell>{doctor.age}</TableCell>
                 <TableCell>{doctor.phone}</TableCell>
                 <TableCell>{doctor.email}</TableCell>
-                <TableCell>{doctor.city}</TableCell>
                 <TableCell>
-                  <Typography
-                    variant="body2"
-                    sx={{ maxWidth: 150, wordBreak: "break-word" }}
-                  >
-                    {doctor.qualification}
-                  </Typography>
+                  {doctor.qualifications ? (
+                    <Typography
+                      variant="body2"
+                      sx={{ maxWidth: 150, wordBreak: "break-word" }}
+                    >
+                      {doctor.qualifications.join(", ")}
+                    </Typography>
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontStyle="italic"
+                    >
+                      Not set
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell>
-                  <Typography
-                    variant="body2"
-                    sx={{ maxWidth: 200, wordBreak: "break-word" }}
-                  >
-                    {doctor.address}
-                  </Typography>
+                  {doctor.department ? (
+                    <Typography variant="body2">{doctor.department}</Typography>
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontStyle="italic"
+                    >
+                      Not set
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {doctor.specialization ? (
+                    <Typography variant="body2">
+                      {doctor.specialization}
+                    </Typography>
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontStyle="italic"
+                    >
+                      Not set
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell>
                   {new Date(doctor.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
                   <Box sx={{ display: "flex", gap: 1 }}>
+                    {!doctor.profile_completed && (
+                      <IconButton
+                        onClick={() => onCompleteProfile(doctor)}
+                        color="warning"
+                        size="small"
+                        title="Complete Profile"
+                      >
+                        <ProfileIcon />
+                      </IconButton>
+                    )}
                     <IconButton
                       onClick={() => onEdit(doctor)}
                       color="primary"
                       size="small"
+                      title="Edit"
+                      disabled={!doctor.doctor_id}
                     >
                       <EditIcon />
                     </IconButton>
@@ -138,6 +195,8 @@ function DoctorsTable({
                       onClick={() => onDelete(doctor)}
                       color="error"
                       size="small"
+                      title="Delete"
+                      disabled={!doctor.doctor_id}
                     >
                       <DeleteIcon />
                     </IconButton>

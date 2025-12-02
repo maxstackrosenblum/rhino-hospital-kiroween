@@ -1,8 +1,7 @@
-import { Add as AddIcon, Search as SearchIcon } from "@mui/icons-material";
+import { Search as SearchIcon } from "@mui/icons-material";
 import {
   Alert,
   Box,
-  Button,
   CircularProgress,
   Container,
   InputAdornment,
@@ -13,17 +12,17 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  useCreatePatient,
+  useCompletePatientProfile,
   useDeletePatient,
   usePatients,
   useUpdatePatient,
 } from "../api/patients";
-import CreatePatientDialog from "../components/patients/CreatePatientDialog";
+import CompletePatientProfileDialog from "../components/patients/CompletePatientProfileDialog";
 import DeletePatientDialog from "../components/patients/DeletePatientDialog";
 import EditPatientDialog from "../components/patients/EditPatientDialog";
 import PatientsTable from "../components/patients/PatientsTable";
 import { useDebounce } from "../hooks/useDebounce";
-import { Patient, PatientCreate, PatientUpdate, User } from "../types";
+import { Patient, PatientProfileCreate, PatientUpdate, User } from "../types";
 
 interface PatientsProps {
   user: User;
@@ -33,7 +32,8 @@ function Patients({ user }: PatientsProps) {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms debounce
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [completeProfileDialogOpen, setCompleteProfileDialogOpen] =
+    useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -61,16 +61,16 @@ function Patients({ user }: PatientsProps) {
 
   const patients = patientsResponse?.patients || [];
 
-  const createPatientMutation = useCreatePatient();
+  const createPatientProfileMutation = useCompletePatientProfile();
   const updatePatientMutation = useUpdatePatient();
   const deletePatientMutation = useDeletePatient();
 
   // Handle success messages only - errors are handled in forms
   useEffect(() => {
-    if (createPatientMutation.isSuccess) {
-      setSuccessMessage("Patient created successfully!");
+    if (createPatientProfileMutation.isSuccess) {
+      setSuccessMessage("Patient profile completed successfully!");
     }
-  }, [createPatientMutation.isSuccess]);
+  }, [createPatientProfileMutation.isSuccess]);
 
   useEffect(() => {
     if (updatePatientMutation.isSuccess) {
@@ -95,7 +95,7 @@ function Patients({ user }: PatientsProps) {
   };
 
   const handleEditSubmit = (data: PatientUpdate) => {
-    if (!editingPatient) return;
+    if (!editingPatient || editingPatient.id === null) return;
 
     updatePatientMutation.mutate(
       { patientId: editingPatient.id, data },
@@ -113,17 +113,29 @@ function Patients({ user }: PatientsProps) {
     setEditingPatient(null);
   };
 
-  // Handlers for creating
-  const handleCreateSubmit = (data: PatientCreate) => {
-    createPatientMutation.mutate(data, {
-      onSuccess: () => {
-        setCreateDialogOpen(false);
-      },
-    });
+  // Handlers for completing patient profile
+  const handleCompleteProfile = (patient: Patient) => {
+    setEditingPatient(patient);
+    setCompleteProfileDialogOpen(true);
   };
 
-  const handleCreateCancel = () => {
-    setCreateDialogOpen(false);
+  const handleCompleteProfileSubmit = (data: PatientProfileCreate) => {
+    if (!editingPatient) return;
+
+    createPatientProfileMutation.mutate(
+      { profileData: data, userId: editingPatient.user_id },
+      {
+        onSuccess: () => {
+          setCompleteProfileDialogOpen(false);
+          setEditingPatient(null);
+        },
+      }
+    );
+  };
+
+  const handleCompleteProfileCancel = () => {
+    setCompleteProfileDialogOpen(false);
+    setEditingPatient(null);
   };
 
   // Handlers for deleting
@@ -138,7 +150,7 @@ function Patients({ user }: PatientsProps) {
   };
 
   const handleDeleteConfirm = () => {
-    if (!patientToDelete) return;
+    if (!patientToDelete || patientToDelete.id === null) return;
 
     deletePatientMutation.mutate(patientToDelete.id, {
       onSuccess: () => {
@@ -162,15 +174,6 @@ function Patients({ user }: PatientsProps) {
           <Typography variant="h3" component="h1" fontWeight={700}>
             Patient Management
           </Typography>
-          {canModify && (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setCreateDialogOpen(true)}
-            >
-              Add Patient
-            </Button>
-          )}
         </Box>
 
         {/* Search Bar */}
@@ -222,15 +225,16 @@ function Patients({ user }: PatientsProps) {
           isLoading={isLoading}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
+          onCompleteProfile={handleCompleteProfile}
         />
 
-        {/* Create Patient Dialog */}
-        <CreatePatientDialog
-          open={createDialogOpen}
-          isCreating={createPatientMutation.isPending}
-          onClose={handleCreateCancel}
-          onSubmit={handleCreateSubmit}
-          submitError={createPatientMutation.error?.message || null}
+        {/* Complete Patient Profile Dialog */}
+        <CompletePatientProfileDialog
+          open={completeProfileDialogOpen}
+          isCompleting={createPatientProfileMutation.isPending}
+          onClose={handleCompleteProfileCancel}
+          onSubmit={handleCompleteProfileSubmit}
+          submitError={createPatientProfileMutation.error?.message || null}
         />
 
         {/* Edit Patient Dialog */}

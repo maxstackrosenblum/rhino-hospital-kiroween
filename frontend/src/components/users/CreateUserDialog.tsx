@@ -1,22 +1,22 @@
 import { Dialog, DialogContent, DialogTitle } from "@mui/material";
-import { DoctorCreate } from "../../types";
-import DoctorForm from "./DoctorForm";
+import { UserCreate } from "../../types";
+import UserForm from "./UserForm";
 
-interface CreateDoctorDialogProps {
+interface CreateUserDialogProps {
   open: boolean;
   isCreating: boolean;
   onClose: () => void;
-  onSubmit: (data: DoctorCreate) => void;
+  onSubmit: (data: UserCreate) => void;
   submitError?: string | null;
 }
 
-function CreateDoctorDialog({
+function CreateUserDialog({
   open,
   isCreating,
   onClose,
   onSubmit,
   submitError,
-}: CreateDoctorDialogProps) {
+}: CreateUserDialogProps) {
   const handleClose = () => {
     // Prevent closing dialog while creating
     if (!isCreating) {
@@ -32,9 +32,9 @@ function CreateDoctorDialog({
       fullWidth
       disableEscapeKeyDown={isCreating}
     >
-      <DialogTitle>Add New Doctor</DialogTitle>
+      <DialogTitle>Create New User Account</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
-        <DoctorForm
+        <UserForm<"create">
           mode="create"
           onSubmit={onSubmit}
           onCancel={handleClose}
@@ -46,4 +46,4 @@ function CreateDoctorDialog({
   );
 }
 
-export default CreateDoctorDialog;
+export default CreateUserDialog;

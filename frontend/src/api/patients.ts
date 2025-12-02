@@ -3,6 +3,7 @@ import {
   PaginatedPatientsResponse,
   Patient,
   PatientCreate,
+  PatientProfileCreate,
   PatientUpdate,
 } from "../types";
 import { API_URL, getAuthHeaders, handleApiError } from "./common";
@@ -52,12 +53,13 @@ export const usePatient = (patientId: number) => {
 };
 
 // Patient mutations
+// Combined workflow: Create user and complete patient profile in one step
 export const useCreatePatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (patientData: PatientCreate): Promise<Patient> => {
-      const response = await fetch(`${API_URL}/api/patients`, {
+      const response = await fetch(`${API_URL}/api/patients/create-with-user`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify(patientData),
@@ -70,6 +72,38 @@ export const useCreatePatient = () => {
     },
     onError: (error: Error) => {
       console.error("Failed to create patient:", error.message);
+    },
+  });
+};
+
+// New workflow: Complete patient profile (for existing user)
+export const useCompletePatientProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      profileData: PatientProfileCreate;
+      userId?: number;
+    }): Promise<Patient> => {
+      const url = data.userId
+        ? `${API_URL}/api/patients/profile?user_id=${data.userId}`
+        : `${API_URL}/api/patients/profile`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data.profileData),
+      });
+      return handleApiError<Patient>(response);
+    },
+    onSuccess: () => {
+      // Invalidate and refetch patients list
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      // Invalidate current user to update profile completion status
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to complete patient profile:", error.message);
     },
   });
 };

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Doctor,
   DoctorCreate,
+  DoctorProfileCreate,
   DoctorUpdate,
   PaginatedDoctorsResponse,
 } from "../types";
@@ -52,12 +53,13 @@ export const useDoctor = (doctorId: number) => {
 };
 
 // Doctor mutations
+// Combined workflow: Create user and complete doctor profile in one step
 export const useCreateDoctor = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (doctorData: DoctorCreate): Promise<Doctor> => {
-      const response = await fetch(`${API_URL}/api/doctors`, {
+      const response = await fetch(`${API_URL}/api/doctors/create-with-user`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify(doctorData),
@@ -70,6 +72,38 @@ export const useCreateDoctor = () => {
     },
     onError: (error: Error) => {
       console.error("Failed to create doctor:", error.message);
+    },
+  });
+};
+
+// New workflow: Complete doctor profile (for existing user)
+export const useCompleteDoctorProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      profileData: DoctorProfileCreate;
+      userId?: number;
+    }): Promise<Doctor> => {
+      const url = data.userId
+        ? `${API_URL}/api/doctors/profile?user_id=${data.userId}`
+        : `${API_URL}/api/doctors/profile`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data.profileData),
+      });
+      return handleApiError<Doctor>(response);
+    },
+    onSuccess: () => {
+      // Invalidate and refetch doctors list
+      queryClient.invalidateQueries({ queryKey: ["doctors"] });
+      // Invalidate current user to update profile completion status
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to complete doctor profile:", error.message);
     },
   });
 };
@@ -132,4 +166,32 @@ export const useDeleteDoctor = () => {
       console.error("Failed to delete doctor:", error.message);
     },
   });
+};
+// Utility functions for handling qualifications
+export const addQualification = (
+  qualifications: string[],
+  newQualification: string
+): string[] => {
+  if (!newQualification.trim()) return qualifications;
+  if (qualifications.includes(newQualification.trim())) return qualifications;
+  return [...qualifications, newQualification.trim()];
+};
+
+export const removeQualification = (
+  qualifications: string[],
+  qualificationToRemove: string
+): string[] => {
+  return qualifications.filter((q) => q !== qualificationToRemove);
+};
+
+export const updateQualification = (
+  qualifications: string[],
+  oldQualification: string,
+  newQualification: string
+): string[] => {
+  if (!newQualification.trim())
+    return removeQualification(qualifications, oldQualification);
+  return qualifications.map((q) =>
+    q === oldQualification ? newQualification.trim() : q
+  );
 };

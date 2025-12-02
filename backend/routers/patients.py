@@ -1,47 +1,128 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, and_
 from typing import List, Optional
 from datetime import datetime
 
 from database import get_db
-from models import Patient, User
-from schemas import PatientCreate, PatientUpdate, PatientResponse, PaginatedPatientsResponse
-from core.dependencies import require_patient_access, require_receptionist_or_admin, require_admin
+from models import Patient, User, UserRole
+from schemas import PatientProfileCreate, PatientUpdate, PatientResponse, PaginatedPatientsResponse, PatientProfileStatus
+from core.dependencies import require_patient_access, require_receptionist_or_admin, require_admin, require_patient_role
+import auth as auth_utils
 
 router = APIRouter(prefix="/api/patients", tags=["patients"])
 
 
-@router.post("/", response_model=PatientResponse, status_code=status.HTTP_201_CREATED)
-async def create_patient(
-    patient: PatientCreate,
+def create_patient_response(user: User, patient: Patient = None) -> PatientResponse:
+    """Helper function to create consistent PatientResponse objects"""
+    profile_completed = patient is not None and patient.deleted_at is None
+    
+    return PatientResponse(
+        # Profile fields (null if profile incomplete)
+        id=patient.id if profile_completed else None,
+        medical_record_number=patient.medical_record_number if profile_completed else None,
+        emergency_contact=patient.emergency_contact if profile_completed else None,
+        insurance_info=patient.insurance_info if profile_completed else None,
+        
+        # User fields (always present)
+        user_id=user.id,
+        email=user.email,
+        username=user.username,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        phone=user.phone,
+        city=user.city,
+        age=user.age,
+        address=user.address,
+        gender=user.gender,
+        role=user.role,
+        
+        # Status fields (computed)
+        profile_completed=profile_completed,
+        profile_completed_at=patient.created_at if profile_completed else None,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+        deleted_at=user.deleted_at
+    )
+
+
+@router.post("/profile", response_model=PatientResponse, status_code=status.HTTP_201_CREATED)
+async def complete_patient_profile(
+    patient_profile: PatientProfileCreate,
+    user_id: Optional[int] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_receptionist_or_admin)
+    current_user: User = Depends(auth_utils.get_current_user)
 ):
     """
-    Create a new patient record.
+    Complete patient profile for current user or specified user.
     
-    Requires: Receptionist or Admin role
+    This creates the patient-specific record linked to the existing user account.
+    - Patients can complete their own profile
+    - Admin and receptionist can complete profiles for any patient user
+    
+    Requires: Patient role (for own profile) or Admin/Receptionist role (for any user)
     """
     try:
-        # Check if email already exists (excluding soft-deleted records)
+        # Determine target user
+        if user_id is not None:
+            # Admin/Receptionist completing profile for another user
+            if current_user.role not in [UserRole.ADMIN, UserRole.RECEPTIONIST]:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only admin or receptionist can complete profiles for other users"
+                )
+            
+            target_user = db.query(User).filter(
+                and_(User.id == user_id, User.deleted_at.is_(None))
+            ).first()
+            
+            if not target_user:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Target user not found"
+                )
+            
+            if target_user.role != UserRole.PATIENT:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Target user must have patient role"
+                )
+        else:
+            # User completing their own profile
+            if current_user.role != UserRole.PATIENT:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only users with patient role can complete their own patient profile"
+                )
+            target_user = current_user
+        
+        # Check if user already has a patient profile
         existing_patient = db.query(Patient).filter(
-            and_(Patient.email == patient.email, Patient.deleted_at.is_(None))
+            and_(
+                Patient.user_id == target_user.id,
+                Patient.deleted_at.is_(None)
+            )
         ).first()
         
         if existing_patient:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="A patient with this email already exists"
+                detail="Patient profile already exists for this user"
             )
         
-        # Create new patient
-        db_patient = Patient(**patient.dict())
+        # Create patient record
+        db_patient = Patient(
+            user_id=target_user.id,
+            medical_record_number=patient_profile.medical_record_number,
+            emergency_contact=patient_profile.emergency_contact,
+            insurance_info=patient_profile.insurance_info
+        )
         db.add(db_patient)
         db.commit()
         db.refresh(db_patient)
         
-        return db_patient
+        # Return combined response
+        return create_patient_response(target_user, db_patient)
         
     except HTTPException:
         raise
@@ -49,7 +130,64 @@ async def create_patient(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create patient record"
+            detail="Failed to complete patient profile"
+        )
+
+
+@router.get("/profile/status", response_model=PatientProfileStatus)
+async def get_patient_profile_status(
+    user_id: Optional[int] = None,
+    current_user: User = Depends(auth_utils.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get patient profile completion status for current user or specified user"""
+    try:
+        # Determine target user
+        if user_id is not None:
+            # Admin/Receptionist checking status for another user
+            if current_user.role not in [UserRole.ADMIN, UserRole.RECEPTIONIST]:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only admin or receptionist can check profile status for other users"
+                )
+            
+            target_user = db.query(User).filter(
+                and_(User.id == user_id, User.deleted_at.is_(None))
+            ).first()
+            
+            if not target_user:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Target user not found"
+                )
+            
+            target_user_id = target_user.id
+        else:
+            # User checking their own status
+            if current_user.role != UserRole.PATIENT:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only users with patient role can check their own patient profile status"
+                )
+            target_user_id = current_user.id
+        
+        patient = db.query(Patient).filter(
+            and_(
+                Patient.user_id == target_user_id,
+                Patient.deleted_at.is_(None)
+            )
+        ).first()
+        
+        return PatientProfileStatus(
+            user_id=target_user_id,
+            has_patient_profile=patient is not None,
+            profile_completed_at=patient.created_at if patient else None
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve patient profile status"
         )
 
 
@@ -63,26 +201,29 @@ async def get_patients(
     current_user: User = Depends(require_patient_access)
 ):
     """
-    Get list of patients with optional search and pagination.
+    Get list of all users with patient role, regardless of profile completion status.
     
     Requires: Doctor, Receptionist, or Admin role
     """
     try:
-        query = db.query(Patient)
+        # Query User table with LEFT JOIN to Patient table to show all patient users
+        query = db.query(User).outerjoin(Patient, User.id == Patient.user_id).filter(
+            User.role == UserRole.PATIENT
+        )
         
         # Filter out soft-deleted records unless specifically requested by admin
-        if not include_deleted or current_user.role != "admin":
-            query = query.filter(Patient.deleted_at.is_(None))
+        if not include_deleted or current_user.role != UserRole.ADMIN:
+            query = query.filter(User.deleted_at.is_(None))
         
         # Apply search filter if provided
         if search:
             search_term = f"%{search.strip()}%"
             query = query.filter(
                 or_(
-                    Patient.first_name.ilike(search_term),
-                    Patient.last_name.ilike(search_term),
-                    Patient.email.ilike(search_term),
-                    Patient.phone.ilike(search_term)
+                    User.first_name.ilike(search_term),
+                    User.last_name.ilike(search_term),
+                    User.email.ilike(search_term),
+                    User.phone.ilike(search_term)
                 )
             )
         
@@ -93,8 +234,16 @@ async def get_patients(
         total_pages = (total + page_size - 1) // page_size
         offset = (page - 1) * page_size
         
-        # Get paginated patients
-        patients = query.order_by(Patient.created_at.desc()).offset(offset).limit(page_size).all()
+        # Get paginated users with optional patient data
+        users_data = query.options(joinedload(User.patient)).order_by(User.created_at.desc()).offset(offset).limit(page_size).all()
+        
+        # Convert to response format
+        patients = []
+        for user in users_data:
+            patient = user.patient
+            profile_completed = patient is not None and patient.deleted_at is None
+            
+            patients.append(create_patient_response(user, patient))
         
         return {
             "patients": patients,
@@ -111,34 +260,40 @@ async def get_patients(
         )
 
 
-@router.get("/{patient_id}", response_model=PatientResponse)
+@router.get("/{user_id}", response_model=PatientResponse)
 async def get_patient(
-    patient_id: int,
+    user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_patient_access)
 ):
     """
-    Get a specific patient by ID.
+    Get a specific patient by user ID, showing profile completion status.
     
     Requires: Doctor, Receptionist, or Admin role
     """
     try:
-        patient = db.query(Patient).filter(Patient.id == patient_id).first()
+        # Query User with LEFT JOIN to Patient to handle users without completed profiles
+        user = db.query(User).outerjoin(Patient, User.id == Patient.user_id).options(joinedload(User.patient)).filter(
+            and_(User.id == user_id, User.role == UserRole.PATIENT)
+        ).first()
         
-        if not patient:
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Patient not found"
+                detail="Patient user not found"
             )
         
-        # Check if patient is soft-deleted (only admin can see deleted records)
-        if patient.deleted_at and current_user.role != "admin":
+        # Check if user is soft-deleted (only admin can see deleted records)
+        if user.deleted_at and current_user.role != UserRole.ADMIN:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Patient not found"
+                detail="Patient user not found"
             )
         
-        return patient
+        patient = user.patient
+        profile_completed = patient is not None and patient.deleted_at is None
+        
+        return create_patient_response(user, patient)
         
     except HTTPException:
         raise
@@ -157,14 +312,14 @@ async def update_patient(
     current_user: User = Depends(require_receptionist_or_admin)
 ):
     """
-    Update a patient record.
+    Update a patient record (updates both user and patient tables).
     
     Requires: Receptionist or Admin role
     """
     try:
-        # Get existing patient
-        db_patient = db.query(Patient).filter(
-            and_(Patient.id == patient_id, Patient.deleted_at.is_(None))
+        # Get existing patient with user data
+        db_patient = db.query(Patient).join(User, Patient.user_id == User.id).options(joinedload(Patient.user)).filter(
+            and_(Patient.id == patient_id, Patient.deleted_at.is_(None), User.deleted_at.is_(None))
         ).first()
         
         if not db_patient:
@@ -174,41 +329,52 @@ async def update_patient(
             )
         
         # Check for email conflicts if email is being updated
-        if patient_update.email and patient_update.email != db_patient.email:
-            existing_patient = db.query(Patient).filter(
+        if patient_update.email and patient_update.email != db_patient.user.email:
+            existing_user = db.query(User).filter(
                 and_(
-                    Patient.email == patient_update.email,
-                    Patient.id != patient_id,
-                    Patient.deleted_at.is_(None)
+                    User.email == patient_update.email,
+                    User.id != db_patient.user_id,
+                    User.deleted_at.is_(None)
                 )
             ).first()
             
-            if existing_patient:
+            if existing_user:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail="A patient with this email already exists"
+                    detail="A user with this email already exists"
                 )
         
-        # Update fields that are provided
-        update_data = patient_update.dict(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(db_patient, field, value)
+        # Update user fields
+        user_fields = ['email', 'first_name', 'last_name', 'phone', 'city', 'age', 'address', 'gender']
+        user_update_data = {k: v for k, v in patient_update.dict(exclude_unset=True).items() if k in user_fields}
         
-        # Update the updated_at timestamp
-        db_patient.updated_at = datetime.utcnow()
+        if user_update_data:
+            for field, value in user_update_data.items():
+                setattr(db_patient.user, field, value)
+            db_patient.user.updated_at = datetime.utcnow()
+        
+        # Update patient-specific fields
+        patient_fields = ['medical_record_number', 'emergency_contact', 'insurance_info']
+        patient_update_data = {k: v for k, v in patient_update.dict(exclude_unset=True).items() if k in patient_fields}
+        
+        if patient_update_data:
+            for field, value in patient_update_data.items():
+                setattr(db_patient, field, value)
+            db_patient.updated_at = datetime.utcnow()
         
         db.commit()
         db.refresh(db_patient)
         
-        return db_patient
+        return create_patient_response(db_patient.user, db_patient)
         
     except HTTPException:
         raise
     except Exception as e:
         db.rollback()
+        print(f"Error updating patient: {str(e)}")  # Debug logging
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update patient record"
+            detail=f"Failed to update patient record: {str(e)}"
         )
 
 
@@ -219,14 +385,14 @@ async def delete_patient(
     current_user: User = Depends(require_admin)
 ):
     """
-    Soft delete a patient record.
+    Soft delete a patient record (deletes both user and patient records).
     
     Requires: Admin role only
     """
     try:
-        # Get existing patient
-        db_patient = db.query(Patient).filter(
-            and_(Patient.id == patient_id, Patient.deleted_at.is_(None))
+        # Get existing patient with user data
+        db_patient = db.query(Patient).join(User, Patient.user_id == User.id).options(joinedload(Patient.user)).filter(
+            and_(Patient.id == patient_id, Patient.deleted_at.is_(None), User.deleted_at.is_(None))
         ).first()
         
         if not db_patient:
@@ -235,8 +401,11 @@ async def delete_patient(
                 detail="Patient not found"
             )
         
-        # Perform soft delete
-        db_patient.deleted_at = datetime.utcnow()
+        # Perform soft delete on both records
+        delete_time = datetime.utcnow()
+        db_patient.deleted_at = delete_time
+        db_patient.user.deleted_at = delete_time
+        
         db.commit()
         
         return None

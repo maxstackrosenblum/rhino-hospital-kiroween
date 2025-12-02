@@ -8,68 +8,25 @@ class UserRole(str, Enum):
     ADMIN = "admin"
     DOCTOR = "doctor"
     RECEPTIONIST = "receptionist"
+    PATIENT = "patient"
 
-class UserCreate(BaseModel):
+class Gender(str, Enum):
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
+
+# Base schemas for user creation (admin creates basic user accounts)
+class UserBase(BaseModel):
     email: EmailStr
     username: str
     first_name: str
     last_name: str
-    password: str
-
-class UserLogin(BaseModel):
-    username: str
-    password: str
-
-class UserResponse(BaseModel):
-    id: int
-    email: str
-    username: str
-    first_name: str | None
-    last_name: str | None
-    role: UserRole
-    created_at: datetime
-    deleted_at: datetime | None = None
-
-    class Config:
-        from_attributes = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    username: str | None = None
-
-class UserUpdate(BaseModel):
-    email: EmailStr | None = None
-    first_name: str | None = None
-    last_name: str | None = None
-    password: str | None = None
-    role: UserRole | None = None
-
-class AdminUserUpdate(BaseModel):
-    email: EmailStr | None = None
-    first_name: str | None = None
-    last_name: str | None = None
-    role: UserRole | None = None
-
-class PaginatedUsersResponse(BaseModel):
-    users: list[UserResponse]
-    total: int
-    page: int
-    page_size: int
-    total_pages: int
-
-# Patient Schemas
-class PatientBase(BaseModel):
-    first_name: str
-    last_name: str
-    gender: str
     phone: str
     city: str
-    email: EmailStr
     age: int
     address: str
+    gender: Gender
+    role: UserRole
 
     @validator('first_name', 'last_name')
     def validate_names(cls, v):
@@ -79,18 +36,10 @@ class PatientBase(BaseModel):
             raise ValueError('Name must be at least 2 characters long')
         return v.strip()
 
-    @validator('gender')
-    def validate_gender(cls, v):
-        valid_genders = ['male', 'female', 'other']
-        if v.lower() not in valid_genders:
-            raise ValueError('Gender must be one of: male, female, other')
-        return v.lower()
-
     @validator('phone')
     def validate_phone(cls, v):
         if not v or not v.strip():
             raise ValueError('Phone number is required')
-        # Remove spaces and special characters for validation
         phone_digits = ''.join(filter(str.isdigit, v))
         if len(phone_digits) < 10:
             raise ValueError('Phone number must contain at least 10 digits')
@@ -110,20 +59,57 @@ class PatientBase(BaseModel):
             raise ValueError('This field is required')
         return v.strip()
 
+class UserCreate(UserBase):
+    """Schema for admin to create basic user accounts with role selection"""
+    password: str
 
-class PatientCreate(PatientBase):
-    pass
+    @validator('password')
+    def validate_password(cls, v):
+        if not v or len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        return v
 
+class UserLogin(BaseModel):
+    username: str
+    password: str
 
-class PatientUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    gender: Optional[str] = None
-    phone: Optional[str] = None
-    city: Optional[str] = None
-    email: Optional[EmailStr] = None
-    age: Optional[int] = None
-    address: Optional[str] = None
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    username: str
+    first_name: str
+    last_name: str
+    phone: str
+    city: str
+    age: int
+    address: str
+    gender: Gender
+    role: UserRole
+    created_at: datetime
+    updated_at: datetime | None = None
+    deleted_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+class UserUpdate(BaseModel):
+    email: EmailStr | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+    city: str | None = None
+    age: int | None = None
+    address: str | None = None
+    gender: Gender | None = None
+    password: str | None = None
+    role: UserRole | None = None
 
     @validator('first_name', 'last_name')
     def validate_names(cls, v):
@@ -133,15 +119,6 @@ class PatientUpdate(BaseModel):
             if len(v.strip()) < 2:
                 raise ValueError('Name must be at least 2 characters long')
             return v.strip()
-        return v
-
-    @validator('gender')
-    def validate_gender(cls, v):
-        if v is not None:
-            valid_genders = ['male', 'female', 'other']
-            if v.lower() not in valid_genders:
-                raise ValueError('Gender must be one of: male, female, other')
-            return v.lower()
         return v
 
     @validator('phone')
@@ -172,11 +149,166 @@ class PatientUpdate(BaseModel):
             return v.strip()
         return v
 
+    @validator('password')
+    def validate_password(cls, v):
+        if v is not None and len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        return v
 
-class PatientResponse(PatientBase):
-    id: int
+class AdminUserUpdate(BaseModel):
+    email: EmailStr | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+    city: str | None = None
+    age: int | None = None
+    address: str | None = None
+    gender: Gender | None = None
+    role: UserRole | None = None
+
+    @validator('first_name', 'last_name')
+    def validate_names(cls, v):
+        if v is not None:
+            if not v or not v.strip():
+                raise ValueError('Name cannot be empty')
+            if len(v.strip()) < 2:
+                raise ValueError('Name must be at least 2 characters long')
+            return v.strip()
+        return v
+
+    @validator('phone')
+    def validate_phone(cls, v):
+        if v is not None:
+            if not v or not v.strip():
+                raise ValueError('Phone number cannot be empty')
+            phone_digits = ''.join(filter(str.isdigit, v))
+            if len(phone_digits) < 10:
+                raise ValueError('Phone number must contain at least 10 digits')
+            return v.strip()
+        return v
+
+    @validator('age')
+    def validate_age(cls, v):
+        if v is not None:
+            if v < 0:
+                raise ValueError('Age cannot be negative')
+            if v > 150:
+                raise ValueError('Age cannot be greater than 150')
+        return v
+
+    @validator('city', 'address')
+    def validate_required_fields(cls, v):
+        if v is not None:
+            if not v or not v.strip():
+                raise ValueError('This field cannot be empty')
+            return v.strip()
+        return v
+
+class PaginatedUsersResponse(BaseModel):
+    users: list[UserResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+# Patient Schemas
+class PatientSpecificBase(BaseModel):
+    medical_record_number: str | None = None
+    emergency_contact: str | None = None
+    insurance_info: str | None = None
+
+class PatientProfileCreate(PatientSpecificBase):
+    """Schema for users completing their patient profile (no user creation)"""
+    pass
+
+class PatientProfileStatus(BaseModel):
+    """Schema for tracking patient profile completion status"""
+    user_id: int
+    has_patient_profile: bool
+    profile_completed_at: datetime | None = None
+    
+    class Config:
+        from_attributes = True
+
+class PatientUpdate(BaseModel):
+    # User fields
+    email: EmailStr | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+    city: str | None = None
+    age: int | None = None
+    address: str | None = None
+    gender: Gender | None = None
+
+    # Patient-specific fields
+    medical_record_number: str | None = None
+    emergency_contact: str | None = None
+    insurance_info: str | None = None
+
+    @validator('first_name', 'last_name')
+    def validate_names(cls, v):
+        if v is not None:
+            if not v or not v.strip():
+                raise ValueError('Name cannot be empty')
+            if len(v.strip()) < 2:
+                raise ValueError('Name must be at least 2 characters long')
+            return v.strip()
+        return v
+
+    @validator('phone')
+    def validate_phone(cls, v):
+        if v is not None:
+            if not v or not v.strip():
+                raise ValueError('Phone number cannot be empty')
+            phone_digits = ''.join(filter(str.isdigit, v))
+            if len(phone_digits) < 10:
+                raise ValueError('Phone number must contain at least 10 digits')
+            return v.strip()
+        return v
+
+    @validator('age')
+    def validate_age(cls, v):
+        if v is not None:
+            if v < 0:
+                raise ValueError('Age cannot be negative')
+            if v > 150:
+                raise ValueError('Age cannot be greater than 150')
+        return v
+
+    @validator('city', 'address')
+    def validate_required_fields(cls, v):
+        if v is not None:
+            if not v or not v.strip():
+                raise ValueError('This field cannot be empty')
+            return v.strip()
+        return v
+
+class PatientResponse(BaseModel):
+    # Profile fields (nullable for incomplete profiles)
+    id: Optional[int] = None  # Patient table ID
+    medical_record_number: Optional[str] = None
+    emergency_contact: Optional[str] = None
+    insurance_info: Optional[str] = None
+
+    # User fields (always present)
+    user_id: int  # User table ID
+    email: str
+    username: str
+    first_name: str
+    last_name: str
+    phone: str
+    city: str
+    age: int
+    address: str
+    gender: Gender
+    role: UserRole
+
+    # Status fields
+    profile_completed: bool
+    profile_completed_at: Optional[datetime] = None
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
     class Config:
@@ -184,17 +316,12 @@ class PatientResponse(PatientBase):
 
 
 # Doctor Schemas
-class DoctorBase(BaseModel):
+class DoctorSpecificBase(BaseModel):
     doctor_id: str
-    first_name: str
-    last_name: str
-    gender: str
-    phone: str
-    city: str
-    email: EmailStr
-    age: int
-    address: str
-    qualification: str
+    qualifications: list[str]
+    department: str | None = None
+    specialization: str | None = None
+    license_number: str | None = None
 
     @validator('doctor_id')
     def validate_doctor_id(cls, v):
@@ -204,60 +331,58 @@ class DoctorBase(BaseModel):
             raise ValueError('Doctor ID must be at least 3 characters long')
         return v.strip().upper()
 
-    @validator('first_name', 'last_name')
-    def validate_names(cls, v):
-        if not v or not v.strip():
-            raise ValueError('Name cannot be empty')
-        if len(v.strip()) < 2:
-            raise ValueError('Name must be at least 2 characters long')
-        return v.strip()
+    @validator('qualifications')
+    def validate_qualifications(cls, v):
+        if not v or len(v) == 0:
+            raise ValueError('At least one qualification is required')
+        # Remove empty strings and strip whitespace
+        cleaned = [qual.strip() for qual in v if qual and qual.strip()]
+        if not cleaned:
+            raise ValueError('At least one valid qualification is required')
+        return cleaned
 
-    @validator('gender')
-    def validate_gender(cls, v):
-        valid_genders = ['male', 'female', 'other']
-        if v.lower() not in valid_genders:
-            raise ValueError('Gender must be one of: male, female, other')
-        return v.lower()
-
-    @validator('phone')
-    def validate_phone(cls, v):
-        if not v or not v.strip():
-            raise ValueError('Phone number is required')
-        phone_digits = ''.join(filter(str.isdigit, v))
-        if len(phone_digits) < 10:
-            raise ValueError('Phone number must contain at least 10 digits')
-        return v.strip()
-
-    @validator('age')
-    def validate_age(cls, v):
-        if v < 0:
-            raise ValueError('Age cannot be negative')
-        if v > 150:
-            raise ValueError('Age cannot be greater than 150')
-        return v
-
-    @validator('city', 'address', 'qualification')
-    def validate_required_fields(cls, v):
-        if not v or not v.strip():
-            raise ValueError('This field is required')
-        return v.strip()
-
-
-class DoctorCreate(DoctorBase):
+class DoctorProfileCreate(DoctorSpecificBase):
+    """Schema for users completing their doctor profile (no user creation)"""
     pass
 
+class DoctorProfileStatus(BaseModel):
+    """Schema for tracking doctor profile completion status"""
+    user_id: int
+    has_doctor_profile: bool
+    profile_completed_at: datetime | None = None
+    
+    class Config:
+        from_attributes = True
+
+# Combined profile status schema
+class ProfileCompletionStatus(BaseModel):
+    """Schema for tracking overall profile completion status"""
+    user_id: int
+    role: UserRole
+    has_role_specific_profile: bool
+    profile_completed_at: datetime | None = None
+    requires_profile_completion: bool
+    
+    class Config:
+        from_attributes = True
 
 class DoctorUpdate(BaseModel):
-    doctor_id: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    gender: Optional[str] = None
-    phone: Optional[str] = None
-    city: Optional[str] = None
-    email: Optional[EmailStr] = None
-    age: Optional[int] = None
-    address: Optional[str] = None
-    qualification: Optional[str] = None
+    # User fields
+    email: EmailStr | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+    city: str | None = None
+    age: int | None = None
+    address: str | None = None
+    gender: Gender | None = None
+
+    # Doctor-specific fields
+    doctor_id: str | None = None
+    qualifications: list[str] | None = None
+    department: str | None = None
+    specialization: str | None = None
+    license_number: str | None = None
 
     @validator('doctor_id')
     def validate_doctor_id(cls, v):
@@ -279,15 +404,6 @@ class DoctorUpdate(BaseModel):
             return v.strip()
         return v
 
-    @validator('gender')
-    def validate_gender(cls, v):
-        if v is not None:
-            valid_genders = ['male', 'female', 'other']
-            if v.lower() not in valid_genders:
-                raise ValueError('Gender must be one of: male, female, other')
-            return v.lower()
-        return v
-
     @validator('phone')
     def validate_phone(cls, v):
         if v is not None:
@@ -308,7 +424,7 @@ class DoctorUpdate(BaseModel):
                 raise ValueError('Age cannot be greater than 150')
         return v
 
-    @validator('city', 'address', 'qualification')
+    @validator('city', 'address')
     def validate_required_fields(cls, v):
         if v is not None:
             if not v or not v.strip():
@@ -316,11 +432,45 @@ class DoctorUpdate(BaseModel):
             return v.strip()
         return v
 
+    @validator('qualifications')
+    def validate_qualifications(cls, v):
+        if v is not None:
+            if not v or len(v) == 0:
+                raise ValueError('At least one qualification is required')
+            # Remove empty strings and strip whitespace
+            cleaned = [qual.strip() for qual in v if qual and qual.strip()]
+            if not cleaned:
+                raise ValueError('At least one valid qualification is required')
+            return cleaned
+        return v
 
-class DoctorResponse(DoctorBase):
-    id: int
+class DoctorResponse(BaseModel):
+    # Profile fields (nullable for incomplete profiles)
+    id: Optional[int] = None  # Doctor table ID
+    doctor_id: Optional[str] = None
+    qualifications: Optional[list[str]] = None
+    department: Optional[str] = None
+    specialization: Optional[str] = None
+    license_number: Optional[str] = None
+
+    # User fields (always present)
+    user_id: int  # User table ID
+    email: str
+    username: str
+    first_name: str
+    last_name: str
+    phone: str
+    city: str
+    age: int
+    address: str
+    gender: Gender
+    role: UserRole
+
+    # Status fields
+    profile_completed: bool
+    profile_completed_at: Optional[datetime] = None
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
     class Config:

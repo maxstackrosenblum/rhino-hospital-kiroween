@@ -1,4 +1,8 @@
-import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
+import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  AccountCircle as ProfileIcon,
+} from "@mui/icons-material";
 import {
   Box,
   CircularProgress,
@@ -22,6 +26,7 @@ interface PatientsTableProps {
   isLoading: boolean;
   onEdit: (patient: Patient) => void;
   onDelete: (patient: Patient) => void;
+  onCompleteProfile: (patient: Patient) => void;
 }
 
 function PatientsTable({
@@ -32,19 +37,21 @@ function PatientsTable({
   isLoading,
   onEdit,
   onDelete,
+  onCompleteProfile,
 }: PatientsTableProps) {
   return (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell sx={{ fontWeight: 600 }}>User ID</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Gender</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Age</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>City</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Address</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Medical Record</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Emergency Contact</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Registered</TableCell>
             {canModify && (
               <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
@@ -55,7 +62,7 @@ function PatientsTable({
           {isLoading ? (
             <TableRow>
               <TableCell
-                colSpan={canModify ? 9 : 8}
+                colSpan={canModify ? 11 : 10}
                 align="center"
                 sx={{ py: 6 }}
               >
@@ -77,7 +84,7 @@ function PatientsTable({
           ) : patients.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={canModify ? 9 : 8}
+                colSpan={canModify ? 11 : 10}
                 align="center"
                 sx={{ py: 6 }}
               >
@@ -104,7 +111,12 @@ function PatientsTable({
             </TableRow>
           ) : (
             patients.map((patient) => (
-              <TableRow key={patient.id} hover>
+              <TableRow key={patient.user_id} hover>
+                <TableCell>
+                  <Typography variant="body2" fontWeight={500}>
+                    {patient.user_id}
+                  </Typography>
+                </TableCell>
                 <TableCell>
                   {patient.first_name} {patient.last_name}
                 </TableCell>
@@ -114,14 +126,35 @@ function PatientsTable({
                 <TableCell>{patient.age}</TableCell>
                 <TableCell>{patient.phone}</TableCell>
                 <TableCell>{patient.email}</TableCell>
-                <TableCell>{patient.city}</TableCell>
                 <TableCell>
-                  <Typography
-                    variant="body2"
-                    sx={{ maxWidth: 200, wordBreak: "break-word" }}
-                  >
-                    {patient.address}
-                  </Typography>
+                  {patient.medical_record_number ? (
+                    <Typography variant="body2" fontWeight={500}>
+                      {patient.medical_record_number}
+                    </Typography>
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontStyle="italic"
+                    >
+                      Not set
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {patient.emergency_contact ? (
+                    <Typography variant="body2">
+                      {patient.emergency_contact}
+                    </Typography>
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontStyle="italic"
+                    >
+                      Not set
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell>
                   {new Date(patient.created_at).toLocaleDateString()}
@@ -129,10 +162,22 @@ function PatientsTable({
                 {canModify && (
                   <TableCell>
                     <Box sx={{ display: "flex", gap: 1 }}>
+                      {!patient.profile_completed && (
+                        <IconButton
+                          onClick={() => onCompleteProfile(patient)}
+                          color="warning"
+                          size="small"
+                          title="Complete Profile"
+                        >
+                          <ProfileIcon />
+                        </IconButton>
+                      )}
                       <IconButton
                         onClick={() => onEdit(patient)}
                         color="primary"
                         size="small"
+                        title="Edit"
+                        disabled={!patient.medical_record_number}
                       >
                         <EditIcon />
                       </IconButton>
@@ -141,6 +186,8 @@ function PatientsTable({
                           onClick={() => onDelete(patient)}
                           color="error"
                           size="small"
+                          title="Delete"
+                          disabled={!patient.medical_record_number}
                         >
                           <DeleteIcon />
                         </IconButton>
