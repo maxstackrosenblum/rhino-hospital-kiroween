@@ -1,22 +1,31 @@
-import { useEffect, useState } from 'react';
+import {
+  AppBar,
+  Avatar,
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Navbar({ user, onLogout }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
+  const theme = useTheme();
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownOpen && !event.target.closest('.user-menu')) {
-        setDropdownOpen(false);
-      }
-    };
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownOpen]);
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
   const getInitials = (firstName, lastName) => {
     return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
@@ -24,43 +33,80 @@ function Navbar({ user, onLogout }) {
 
   const handleNavigation = (path) => {
     navigate(path);
-    setDropdownOpen(false);
+    handleMenuClose();
   };
 
   return (
-    <nav className="navbar">
-      <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-        <span className="logo-text">Hospital Management System</span>
-      </div>
-      <div className="navbar-menu">
-        {user.role === 'admin' && (
-          <button className="nav-link" onClick={() => navigate('/users')}>
-            Staff
-          </button>
-        )}
-      </div>
-      <div className="user-menu">
-        <button className="user-button" onClick={() => setDropdownOpen(!dropdownOpen)} title={`${user.first_name} ${user.last_name}`}>
-          <div className="user-avatar">
+    <AppBar position="static">
+      <Toolbar>
+        {/* Logo */}
+        <Typography
+          variant="h6"
+          component="div"
+          onClick={() => navigate('/')}
+          sx={{
+            cursor: 'pointer',
+            fontWeight: 700,
+            background: `linear-gradient(135deg, ${theme.palette.primary.gradient.start}, ${theme.palette.primary.gradient.end})`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          Hospital Management System
+        </Typography>
+
+        {/* Navigation Menu */}
+        <Box sx={{ flexGrow: 1, ml: 3 }}>
+          {user.role === 'admin' && (
+            <Button
+              color="primary"
+              onClick={() => navigate('/users')}
+            >
+              Staff
+            </Button>
+          )}
+        </Box>
+
+        {/* User Menu */}
+        <IconButton
+          onClick={handleMenuOpen}
+          title={`${user.first_name} ${user.last_name}`}
+        >
+          <Avatar
+            sx={{
+              bgcolor: 'primary.main',
+              background: `linear-gradient(135deg, ${theme.palette.primary.gradient.start}, ${theme.palette.primary.gradient.end})`,
+            }}
+          >
             {getInitials(user.first_name, user.last_name)}
-          </div>
-        </button>
-        {dropdownOpen && (
-          <div className="dropdown">
-            <button className="dropdown-item" onClick={() => handleNavigation('/profile')}>
-              Profile
-            </button>
-            <button className="dropdown-item" onClick={() => handleNavigation('/settings')}>
-              Settings
-            </button>
-            <div className="dropdown-divider"></div>
-            <button className="dropdown-item" onClick={onLogout}>
-              Logout
-            </button>
-          </div>
-        )}
-      </div>
-    </nav>
+          </Avatar>
+        </IconButton>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <MenuItem onClick={() => handleNavigation('/profile')}>
+            Profile
+          </MenuItem>
+          <MenuItem onClick={() => handleNavigation('/settings')}>
+            Settings
+          </MenuItem>
+          <Divider />
+          <MenuItem onClick={onLogout}>
+            Logout
+          </MenuItem>
+        </Menu>
+      </Toolbar>
+    </AppBar>
   );
 }
 

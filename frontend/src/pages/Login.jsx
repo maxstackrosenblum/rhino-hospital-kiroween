@@ -1,3 +1,13 @@
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  Link,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -53,66 +63,120 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>{isLogin ? "Login" : "Register"}</h1>
-        <form onSubmit={handleSubmit}>
-          {!isLogin && (
-            <>
-              <input
-                type="text"
-                name="first_name"
-                placeholder="First Name"
-                value={formData.first_name}
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="text"
-                name="last_name"
-                placeholder="Last Name"
-                value={formData.last_name}
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </>
+    <Container maxWidth="sm">
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            padding: 4,
+            width: "100%",
+            maxWidth: 400,
+          }}
+        >
+          <Typography variant="h4" component="h1" gutterBottom align="center">
+            {isLogin ? "Login" : "Register"}
+          </Typography>
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+            {!isLogin && (
+              <>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="first_name"
+                  label="First Name"
+                  value={formData.first_name}
+                  onChange={handleChange}
+                  size="small"
+                  required
+                />
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="last_name"
+                  label="Last Name"
+                  value={formData.last_name}
+                  onChange={handleChange}
+                  size="small"
+                  required
+                />
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="email"
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  size="small"
+                  required
+                />
+              </>
+            )}
+            <TextField
+              fullWidth
+              margin="normal"
+              name="username"
+              label="Username"
+              value={formData.username}
+              onChange={handleChange}
+              size="small"
+              required
+            />
+            <TextField
+              fullWidth
+              margin="normal"
+              name="password"
+              label="Password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              size="small"
+              required
+            />
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              {isLogin ? "Login" : "Register"}
+            </Button>
+          </Box>
+
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
           )}
-          <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-          <button type="submit">{isLogin ? "Login" : "Register"}</button>
-        </form>
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
-        <p className="toggle">
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <span onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? "Register" : "Login"}
-          </span>
-        </p>
-      </header>
-    </div>
+          {success && (
+            <Alert severity="success" sx={{ mt: 2 }}>
+              {success}
+            </Alert>
+          )}
+
+          <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <Link
+              component="button"
+              variant="body2"
+              onClick={() => setIsLogin(!isLogin)}
+              sx={{ cursor: "pointer" }}
+            >
+              {isLogin ? "Register" : "Login"}
+            </Link>
+          </Typography>
+        </Paper>
+      </Box>
+    </Container>
   );
 }
 

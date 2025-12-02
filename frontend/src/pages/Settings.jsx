@@ -1,44 +1,66 @@
-import { useEffect, useState } from 'react';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  FormControlLabel,
+  Paper,
+  Switch,
+  Typography,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useAppTheme } from '../hooks/useTheme.jsx';
 
 function Settings() {
   const navigate = useNavigate();
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
-  };
+  const { mode, toggleTheme } = useAppTheme();
 
   return (
-    <div className="content">
-      <div className="profile-section">
-        <h1>Settings</h1>
-        <div className="settings-panel">
-          <div className="setting-item">
-            <div className="setting-info">
-              <h3>Theme</h3>
-              <p>Switch between light and dark mode</p>
-            </div>
-            <label className="theme-switch">
-              <input
-                type="checkbox"
-                checked={theme === 'light'}
-                onChange={toggleTheme}
-              />
-              <span className="slider"></span>
-            </label>
-          </div>
-          <button onClick={() => navigate('/')} className="secondary-button" style={{ marginTop: '2rem' }}>
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+    <Container maxWidth="md">
+      <Box sx={{ py: 4 }}>
+        <Paper elevation={3} sx={{ p: 4 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Settings
+          </Typography>
+
+          <Card sx={{ mt: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="h6" component="h3">
+                    Theme
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Switch between light and dark mode
+                  </Typography>
+                </Box>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={mode === 'light'}
+                      onChange={toggleTheme}
+                      color="primary"
+                    />
+                  }
+                  label={mode === 'light' ? 'Light' : 'Dark'}
+                  labelPlacement="start"
+                />
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/')}
+            >
+              Close
+            </Button>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 }
 

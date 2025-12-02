@@ -1,3 +1,24 @@
+import { Cancel as CancelIcon, Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Container,
+  FormControl,
+  MenuItem,
+  Paper,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -99,131 +120,172 @@ function Users({ user, token }) {
     }
   };
 
-  const getRoleBadgeClass = (role) => {
+  const getRoleChipColor = (role) => {
     switch (role) {
       case "admin":
-        return "role-badge role-admin";
+        return "secondary";
       case "doctor":
-        return "role-badge role-doctor";
+        return "success";
       case "receptionist":
-        return "role-badge role-receptionist";
+        return "info";
       case "undefined":
-        return "role-badge role-undefined";
+        return "default";
       default:
-        return "role-badge";
+        return "default";
     }
   };
 
   if (loading) {
-    return <div className="content">Loading...</div>;
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
   }
 
   return (
-    <div className="content">
-      <div className="users-section">
-        <h1>User Management</h1>
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box>
+        <Typography variant="h3" component="h1" gutterBottom fontWeight={700}>
+          User Management
+        </Typography>
 
-        <div className="users-table-container">
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Joined</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {success}
+          </Alert>
+        )}
+
+        <TableContainer component={Paper} sx={{ mt: 3 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Username</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Role</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Joined</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {users.map((u) => (
-                <tr key={u.id}>
+                <TableRow key={u.id} hover>
                   {editingUser === u.id ? (
                     <>
-                      <td>
-                        <input
-                          type="text"
-                          name="first_name"
-                          value={editForm.first_name}
-                          onChange={handleChange}
-                          className="table-input"
-                        />
-                        <input
-                          type="text"
-                          name="last_name"
-                          value={editForm.last_name}
-                          onChange={handleChange}
-                          className="table-input"
-                        />
-                      </td>
-                      <td>{u.username}</td>
-                      <td>
-                        <input
+                      <TableCell>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <TextField
+                            name="first_name"
+                            value={editForm.first_name}
+                            onChange={handleChange}
+                            placeholder="First Name"
+                            size="small"
+                            variant="outlined"
+                          />
+                          <TextField
+                            name="last_name"
+                            value={editForm.last_name}
+                            onChange={handleChange}
+                            placeholder="Last Name"
+                            size="small"
+                            variant="outlined"
+                          />
+                        </Box>
+                      </TableCell>
+                      <TableCell>{u.username}</TableCell>
+                      <TableCell>
+                        <TextField
                           type="email"
                           name="email"
                           value={editForm.email}
                           onChange={handleChange}
-                          className="table-input"
+                          size="small"
+                          variant="outlined"
+                          fullWidth
                         />
-                      </td>
-                      <td>
-                        <select
-                          name="role"
-                          value={editForm.role}
-                          onChange={handleChange}
-                          className="table-select"
-                        >
-                          <option value="undefined">Undefined</option>
-                          <option value="admin">Admin</option>
-                          <option value="doctor">Doctor</option>
-                          <option value="receptionist">Receptionist</option>
-                        </select>
-                      </td>
-                      <td>{new Date(u.created_at).toLocaleDateString()}</td>
-                      <td>
-                        <button
-                          onClick={() => handleSave(u.id)}
-                          className="btn-save"
-                        >
-                          Save
-                        </button>
-                        <button onClick={handleCancel} className="btn-cancel">
-                          Cancel
-                        </button>
-                      </td>
+                      </TableCell>
+                      <TableCell>
+                        <FormControl size="small" fullWidth>
+                          <Select
+                            name="role"
+                            value={editForm.role}
+                            onChange={handleChange}
+                          >
+                            <MenuItem value="undefined">Undefined</MenuItem>
+                            <MenuItem value="admin">Admin</MenuItem>
+                            <MenuItem value="doctor">Doctor</MenuItem>
+                            <MenuItem value="receptionist">Receptionist</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </TableCell>
+                      <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            onClick={() => handleSave(u.id)}
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            startIcon={<SaveIcon />}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            onClick={handleCancel}
+                            variant="outlined"
+                            color="secondary"
+                            size="small"
+                            startIcon={<CancelIcon />}
+                          >
+                            Cancel
+                          </Button>
+                        </Box>
+                      </TableCell>
                     </>
                   ) : (
                     <>
-                      <td>
+                      <TableCell>
                         {u.first_name} {u.last_name}
-                      </td>
-                      <td>{u.username}</td>
-                      <td>{u.email}</td>
-                      <td>
-                        <span className={getRoleBadgeClass(u.role)}>
-                          {u.role.charAt(0).toUpperCase() + u.role.slice(1)}
-                        </span>
-                      </td>
-                      <td>{new Date(u.created_at).toLocaleDateString()}</td>
-                      <td>
-                        <button
+                      </TableCell>
+                      <TableCell>{u.username}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                          color={getRoleChipColor(u.role)}
+                          variant="filled"
+                        />
+                      </TableCell>
+                      <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Button
                           onClick={() => handleEdit(u)}
-                          className="btn-edit"
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          startIcon={<EditIcon />}
                         >
                           Edit
-                        </button>
-                      </td>
+                        </Button>
+                      </TableCell>
                     </>
                   )}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </Container>
   );
 }
 
