@@ -80,14 +80,14 @@
   - Commit: `git commit -m "feat: implement repository layer with property tests"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 4. Implement Service Layer with logging
-- [ ] 4.1 Set up structured logging
+- [x] 4. Implement Service Layer with logging
+- [x] 4.1 Set up structured logging
   - Configure structured JSON logging using Python's logging module
   - Create logger utility with PII masking functions
   - Implement log formatting for requests, errors, and operations
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
 
-- [ ] 4.2 Create base staff service
+- [x] 4.2 Create base staff service
   - Define BaseStaffService class with repository dependency
   - Implement register_staff method with validation and logging
   - Implement get_staff_list method with search support and logging
@@ -96,39 +96,39 @@
   - Add error handling and transformation
   - _Requirements: 12.1, 14.3_
 
-- [ ] 4.3 Implement ReceptionistService
+- [x] 4.3 Implement ReceptionistService
   - Extend BaseStaffService for receptionist-specific logic
   - Inject ReceptionistRepository dependency
   - _Requirements: 2.1, 2.2, 3.1, 4.1, 5.2_
 
-- [ ] 4.4 Implement WorkerService
+- [x] 4.4 Implement WorkerService
   - Extend BaseStaffService for worker-specific logic
   - Inject WorkerRepository dependency
   - _Requirements: 7.1, 7.2, 8.1, 9.1, 10.2_
 
-- [ ] 4.5 Write property test for automatic timestamp generation
+- [x] 4.5 Write property test for automatic timestamp generation
   - **Property 14: Automatic timestamp generation**
   - **Validates: Requirements 2.3, 7.3**
 
-- [ ] 4.6 Write property test for input sanitization
+- [x] 4.6 Write property test for input sanitization
   - **Property 5: Input sanitization**
   - **Validates: Requirements 13.5**
 
-- [ ] 4.7 Write property test for PII masking in logs
+- [x] 4.7 Write property test for PII masking in logs
   - **Property 18: PII masking in logs**
   - **Validates: Requirements 14.4**
 
-- [ ] 4.8 Write property test for no credential exposure in logs
+- [x] 4.8 Write property test for no credential exposure in logs
   - **Property 19: No credential exposure in logs**
   - **Validates: Requirements 14.5**
 
-- [ ] 4.9 Git commit: Service layer with logging and tests
+- [x] 4.9 Git commit: Service layer with logging and tests
   - Run: `git add backend/services/ backend/core/ backend/tests/`
   - Commit: `git commit -m "feat: implement service layer with structured logging"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 5. Implement API routes with error handling
-- [ ] 5.1 Create receptionist router
+- [x] 5. Implement API routes with error handling
+- [x] 5.1 Create receptionist router
   - Implement POST /api/receptionists endpoint for registration
   - Implement GET /api/receptionists endpoint for listing with optional search
   - Implement GET /api/receptionists/{id} endpoint for retrieving by ID
@@ -139,7 +139,7 @@
   - Return 404 errors for non-existent staff IDs
   - _Requirements: 2.1, 5.1, 5.3, 5.4, 5.5, 17.1, 17.2, 17.3, 19.1, 19.2, 19.3_
 
-- [ ] 5.2 Create worker router
+- [x] 5.2 Create worker router
   - Implement POST /api/workers endpoint for registration
   - Implement GET /api/workers endpoint for listing with optional search
   - Implement GET /api/workers/{id} endpoint for retrieving by ID
@@ -150,7 +150,7 @@
   - Return 404 errors for non-existent staff IDs
   - _Requirements: 7.1, 10.1, 10.6, 10.7, 10.8, 17.1, 17.2, 17.3, 19.1, 19.2, 19.3_
 
-- [ ] 5.3 Implement global error handler
+- [x] 5.3 Implement global error handler
   - Create exception handler for validation errors (400)
   - Create exception handler for not found errors (404)
   - Create exception handler for server errors (500)
@@ -161,64 +161,64 @@
   - Log all errors with full context
   - _Requirements: 15.1, 15.2, 15.4, 20.1, 20.2, 20.3, 20.4, 20.5_
 
-- [ ] 5.4 Register routers in main application
+- [x] 5.4 Register routers in main application
   - Add receptionist and worker routers to FastAPI app
   - Configure CORS for frontend access
   - _Requirements: 2.1, 7.1_
 
-- [ ] 5.5 Write property test for structured error responses
+- [x] 5.5 Write property test for structured error responses
   - **Property 20: Structured error responses**
   - **Validates: Requirements 15.1**
 
-- [ ] 5.6 Write property test for no stack trace exposure
+- [x] 5.6 Write property test for no stack trace exposure
   - **Property 21: No stack trace exposure**
   - **Validates: Requirements 15.2**
 
-- [ ] 5.7 Write property test for field-specific validation errors
+- [x] 5.7 Write property test for field-specific validation errors
   - **Property 23: Field-specific validation errors**
   - **Validates: Requirements 15.4**
 
-- [ ] 5.8 Write property test for request logging
+- [x] 5.8 Write property test for request logging
   - **Property 15: Request logging**
   - **Validates: Requirements 14.1**
 
-- [ ] 5.9 Write property test for error logging
+- [x] 5.9 Write property test for error logging
   - **Property 16: Error logging**
   - **Validates: Requirements 14.2**
 
-- [ ] 5.10 Write property test for success operation logging
+- [x] 5.10 Write property test for success operation logging
   - **Property 17: Success operation logging**
   - **Validates: Requirements 14.3**
 
-- [ ] 5.11 Write property test for response schema compliance
+- [x] 5.11 Write property test for response schema compliance
   - **Property 7: Response schema compliance**
   - **Validates: Requirements 13.2**
 
-- [ ] 5.12 Write property test for unauthorized access rejection
+- [x] 5.12 Write property test for unauthorized access rejection
   - **Property 28: Unauthorized access rejection**
   - **Validates: Requirements 17.1**
 
-- [ ] 5.13 Write property test for non-admin access rejection
+- [x] 5.13 Write property test for non-admin access rejection
   - **Property 29: Non-admin access rejection**
   - **Validates: Requirements 17.2**
 
-- [ ] 5.14 Write property test for updated timestamp on modification
+- [x] 5.14 Write property test for updated timestamp on modification
   - **Property 31: Updated timestamp on modification**
   - **Validates: Requirements 18.3, 18.4**
 
-- [ ] 5.15 Write property test for not found errors
+- [x] 5.15 Write property test for not found errors
   - **Property 32: Not found error for non-existent staff**
   - **Validates: Requirements 19.1, 19.2, 19.3, 19.4**
 
-- [ ] 5.16 Write property test for database error handling
+- [x] 5.16 Write property test for database error handling
   - **Property 34: Database error graceful handling**
   - **Validates: Requirements 20.1, 20.2, 20.3, 20.4, 20.5**
 
-- [ ] 5.17 Write property test for transaction rollback
+- [x] 5.17 Write property test for transaction rollback
   - **Property 35: Transaction rollback on failure**
   - **Validates: Requirements 20.2**
 
-- [ ] 5.18 Git commit: API routes with comprehensive tests
+- [x] 5.18 Git commit: API routes with comprehensive tests
   - Run: `git add backend/routers/ backend/main.py backend/tests/`
   - Commit: `git commit -m "feat: add API routes with error handling and auth"`
   - Push: `git push` (pushes to current branch)
