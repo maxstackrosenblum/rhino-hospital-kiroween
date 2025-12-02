@@ -20,6 +20,7 @@ class UserCreate(BaseModel):
     age: int | None = None
     address: str | None = None
     gender: str | None = None
+    role: UserRole | None = None
 
 class UserLogin(BaseModel):
     username: str

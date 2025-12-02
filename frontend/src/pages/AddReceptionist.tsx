@@ -65,6 +65,7 @@ function AddReceptionist() {
         last_name: formData.last_name,
         phone: formData.phone || undefined,
         password: formData.password,
+        role: 'receptionist' as any,
       });
 
       // Step 2: Create receptionist record linked to the user

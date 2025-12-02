@@ -66,6 +66,7 @@ function AddWorker() {
         last_name: formData.last_name,
         phone: formData.phone || undefined,
         password: formData.password,
+        role: 'worker' as any,
       });
 
       // Step 2: Create worker record linked to the user

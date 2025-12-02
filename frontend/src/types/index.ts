@@ -39,6 +39,12 @@ export interface RegisterData {
   first_name: string;
   last_name: string;
   password: string;
+  phone?: string;
+  city?: string;
+  age?: number;
+  address?: string;
+  gender?: string;
+  role?: UserRole;
 }
 
 export interface TokenResponse {
