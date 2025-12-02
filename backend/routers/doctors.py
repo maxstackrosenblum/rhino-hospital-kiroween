@@ -6,7 +6,7 @@ from datetime import datetime
 
 from database import get_db
 from models import Doctor, User
-from schemas import DoctorCreate, DoctorUpdate, DoctorResponse
+from schemas import DoctorCreate, DoctorUpdate, DoctorResponse, PaginatedDoctorsResponse
 from core.dependencies import require_admin
 
 router = APIRouter(prefix="/api/doctors", tags=["doctors"])
@@ -64,11 +64,11 @@ async def create_doctor(
         )
 
 
-@router.get("/", response_model=List[DoctorResponse])
+@router.get("/", response_model=PaginatedDoctorsResponse)
 async def get_doctors(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Number of records per page"),
     search: Optional[str] = Query(None, description="Search by first name, last name, email, or doctor ID"),
-    skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of records to return"),
     include_deleted: bool = Query(False, description="Include soft-deleted records"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin)
@@ -97,10 +97,23 @@ async def get_doctors(
                 )
             )
         
-        # Apply pagination
-        doctors = query.offset(skip).limit(limit).all()
+        # Get total count
+        total = query.count()
         
-        return doctors
+        # Calculate pagination
+        total_pages = (total + page_size - 1) // page_size
+        offset = (page - 1) * page_size
+        
+        # Get paginated doctors
+        doctors = query.order_by(Doctor.created_at.desc()).offset(offset).limit(page_size).all()
+        
+        return {
+            "doctors": doctors,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages
+        }
         
     except Exception as e:
         raise HTTPException(

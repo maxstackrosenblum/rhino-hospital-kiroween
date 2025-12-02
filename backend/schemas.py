@@ -325,3 +325,19 @@ class DoctorResponse(DoctorBase):
 
     class Config:
         from_attributes = True
+
+
+# Paginated Response Schemas
+class PaginatedPatientsResponse(BaseModel):
+    patients: list[PatientResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+class PaginatedDoctorsResponse(BaseModel):
+    doctors: list[DoctorResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

@@ -55,6 +55,22 @@ export interface PaginatedUsersResponse {
   total_pages: number;
 }
 
+export interface PaginatedPatientsResponse {
+  patients: Patient[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface PaginatedDoctorsResponse {
+  doctors: Doctor[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 // Patient types
 export interface Patient {
   id: number;

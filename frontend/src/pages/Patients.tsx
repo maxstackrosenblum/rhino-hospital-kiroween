@@ -51,13 +51,15 @@ function Patients({ user }: PatientsProps) {
 
   // API hooks
   const {
-    data: patients = [],
+    data: patientsResponse,
     isLoading,
     error: queryError,
   } = usePatients({
     search: debouncedSearchTerm,
-    limit: 100,
+    page_size: 100,
   });
+
+  const patients = patientsResponse?.patients || [];
 
   const createPatientMutation = useCreatePatient();
   const updatePatientMutation = useUpdatePatient();

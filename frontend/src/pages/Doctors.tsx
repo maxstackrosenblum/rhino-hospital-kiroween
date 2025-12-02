@@ -50,13 +50,15 @@ function Doctors({ user }: DoctorsProps) {
 
   // API hooks
   const {
-    data: doctors = [],
+    data: doctorsResponse,
     isLoading,
     error: queryError,
   } = useDoctors({
     search: debouncedSearchTerm,
-    limit: 100,
+    page_size: 100,
   });
+
+  const doctors = doctorsResponse?.doctors || [];
 
   const createDoctorMutation = useCreateDoctor();
   const updateDoctorMutation = useUpdateDoctor();

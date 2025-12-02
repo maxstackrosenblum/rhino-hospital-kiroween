@@ -1,34 +1,39 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Patient, PatientCreate, PatientUpdate } from "../types";
+import {
+  PaginatedPatientsResponse,
+  Patient,
+  PatientCreate,
+  PatientUpdate,
+} from "../types";
 import { API_URL, getAuthHeaders, handleApiError } from "./common";
 
 // Patient queries
 export const usePatients = (params?: {
   search?: string;
-  skip?: number;
-  limit?: number;
+  page?: number;
+  page_size?: number;
   includeDeleted?: boolean;
 }) => {
   const {
     search,
-    skip = 0,
-    limit = 100,
+    page = 1,
+    page_size = 10,
     includeDeleted = false,
   } = params || {};
 
-  return useQuery<Patient[]>({
-    queryKey: ["patients", { search, skip, limit, includeDeleted }],
+  return useQuery<PaginatedPatientsResponse>({
+    queryKey: ["patients", { search, page, page_size, includeDeleted }],
     queryFn: async () => {
       const searchParams = new URLSearchParams();
       if (search) searchParams.append("search", search);
-      searchParams.append("skip", skip.toString());
-      searchParams.append("limit", limit.toString());
+      searchParams.append("page", page.toString());
+      searchParams.append("page_size", page_size.toString());
       if (includeDeleted) searchParams.append("include_deleted", "true");
 
       const response = await fetch(`${API_URL}/api/patients?${searchParams}`, {
         headers: getAuthHeaders(),
       });
-      return handleApiError<Patient[]>(response);
+      return handleApiError<PaginatedPatientsResponse>(response);
     },
   });
 };

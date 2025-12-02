@@ -6,7 +6,7 @@ from datetime import datetime
 
 from database import get_db
 from models import Patient, User
-from schemas import PatientCreate, PatientUpdate, PatientResponse
+from schemas import PatientCreate, PatientUpdate, PatientResponse, PaginatedPatientsResponse
 from core.dependencies import require_patient_access, require_receptionist_or_admin, require_admin
 
 router = APIRouter(prefix="/api/patients", tags=["patients"])
@@ -53,11 +53,11 @@ async def create_patient(
         )
 
 
-@router.get("/", response_model=List[PatientResponse])
+@router.get("/", response_model=PaginatedPatientsResponse)
 async def get_patients(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Number of records per page"),
     search: Optional[str] = Query(None, description="Search by first name, last name, email, or phone"),
-    skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of records to return"),
     include_deleted: bool = Query(False, description="Include soft-deleted records (Admin only)"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_patient_access)
@@ -86,10 +86,23 @@ async def get_patients(
                 )
             )
         
-        # Apply pagination
-        patients = query.offset(skip).limit(limit).all()
+        # Get total count
+        total = query.count()
         
-        return patients
+        # Calculate pagination
+        total_pages = (total + page_size - 1) // page_size
+        offset = (page - 1) * page_size
+        
+        # Get paginated patients
+        patients = query.order_by(Patient.created_at.desc()).offset(offset).limit(page_size).all()
+        
+        return {
+            "patients": patients,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages
+        }
         
     except Exception as e:
         raise HTTPException(
