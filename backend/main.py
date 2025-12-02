@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
-from routers import auth, users, health
+from core.error_handlers import register_error_handlers
+from routers import auth, users, health, receptionists, workers
 
 app = FastAPI(
     title=settings.API_TITLE,
@@ -24,7 +25,12 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
+# Register error handlers
+register_error_handlers(app)
+
 # Include routers
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(receptionists.router)
+app.include_router(workers.router)
