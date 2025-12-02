@@ -303,7 +303,7 @@
   - Commit: `git commit -m "feat: add custom hooks for staff management"`
   - Push: `git push` (pushes to current branch)
 
-- [-] 9. Implement receptionist UI components
+- [x] 9. Implement receptionist UI components
 - [x] 9.1 Create AddReceptionist page component
   - Implement form UI with first_name, last_name, phone fields
   - Use useStaffForm hook for form logic
@@ -335,13 +335,13 @@
   - **Property 27: Loading indicator display**
   - **Validates: Requirements 16.2**
 
-- [-] 9.6 Git commit: Receptionist UI components with tests
+- [x] 9.6 Git commit: Receptionist UI components with tests
   - Run: `git add frontend/src/pages/ frontend/src/components/ frontend/src/tests/`
   - Commit: `git commit -m "feat: add receptionist management UI components"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 10. Implement worker UI components
-- [ ] 10.1 Create AddWorker page component
+- [-] 10. Implement worker UI components
+- [x] 10.1 Create AddWorker page component
   - Implement form UI with first_name, last_name, phone fields
   - Use useStaffForm hook for form logic
   - Display validation errors inline
@@ -350,7 +350,7 @@
   - Display error notification on failure
   - _Requirements: 6.1, 6.2, 6.3, 7.1, 8.1, 8.2, 9.1_
 
-- [ ] 10.2 Create WorkerList page component
+- [x] 10.2 Create WorkerList page component
   - Implement table UI with columns for all worker fields
   - Add search input with real-time filtering
   - Use useStaffList hook for data management
@@ -360,31 +360,31 @@
   - Display empty state message when no results
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8_
 
-- [ ] 10.3 Write property test for search reactivity
+- [x] 10.3 Write property test for search reactivity
   - **Property 9: Search reactivity**
   - **Validates: Requirements 10.3**
 
-- [ ] 10.4 Write property test for success notification
+- [x] 10.4 Write property test for success notification
   - **Property 10: Success notification on successful registration**
   - **Validates: Requirements 3.1, 3.2, 8.1, 8.2**
 
-- [ ] 10.5 Write property test for error notification
+- [x] 10.5 Write property test for error notification
   - **Property 11: Error notification on failed registration**
   - **Validates: Requirements 4.1, 4.3, 9.1, 9.3**
 
-- [ ] 10.6 Write property test for no partial data on failure
+- [x] 10.6 Write property test for no partial data on failure
   - **Property 12: No partial data on failure**
   - **Validates: Requirements 4.3, 9.3**
 
-- [ ] 10.7 Write property test for newly registered staff in list
+- [x] 10.7 Write property test for newly registered staff in list
   - **Property 13: Newly registered staff appears in list**
   - **Validates: Requirements 8.3**
 
-- [ ] 10.8 Write property test for user-friendly error messages
+- [x] 10.8 Write property test for user-friendly error messages
   - **Property 22: User-friendly error messages**
   - **Validates: Requirements 15.3**
 
-- [ ] 10.9 Git commit: Worker UI components with tests
+- [-] 10.9 Git commit: Worker UI components with tests
   - Run: `git add frontend/src/pages/ frontend/src/components/ frontend/src/tests/`
   - Commit: `git commit -m "feat: add worker management UI components"`
   - Push: `git push` (pushes to current branch)
