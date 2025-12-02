@@ -1,7 +1,7 @@
 """update receptionist and worker models to use user_id foreign key
 
 Revision ID: dd6918e75e16
-Revises: 10756ff88a4d
+Revises: rgmqjko6hdnp
 Create Date: 2025-12-02 21:52:23.446766
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'dd6918e75e16'
-down_revision = '10756ff88a4d'
+down_revision = 'rgmqjko6hdnp'
 branch_labels = None
 depends_on = None
 

@@ -1,7 +1,7 @@
 """add staff tables for receptionists and workers
 
 Revision ID: rgmqjko6hdnp
-Revises: 5c8a90954df7
+Revises: ba7525d9a8f9
 Create Date: 2025-12-01 18:25:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'rgmqjko6hdnp'
-down_revision = '5c8a90954df7'
+down_revision = 'ba7525d9a8f9'
 branch_labels = None
 depends_on = None
 
