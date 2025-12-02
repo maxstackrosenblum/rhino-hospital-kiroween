@@ -1,5 +1,5 @@
 // User types
-export type UserRole = 'undefined' | 'admin' | 'doctor' | 'receptionist';
+export type UserRole = "undefined" | "admin" | "doctor" | "receptionist";
 
 export interface User {
   id: number;
@@ -44,4 +44,86 @@ export interface RegisterData {
 export interface TokenResponse {
   access_token: string;
   token_type: string;
+}
+
+// Patient types
+export interface Patient {
+  id: number;
+  first_name: string;
+  last_name: string;
+  gender: string;
+  phone: string;
+  city: string;
+  email: string;
+  age: number;
+  address: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface PatientCreate {
+  first_name: string;
+  last_name: string;
+  gender: string;
+  phone: string;
+  city: string;
+  email: string;
+  age: number;
+  address: string;
+}
+
+export interface PatientUpdate {
+  first_name?: string;
+  last_name?: string;
+  gender?: string;
+  phone?: string;
+  city?: string;
+  email?: string;
+  age?: number;
+  address?: string;
+}
+
+// Doctor types
+export interface Doctor {
+  id: number;
+  doctor_id: string;
+  first_name: string;
+  last_name: string;
+  gender: string;
+  phone: string;
+  city: string;
+  email: string;
+  age: number;
+  address: string;
+  qualification: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface DoctorCreate {
+  doctor_id: string;
+  first_name: string;
+  last_name: string;
+  gender: string;
+  phone: string;
+  city: string;
+  email: string;
+  age: number;
+  address: string;
+  qualification: string;
+}
+
+export interface DoctorUpdate {
+  doctor_id?: string;
+  first_name?: string;
+  last_name?: string;
+  gender?: string;
+  phone?: string;
+  city?: string;
+  email?: string;
+  age?: number;
+  address?: string;
+  qualification?: string;
 }

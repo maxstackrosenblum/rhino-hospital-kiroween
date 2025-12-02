@@ -87,6 +87,22 @@ function Navbar({ user, onLogout }) {
 
         {/* Navigation Menu */}
         <Box sx={{ flexGrow: 1, ml: 3 }}>
+          {['admin', 'doctor', 'receptionist'].includes(user.role) && (
+            <Button
+              color="primary"
+              onClick={() => navigate('/patients')}
+            >
+              Patients
+            </Button>
+          )}
+          {user.role === 'admin' && (
+            <Button
+              color="primary"
+              onClick={() => navigate('/doctors')}
+            >
+              Doctors
+            </Button>
+          )}
           {user.role === 'admin' && (
             <Button
               color="primary"
@@ -131,9 +147,9 @@ function Navbar({ user, onLogout }) {
             Settings
           </MenuItem>
           <Divider />
-          <MenuItem 
-            onClick={handleDeleteClick} 
-            sx={{ 
+          <MenuItem
+            onClick={handleDeleteClick}
+            sx={{
               color: 'error.main',
               '&:hover': {
                 backgroundColor: (theme) => `${theme.palette.error.main}14`,
