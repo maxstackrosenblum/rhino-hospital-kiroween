@@ -177,6 +177,9 @@ function Navbar({ user, onLogout }) {
           <MenuItem onClick={() => handleNavigation('/profile')}>
             Profile
           </MenuItem>
+          <MenuItem onClick={() => handleNavigation('/sessions')}>
+            Sessions
+          </MenuItem>
           <MenuItem onClick={() => handleNavigation('/settings')}>
             Settings
           </MenuItem>
@@ -220,6 +223,11 @@ function Navbar({ user, onLogout }) {
               <ListItem disablePadding>
                 <ListItemButton onClick={() => handleNavigation('/profile')}>
                   <ListItemText primary="Profile" />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton onClick={() => handleNavigation('/sessions')}>
+                  <ListItemText primary="Sessions" />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>

@@ -1,7 +1,7 @@
 import { Box, Container } from "@mui/material";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Navigate,
   Route,
@@ -17,9 +17,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AppThemeProvider } from "./hooks/useTheme";
 import Dashboard from "./pages/Dashboard";
 import Doctors from "./pages/Doctors";
+import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
 import Patients from "./pages/Patients";
 import Profile from "./pages/Profile";
+import ResetPassword from "./pages/ResetPassword";
+import Sessions from "./pages/Sessions";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 
@@ -58,17 +61,66 @@ function AppContent() {
   );
   const { data: user, isLoading, refetch } = useCurrentUser();
 
-  const handleLogin = (accessToken: string) => {
+  const handleLogin = (accessToken: string, refreshToken?: string) => {
     localStorage.setItem("token", accessToken);
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
     setToken(accessToken);
     refetch();
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     setToken(null);
     queryClient.clear();
   };
+
+  // Proactive token refresh - check every 5 minutes
+  useEffect(() => {
+    if (!token) return;
+
+    const checkTokenExpiration = async () => {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const expiresAt = payload.exp * 1000;
+        const now = Date.now();
+        const fiveMinutes = 5 * 60 * 1000;
+
+        // If token expires in less than 5 minutes, refresh it
+        if (expiresAt - now < fiveMinutes) {
+          const refreshToken = localStorage.getItem('refreshToken');
+          if (refreshToken) {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refresh_token: refreshToken }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              localStorage.setItem('token', data.access_token);
+              if (data.refresh_token) {
+                localStorage.setItem('refreshToken', data.refresh_token);
+              }
+              setToken(data.access_token);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check token expiration:', error);
+      }
+    };
+
+    // Check immediately
+    checkTokenExpiration();
+
+    // Then check every 5 minutes
+    const interval = setInterval(checkTokenExpiration, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [token]);
 
   if (isLoading && token) {
     return (
@@ -171,7 +223,35 @@ function AppContent() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                 <Route
+                path="/forgot-password"
+                element={
+                  user ? (
+                    <Navigate to="/" replace />
+                  ) : (
+                    <ForgotPassword />
+                  )
+                }
+              />
+              <Route
+                path="/reset-password"
+                element={
+                  user ? (
+                    <Navigate to="/" replace />
+                  ) : (
+                    <ResetPassword />
+                  )
+                }
+              />
+              <Route
+                path="/sessions"
+                element={
+                  <ProtectedRoute user={user}>
+                    <Sessions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </ErrorBoundary>
           </Box>

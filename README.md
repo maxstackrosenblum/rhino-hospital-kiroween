@@ -33,3 +33,19 @@ docker-compose down -v
 - User: postgres
 - Password: postgres
 - Database: appdb
+
+## Email Configuration (Optional)
+
+Password reset emails are optional. To enable:
+
+1. Copy `.env.example` to `.env`
+2. Add your SMTP credentials:
+```env
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+```
+3. Restart backend: `docker compose restart backend`
+
+See `EMAIL_SETUP.md` for detailed instructions.
+
+**Without email configured**: Reset tokens will be logged to console instead.

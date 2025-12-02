@@ -34,6 +34,11 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True, default=None)
+    reset_token = Column(String, nullable=True, index=True)
+    reset_token_expires = Column(DateTime, nullable=True)
+
+    # Relationship
+    sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
 
     # Relationships
     patient = relationship("Patient", back_populates="user", uselist=False)
@@ -72,3 +77,22 @@ class Doctor(Base):
 
     # Relationships
     user = relationship("User", back_populates="doctor")
+
+class Session(Base):
+    __tablename__ = "sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    jti = Column(String, unique=True, index=True, nullable=False)  # JWT ID (access token)
+    refresh_jti = Column(String, unique=True, index=True, nullable=True)  # Refresh token JTI
+    device_info = Column(String, nullable=True)
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    refresh_expires_at = Column(DateTime, nullable=True)
+    last_activity = Column(DateTime, default=datetime.utcnow, nullable=False)
+    revoked_at = Column(DateTime, nullable=True)
+    
+    # Relationship
+    user = relationship("User", back_populates="sessions")

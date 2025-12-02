@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AdminUserUpdate,
   PaginatedUsersResponse,
@@ -6,6 +5,8 @@ import {
   UserCreate,
 } from "../types";
 import { API_URL, getAuthHeaders, handleApiError } from "./common";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { API_URL, getAuthHeaders, handleApiError, fetchWithAuth, handleApiError } from './common';
 
 // Users queries (admin only)
 export const useUsers = (
@@ -24,12 +25,11 @@ export const useUsers = (
       if (search) params.append("search", search);
       if (role) params.append("role", role);
 
-      const response = await fetch(`${API_URL}/api/users?${params}`, {
-        headers: getAuthHeaders(),
-      });
+      const response = await fetchWithAuth(`${API_URL}/api/users?${params}`);
       if (!response.ok) throw new Error("Failed to fetch users");
       return response.json();
     },
+    retry: false,
   });
 };
 
@@ -72,16 +72,9 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      userId,
-      data,
-    }: {
-      userId: number;
-      data: AdminUserUpdate;
-    }): Promise<User> => {
-      const response = await fetch(`${API_URL}/api/users/${userId}`, {
-        method: "PUT",
-        headers: getAuthHeaders(),
+    mutationFn: async ({ userId, data }: { userId: number; data: AdminUserUpdate }): Promise<User> => {
+      const response = await fetchWithAuth(`${API_URL}/api/users/${userId}`, {
+        method: 'PUT',
         body: JSON.stringify(data),
       });
       return handleApiError<User>(response);
@@ -98,9 +91,8 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: number): Promise<{ message: string }> => {
-      const response = await fetch(`${API_URL}/api/users/${userId}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
+      const response = await fetchWithAuth(`${API_URL}/api/users/${userId}`, {
+        method: 'DELETE',
       });
       return handleApiError<{ message: string }>(response);
     },

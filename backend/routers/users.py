@@ -247,6 +247,11 @@ async def update_current_user(
         current_user.last_name = user_update.last_name
     if user_update.password:
         current_user.hashed_password = auth_utils.get_password_hash(user_update.password)
+        # Revoke all sessions on password change for security
+        db.query(models.Session).filter(
+            models.Session.user_id == current_user.id,
+            models.Session.revoked_at.is_(None)
+        ).update({"revoked_at": datetime.utcnow()})
     if user_update.role and current_user.role == models.UserRole.ADMIN:
         current_user.role = user_update.role
     
