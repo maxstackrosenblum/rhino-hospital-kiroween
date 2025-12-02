@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 import auth as auth_utils
 import models
 import schemas
 from database import get_db
+from core.security import create_access_token
 
 router = APIRouter(prefix="/api", tags=["authentication"])
 
@@ -42,7 +43,7 @@ def register(user: schemas.UserRegister, db: Session = Depends(get_db)):
     return new_user
 
 @router.post("/login", response_model=schemas.Token)
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
+def login(user: schemas.UserLogin, request: Request, db: Session = Depends(get_db)):
     """Login and get access token"""
     db_user = db.query(models.User).filter(
         models.User.username == user.username
@@ -64,7 +65,20 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
             detail="User account has been deleted",
         )
     
-    access_token = auth_utils.create_access_token(data={"sub": db_user.username})
+    # Create access token with JTI
+    access_token, jti, expires_at = create_access_token(data={"sub": db_user.username})
+    
+    # Create session record
+    session = models.Session(
+        user_id=db_user.id,
+        jti=jti,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+        expires_at=expires_at
+    )
+    db.add(session)
+    db.commit()
+    
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -74,8 +88,6 @@ async def get_current_user_profile_status(
     db: Session = Depends(get_db)
 ):
     """Get current user's profile completion status"""
-    from sqlalchemy import and_
-    
     has_role_specific_profile = False
     profile_completed_at = None
     requires_profile_completion = current_user.role in [models.UserRole.PATIENT, models.UserRole.DOCTOR]

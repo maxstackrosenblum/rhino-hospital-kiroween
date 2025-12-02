@@ -16,13 +16,20 @@ def get_password_hash(password: str) -> str:
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
     return hashed.decode('utf-8')
 
-def create_access_token(data: dict) -> str:
-    """Create a JWT access token"""
+def create_access_token(data: dict, jti: str = None) -> str:
+    """Create a JWT access token with unique JTI"""
+    import uuid
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+    if jti is None:
+        jti = str(uuid.uuid4())
+    to_encode.update({
+        "exp": expire,
+        "jti": jti,
+        "iat": datetime.utcnow()
+    })
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    return encoded_jwt, jti, expire
 
 def decode_token(token: str) -> dict:
     """Decode and verify a JWT token"""
@@ -31,3 +38,12 @@ def decode_token(token: str) -> dict:
         return payload
     except JWTError:
         return None
+
+def create_reset_token() -> str:
+    """Create a secure random token for password reset"""
+    import secrets
+    return secrets.token_urlsafe(32)
+
+def create_reset_token_expiry() -> datetime:
+    """Create expiry time for reset token (1 hour from now)"""
+    return datetime.utcnow() + timedelta(hours=1)

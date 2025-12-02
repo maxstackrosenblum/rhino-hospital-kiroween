@@ -9,10 +9,12 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function Login({ onLogin }) {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: "",
@@ -174,6 +176,19 @@ function Login({ onLogin }) {
               {isLogin ? "Register" : "Login"}
             </Link>
           </Typography>
+
+          {isLogin && (
+            <Typography variant="body2" align="center" sx={{ mt: 1 }}>
+              <Link
+                component="button"
+                variant="body2"
+                onClick={() => navigate('/forgot-password')}
+                sx={{ cursor: "pointer" }}
+              >
+                Forgot Password?
+              </Link>
+            </Typography>
+          )}
         </Paper>
       </Box>
     </Container>

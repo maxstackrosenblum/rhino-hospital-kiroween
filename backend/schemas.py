@@ -548,3 +548,22 @@ class PaginatedDoctorsResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordReset(BaseModel):
+    token: str
+    new_password: str
+
+class SessionResponse(BaseModel):
+    id: int
+    device_info: str | None
+    ip_address: str | None
+    user_agent: str | None
+    created_at: datetime
+    last_activity: datetime
+    expires_at: datetime
+    
+    class Config:
+        from_attributes = True

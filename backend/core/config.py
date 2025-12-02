@@ -20,4 +20,13 @@ class Settings:
     # CORS
     CORS_ORIGINS: List[str] = ["*"]  # Allow all origins for development
     
+    # Email Settings
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USER: str = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "noreply@hospital.com")
+    SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "Hospital Management System")
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    
 settings = Settings()

@@ -17,9 +17,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AppThemeProvider } from "./hooks/useTheme";
 import Dashboard from "./pages/Dashboard";
 import Doctors from "./pages/Doctors";
+import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
 import Patients from "./pages/Patients";
 import Profile from "./pages/Profile";
+import ResetPassword from "./pages/ResetPassword";
+import Sessions from "./pages/Sessions";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 
@@ -171,7 +174,35 @@ function AppContent() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                 <Route
+                path="/forgot-password"
+                element={
+                  user ? (
+                    <Navigate to="/" replace />
+                  ) : (
+                    <ForgotPassword />
+                  )
+                }
+              />
+              <Route
+                path="/reset-password"
+                element={
+                  user ? (
+                    <Navigate to="/" replace />
+                  ) : (
+                    <ResetPassword />
+                  )
+                }
+              />
+              <Route
+                path="/sessions"
+                element={
+                  <ProtectedRoute user={user}>
+                    <Sessions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </ErrorBoundary>
           </Box>
