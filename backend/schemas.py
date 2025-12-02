@@ -52,7 +52,6 @@ class AdminUserUpdate(BaseModel):
     last_name: str | None = None
     role: UserRole | None = None
 
-
 # Staff Management Schemas
 
 class StaffCreate(BaseModel):
@@ -112,3 +111,10 @@ class StaffListResponse(BaseModel):
     """Schema for list of staff members"""
     items: list[StaffResponse]
     total: int
+
+class PaginatedUsersResponse(BaseModel):
+    users: list[UserResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

@@ -1,13 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AdminUserUpdate, User } from '../types';
+import { AdminUserUpdate, PaginatedUsersResponse, User } from '../types';
 import { API_URL, getAuthHeaders, handleApiError } from './common';
 
 // Users queries (admin only)
-export const useUsers = () => {
-  return useQuery<User[]>({
-    queryKey: ['users'],
+export const useUsers = (
+  page: number = 1, 
+  pageSize: number = 10,
+  search?: string,
+  role?: string
+) => {
+  return useQuery<PaginatedUsersResponse>({
+    queryKey: ['users', page, pageSize, search, role],
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/api/users`, {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        page_size: pageSize.toString(),
+      });
+      if (search) params.append('search', search);
+      if (role) params.append('role', role);
+      
+      const response = await fetch(`${API_URL}/api/users?${params}`, {
         headers: getAuthHeaders(),
       });
       if (!response.ok) throw new Error('Failed to fetch users');

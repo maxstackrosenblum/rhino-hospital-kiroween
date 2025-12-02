@@ -10,18 +10,53 @@ from core.dependencies import require_admin
 
 router = APIRouter(prefix="/api", tags=["users"])
 
-@router.get("/users", response_model=List[schemas.UserResponse])
+@router.get("/users", response_model=schemas.PaginatedUsersResponse)
 async def get_all_users(
+    page: int = 1,
+    page_size: int = 10,
+    search: str = None,
+    role: str = None,
     include_deleted: bool = False,
     current_user: models.User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    """Get all users (admin only)"""
+    """Get all users with pagination and search (admin only)"""
     query = db.query(models.User)
+    
     if not include_deleted:
         query = query.filter(models.User.deleted_at.is_(None))
-    users = query.all()
-    return users
+    
+    # Apply search filter
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (models.User.username.ilike(search_term)) |
+            (models.User.email.ilike(search_term)) |
+            (models.User.first_name.ilike(search_term)) |
+            (models.User.last_name.ilike(search_term))
+        )
+    
+    # Apply role filter
+    if role:
+        query = query.filter(models.User.role == role)
+    
+    # Get total count
+    total = query.count()
+    
+    # Calculate pagination
+    total_pages = (total + page_size - 1) // page_size
+    offset = (page - 1) * page_size
+    
+    # Get paginated users
+    users = query.order_by(models.User.created_at.desc()).offset(offset).limit(page_size).all()
+    
+    return {
+        "users": users,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages
+    }
 
 @router.put("/users/{user_id}", response_model=schemas.UserResponse)
 async def update_user_by_admin(

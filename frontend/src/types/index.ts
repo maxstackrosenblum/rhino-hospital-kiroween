@@ -79,3 +79,11 @@ export interface ApiError {
   error_code?: string;
   fields?: Record<string, string>;
 }
+// Pagination types
+export interface PaginatedUsersResponse {
+  users: User[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
