@@ -223,10 +223,10 @@
   - Commit: `git commit -m "feat: add API routes with error handling and auth"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 6. Checkpoint - Ensure all backend tests pass
+- [-] 6. Checkpoint - Ensure all backend tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6.1 Git commit: Backend checkpoint - all tests passing
+- [-] 6.1 Git commit: Backend checkpoint - all tests passing
   - Run: `git add .`
   - Commit: `git commit -m "test: backend checkpoint - all tests passing"`
   - Push: `git push` (pushes to current branch)
