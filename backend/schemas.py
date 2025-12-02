@@ -53,6 +53,12 @@ class AdminUserUpdate(BaseModel):
     last_name: str | None = None
     role: UserRole | None = None
 
+class PaginatedUsersResponse(BaseModel):
+    users: list[UserResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
 
 # Patient Schemas
 class PatientBase(BaseModel):
