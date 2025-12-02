@@ -14,6 +14,11 @@
   - Test migration up and down
   - _Requirements: 11.1_
 
+- [ ] 1.3 Git commit: Database models and migrations
+  - Run: `git add backend/models.py backend/alembic/versions/*`
+  - Commit: `git commit -m "feat: add staff database models and migration"`
+  - Push: `git push` (pushes to current branch)
+
 - [ ] 2. Implement Pydantic schemas for staff management
 - [ ] 2.1 Create request and response schemas
   - Define StaffCreate schema with validation for first_name, last_name, phone
@@ -30,6 +35,11 @@
 - [ ] 2.3 Write property test for Pydantic validation enforcement
   - **Property 6: Pydantic validation enforcement**
   - **Validates: Requirements 13.1**
+
+- [ ] 2.4 Git commit: Pydantic schemas and validation tests
+  - Run: `git add backend/schemas.py backend/tests/`
+  - Commit: `git commit -m "feat: add Pydantic schemas with validation tests"`
+  - Push: `git push` (pushes to current branch)
 
 - [ ] 3. Implement Repository Layer
 - [ ] 3.1 Create base repository interface
@@ -64,6 +74,11 @@
 - [ ] 3.7 Write property test for search filter correctness
   - **Property 8: Search filter correctness**
   - **Validates: Requirements 5.2, 10.2**
+
+- [ ] 3.8 Git commit: Repository layer with tests
+  - Run: `git add backend/repositories/ backend/tests/`
+  - Commit: `git commit -m "feat: implement repository layer with property tests"`
+  - Push: `git push` (pushes to current branch)
 
 - [ ] 4. Implement Service Layer with logging
 - [ ] 4.1 Set up structured logging
@@ -106,6 +121,11 @@
 - [ ] 4.8 Write property test for no credential exposure in logs
   - **Property 19: No credential exposure in logs**
   - **Validates: Requirements 14.5**
+
+- [ ] 4.9 Git commit: Service layer with logging and tests
+  - Run: `git add backend/services/ backend/core/ backend/tests/`
+  - Commit: `git commit -m "feat: implement service layer with structured logging"`
+  - Push: `git push` (pushes to current branch)
 
 - [ ] 5. Implement API routes with error handling
 - [ ] 5.1 Create receptionist router
@@ -198,8 +218,18 @@
   - **Property 35: Transaction rollback on failure**
   - **Validates: Requirements 20.2**
 
+- [ ] 5.18 Git commit: API routes with comprehensive tests
+  - Run: `git add backend/routers/ backend/main.py backend/tests/`
+  - Commit: `git commit -m "feat: add API routes with error handling and auth"`
+  - Push: `git push` (pushes to current branch)
+
 - [ ] 6. Checkpoint - Ensure all backend tests pass
   - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 6.1 Git commit: Backend checkpoint - all tests passing
+  - Run: `git add .`
+  - Commit: `git commit -m "test: backend checkpoint - all tests passing"`
+  - Push: `git push` (pushes to current branch)
 
 - [ ] 7. Set up frontend interfaces and API client
 - [ ] 7.1 Create type definitions for staff management
@@ -230,6 +260,11 @@
   - Implement updateWorker function
   - Implement deleteWorker function
   - _Requirements: 2.1, 5.1, 7.1, 10.1_
+
+- [ ] 7.4 Git commit: Frontend API client and types
+  - Run: `git add frontend/src/api/ frontend/src/types/`
+  - Commit: `git commit -m "feat: add frontend API client with type definitions"`
+  - Push: `git push` (pushes to current branch)
 
 - [ ] 8. Implement frontend custom hooks
 - [ ] 8.1 Create useStaffList hook
@@ -263,6 +298,11 @@
   - **Property 33: User-friendly not found messages**
   - **Validates: Requirements 19.5**
 
+- [ ] 8.6 Git commit: Frontend hooks with tests
+  - Run: `git add frontend/src/hooks/ frontend/src/tests/`
+  - Commit: `git commit -m "feat: add custom hooks for staff management"`
+  - Push: `git push` (pushes to current branch)
+
 - [ ] 9. Implement receptionist UI components
 - [ ] 9.1 Create AddReceptionist page component
   - Implement form UI with first_name, last_name, phone fields
@@ -294,6 +334,11 @@
 - [ ] 9.5 Write property test for loading indicator display
   - **Property 27: Loading indicator display**
   - **Validates: Requirements 16.2**
+
+- [ ] 9.6 Git commit: Receptionist UI components with tests
+  - Run: `git add frontend/src/pages/ frontend/src/components/ frontend/src/tests/`
+  - Commit: `git commit -m "feat: add receptionist management UI components"`
+  - Push: `git push` (pushes to current branch)
 
 - [ ] 10. Implement worker UI components
 - [ ] 10.1 Create AddWorker page component
@@ -339,6 +384,11 @@
   - **Property 22: User-friendly error messages**
   - **Validates: Requirements 15.3**
 
+- [ ] 10.9 Git commit: Worker UI components with tests
+  - Run: `git add frontend/src/pages/ frontend/src/components/ frontend/src/tests/`
+  - Commit: `git commit -m "feat: add worker management UI components"`
+  - Push: `git push` (pushes to current branch)
+
 - [ ] 11. Add navigation and routing
 - [ ] 11.1 Update App.js with staff management routes
   - Add route for /receptionists/add
@@ -353,6 +403,11 @@
   - Add navigation links for worker management
   - Ensure links are only visible to authenticated admins
   - _Requirements: 1.1, 6.1_
+
+- [ ] 11.3 Git commit: Navigation and routing
+  - Run: `git add frontend/src/App.js frontend/src/components/Navbar.js`
+  - Commit: `git commit -m "feat: add staff management routes and navigation"`
+  - Push: `git push` (pushes to current branch)
 
 - [ ] 12. Implement responsive styling and accessibility
 - [ ] 12.1 Style staff management forms
@@ -375,5 +430,15 @@
   - Ensure loading states are accessible to screen readers
   - _Requirements: 16.2_
 
+- [ ] 12.4 Git commit: Styling and accessibility
+  - Run: `git add frontend/src/App.css frontend/src/components/`
+  - Commit: `git commit -m "style: add responsive styling and accessibility features"`
+  - Push: `git push` (pushes to current branch)
+
 - [ ] 13. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 13.1 Git commit: Final implementation complete
+  - Run: `git add .`
+  - Commit: `git commit -m "feat: complete staff management feature implementation"`
+  - Push: `git push` (pushes to current branch)
