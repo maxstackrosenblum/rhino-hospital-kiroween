@@ -45,3 +45,37 @@ export interface TokenResponse {
   access_token: string;
   token_type: string;
 }
+
+// Staff types
+export interface Staff {
+  id: number;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StaffCreate {
+  first_name: string;
+  last_name: string;
+  phone: string;
+}
+
+export interface StaffUpdate {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+}
+
+export interface StaffListResponse {
+  items: Staff[];
+  total: number;
+}
+
+export interface ApiError {
+  detail: string;
+  status_code: number;
+  error_code?: string;
+  fields?: Record<string, string>;
+}

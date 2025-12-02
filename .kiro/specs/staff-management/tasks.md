@@ -223,16 +223,16 @@
   - Commit: `git commit -m "feat: add API routes with error handling and auth"`
   - Push: `git push` (pushes to current branch)
 
-- [-] 6. Checkpoint - Ensure all backend tests pass
+- [x] 6. Checkpoint - Ensure all backend tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 6.1 Git commit: Backend checkpoint - all tests passing
+- [x] 6.1 Git commit: Backend checkpoint - all tests passing
   - Run: `git add .`
   - Commit: `git commit -m "test: backend checkpoint - all tests passing"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 7. Set up frontend interfaces and API client
-- [ ] 7.1 Create type definitions for staff management
+- [x] 7. Set up frontend interfaces and API client
+- [x] 7.1 Create type definitions for staff management
   - Note: The existing frontend is JavaScript. We can either convert to TypeScript or use JSDoc for type annotations
   - Define Staff interface/type matching backend StaffResponse
   - Define StaffCreate interface/type matching backend schema
@@ -241,7 +241,7 @@
   - Define ApiError interface/type for error handling
   - _Requirements: 12.4, 13.4_
 
-- [ ] 7.2 Implement API client utility
+- [x] 7.2 Implement API client utility
   - Create centralized fetch wrapper with authentication
   - Add JWT token to Authorization header for all requests
   - Add request/response type safety
@@ -250,7 +250,7 @@
   - Handle 401/403 errors by redirecting to login
   - _Requirements: 15.5, 17.5_
 
-- [ ] 7.3 Create staff API functions
+- [x] 7.3 Create staff API functions
   - Implement createReceptionist function
   - Implement getReceptionists function with search parameter
   - Implement updateReceptionist function
@@ -261,7 +261,7 @@
   - Implement deleteWorker function
   - _Requirements: 2.1, 5.1, 7.1, 10.1_
 
-- [ ] 7.4 Git commit: Frontend API client and types
+- [x] 7.4 Git commit: Frontend API client and types
   - Run: `git add frontend/src/api/ frontend/src/types/`
   - Commit: `git commit -m "feat: add frontend API client with type definitions"`
   - Push: `git push` (pushes to current branch)
