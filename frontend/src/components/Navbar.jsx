@@ -18,14 +18,14 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { useDeleteCurrentUser } from '../api';
 
 function Navbar({ user, onLogout }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
+  const deleteAccountMutation = useDeleteCurrentUser();
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -44,27 +44,17 @@ function Navbar({ user, onLogout }) {
     setDeleteDialogOpen(false);
   };
 
-  const handleDeleteConfirm = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/me`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
+  const handleDeleteConfirm = () => {
+    deleteAccountMutation.mutate(undefined, {
+      onSuccess: () => {
         setDeleteDialogOpen(false);
         onLogout();
         navigate('/login');
-      } else {
-        const data = await response.json();
-        alert(data.detail || 'Failed to delete account');
-      }
-    } catch (err) {
-      alert('Connection error');
-    }
+      },
+      onError: (error) => {
+        alert(error.message || 'Failed to delete account');
+      },
+    });
   };
 
   const getInitials = (firstName, lastName) => {

@@ -11,10 +11,9 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUpdateCurrentUser } from "../api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-function Profile({ user, token, onUserUpdate }) {
+function Profile({ user }) {
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState({
     email: user.email,
@@ -23,8 +22,7 @@ function Profile({ user, token, onUserUpdate }) {
     password: "",
     role: user.role,
   });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const updateProfileMutation = useUpdateCurrentUser();
 
   const handleProfileChange = (e) => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
@@ -32,8 +30,6 @@ function Profile({ user, token, onUserUpdate }) {
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     const updateData = {};
     if (profileData.email !== user.email) updateData.email = profileData.email;
@@ -45,34 +41,16 @@ function Profile({ user, token, onUserUpdate }) {
     if (profileData.role !== user.role) updateData.role = profileData.role;
 
     if (Object.keys(updateData).length === 0) {
-      setError("No changes to save");
       return;
     }
 
-    try {
-      const response = await fetch(`${API_URL}/api/me`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updateData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        onUserUpdate(data);
-        setSuccess("Profile updated successfully!");
+    updateProfileMutation.mutate(updateData, {
+      onSuccess: () => {
         setTimeout(() => {
           navigate("/");
         }, 1500);
-      } else {
-        setError(data.detail || "An error occurred");
-      }
-    } catch (err) {
-      setError("Connection error");
-    }
+      },
+    });
   };
 
   return (
@@ -151,14 +129,14 @@ function Profile({ user, token, onUserUpdate }) {
               <FormHelperText>Only admins can change roles</FormHelperText>
             )}
 
-            {error && (
+            {updateProfileMutation.error && (
               <Alert severity="error" sx={{ mt: 2 }}>
-                {error}
+                {updateProfileMutation.error.message}
               </Alert>
             )}
-            {success && (
+            {updateProfileMutation.isSuccess && (
               <Alert severity="success" sx={{ mt: 2 }}>
-                {success}
+                Profile updated successfully!
               </Alert>
             )}
 
