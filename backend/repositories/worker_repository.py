@@ -2,12 +2,12 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from models import Worker
-from schemas import StaffCreate, StaffUpdate
+from models import Worker, User
+from schemas import WorkerCreate, WorkerUpdate
 from .base import BaseStaffRepository
 
 
-class WorkerRepository(BaseStaffRepository[Worker]):
+class WorkerRepository(BaseStaffRepository[Worker, WorkerCreate, WorkerUpdate]):
     """
     Repository for worker CRUD operations.
     
@@ -18,20 +18,21 @@ class WorkerRepository(BaseStaffRepository[Worker]):
     - 11.3: Delete operations
     """
     
-    def create(self, staff_data: StaffCreate) -> Worker:
+    def create(self, staff_data: WorkerCreate) -> Worker:
         """
         Create a new worker.
         
         Args:
-            staff_data: Worker creation data
+            staff_data: Worker creation data (user_id, job_title, department, shift_schedule)
             
         Returns:
             Created worker instance
         """
         worker = Worker(
-            first_name=staff_data.first_name,
-            last_name=staff_data.last_name,
-            phone=staff_data.phone
+            user_id=staff_data.user_id,
+            job_title=staff_data.job_title,
+            department=staff_data.department,
+            shift_schedule=staff_data.shift_schedule
         )
         self.db.add(worker)
         self.db.commit()
@@ -48,7 +49,8 @@ class WorkerRepository(BaseStaffRepository[Worker]):
         Returns:
             Worker instance if found, None otherwise
         """
-        return self.db.query(Worker).filter(Worker.id == staff_id).first()
+        from sqlalchemy.orm import joinedload
+        return self.db.query(Worker).options(joinedload(Worker.user)).filter(Worker.id == staff_id).first()
     
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Worker]:
         """
@@ -61,11 +63,12 @@ class WorkerRepository(BaseStaffRepository[Worker]):
         Returns:
             List of worker instances
         """
-        return self.db.query(Worker).offset(skip).limit(limit).all()
+        from sqlalchemy.orm import joinedload
+        return self.db.query(Worker).options(joinedload(Worker.user)).offset(skip).limit(limit).all()
     
     def search(self, query: str) -> List[Worker]:
         """
-        Search for workers by first name or last name.
+        Search for workers by user's first name or last name.
         Uses case-insensitive LIKE queries.
         
         Args:
@@ -74,22 +77,23 @@ class WorkerRepository(BaseStaffRepository[Worker]):
         Returns:
             List of worker instances matching the query
         """
+        from sqlalchemy.orm import joinedload
         search_pattern = f"%{query}%"
-        return self.db.query(Worker).filter(
+        return self.db.query(Worker).options(joinedload(Worker.user)).join(User).filter(
             or_(
-                Worker.first_name.ilike(search_pattern),
-                Worker.last_name.ilike(search_pattern)
+                User.first_name.ilike(search_pattern),
+                User.last_name.ilike(search_pattern)
             )
         ).all()
     
-    def update(self, staff_id: int, staff_data: StaffUpdate) -> Optional[Worker]:
+    def update(self, staff_id: int, staff_data: WorkerUpdate) -> Optional[Worker]:
         """
         Update an existing worker.
         Only updates fields that are provided (not None).
         
         Args:
             staff_id: Worker ID
-            staff_data: Worker update data
+            staff_data: Worker update data (job_title, department, shift_schedule)
             
         Returns:
             Updated worker instance if found, None otherwise

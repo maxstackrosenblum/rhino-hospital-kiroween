@@ -49,9 +49,9 @@ def require_admin(current_user: models.User = Depends(auth_utils.get_current_use
     return current_user
 
 
-@router.post("", response_model=schemas.StaffResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=schemas.WorkerResponse, status_code=status.HTTP_201_CREATED)
 def create_worker(
-    worker_data: schemas.StaffCreate,
+    worker_data: schemas.WorkerCreate,
     service: WorkerService = Depends(get_worker_service),
     current_user: models.User = Depends(require_admin)
 ):
@@ -74,7 +74,7 @@ def create_worker(
     Raises:
         HTTPException: 400 if validation fails, 401 if unauthorized, 403 if not admin
     """
-    logger.info(f"Creating worker: {worker_data.first_name} {worker_data.last_name}")
+    logger.info(f"Creating worker for user_id: {worker_data.user_id}")
     try:
         worker = service.register_staff(worker_data)
         logger.info(f"Successfully created worker with ID: {worker.id}")
@@ -93,7 +93,7 @@ def create_worker(
         )
 
 
-@router.get("", response_model=schemas.StaffListResponse)
+@router.get("")
 def list_workers(
     search: Optional[str] = None,
     service: WorkerService = Depends(get_worker_service),
@@ -121,7 +121,7 @@ def list_workers(
     logger.info(f"Listing workers with search: {search}")
     try:
         result = service.get_staff_list(search=search)
-        logger.info(f"Retrieved {result.total} workers")
+        logger.info(f"Retrieved {result['total']} workers")
         return result
     except Exception as e:
         logger.error(f"Error listing workers: {str(e)}")
@@ -131,7 +131,7 @@ def list_workers(
         )
 
 
-@router.get("/{worker_id}", response_model=schemas.StaffResponse)
+@router.get("/{worker_id}", response_model=schemas.WorkerResponse)
 def get_worker(
     worker_id: int,
     service: WorkerService = Depends(get_worker_service),
@@ -165,7 +165,7 @@ def get_worker(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Worker with ID {worker_id} not found"
             )
-        logger.info(f"Retrieved worker: {worker.first_name} {worker.last_name}")
+        logger.info(f"Retrieved worker with ID: {worker.id}")
         return worker
     except HTTPException:
         raise
@@ -177,10 +177,10 @@ def get_worker(
         )
 
 
-@router.put("/{worker_id}", response_model=schemas.StaffResponse)
+@router.put("/{worker_id}", response_model=schemas.WorkerResponse)
 def update_worker(
     worker_id: int,
-    worker_data: schemas.StaffUpdate,
+    worker_data: schemas.WorkerUpdate,
     service: WorkerService = Depends(get_worker_service),
     current_user: models.User = Depends(require_admin)
 ):

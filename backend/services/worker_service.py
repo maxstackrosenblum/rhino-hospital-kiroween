@@ -13,11 +13,12 @@ Requirements:
 """
 from sqlalchemy.orm import Session
 from models import Worker
+from schemas import WorkerCreate, WorkerUpdate, WorkerResponse
 from repositories.worker_repository import WorkerRepository
 from .base_staff_service import BaseStaffService
 
 
-class WorkerService(BaseStaffService[Worker]):
+class WorkerService(BaseStaffService[Worker, WorkerCreate, WorkerUpdate, WorkerResponse]):
     """
     Service class for worker management operations.
     
@@ -39,7 +40,7 @@ class WorkerService(BaseStaffService[Worker]):
             db: SQLAlchemy database session
         """
         repository = WorkerRepository(db)
-        super().__init__(repository, staff_type="worker")
+        super().__init__(repository, staff_type="worker", response_schema_class=WorkerResponse)
     
     # All CRUD operations are inherited from BaseStaffService
     # Additional worker-specific business logic can be added here if needed

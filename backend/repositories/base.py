@@ -2,13 +2,14 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, TypeVar, Generic
 from sqlalchemy.orm import Session
-from schemas import StaffCreate, StaffUpdate
 
-# Generic type for staff models (Receptionist or Worker)
+# Generic types for staff models and schemas
 StaffModel = TypeVar('StaffModel')
+StaffCreateSchema = TypeVar('StaffCreateSchema')
+StaffUpdateSchema = TypeVar('StaffUpdateSchema')
 
 
-class BaseStaffRepository(ABC, Generic[StaffModel]):
+class BaseStaffRepository(ABC, Generic[StaffModel, StaffCreateSchema, StaffUpdateSchema]):
     """
     Abstract base class for staff repository operations.
     Defines the interface for CRUD operations on staff entities.
@@ -26,7 +27,7 @@ class BaseStaffRepository(ABC, Generic[StaffModel]):
         self.db = db
     
     @abstractmethod
-    def create(self, staff_data: StaffCreate) -> StaffModel:
+    def create(self, staff_data: StaffCreateSchema) -> StaffModel:
         """
         Create a new staff member.
         
@@ -79,7 +80,7 @@ class BaseStaffRepository(ABC, Generic[StaffModel]):
         pass
     
     @abstractmethod
-    def update(self, staff_id: int, staff_data: StaffUpdate) -> Optional[StaffModel]:
+    def update(self, staff_id: int, staff_data: StaffUpdateSchema) -> Optional[StaffModel]:
         """
         Update an existing staff member.
         

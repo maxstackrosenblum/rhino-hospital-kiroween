@@ -10,55 +10,94 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStaffForm } from '../hooks/useStaffForm';
+import { useRegister } from '../api';
+import { useCreateWorker } from '../api/staff';
 
 /**
  * AddWorker page component
- * Provides a form for registering new hospital workers with validation and error handling
- * 
- * Requirements: 6.1, 6.2, 6.3, 7.1, 8.1, 8.2, 9.1
+ * Creates a user account and then creates a worker record linked to that user
  */
 function AddWorker() {
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  const registerMutation = useRegister();
+  const createWorkerMutation = useCreateWorker();
 
-  const onSuccess = () => {
-    setSuccessMessage('Worker registered successfully!');
-    setErrorMessage(null);
-    
-    // Redirect to worker list after a short delay
-    setTimeout(() => {
-      navigate('/workers');
-    }, 1500);
-  };
+  const [formData, setFormData] = useState({
+    email: '',
+    username: '',
+    first_name: '',
+    last_name: '',
+    phone: '',
+    password: '',
+    job_title: '',
+    department: '',
+    shift_schedule: '',
+  });
 
-  const {
-    formData,
-    errors,
-    isSubmitting,
-    handleChange,
-    handleSubmit,
-  } = useStaffForm('workers', onSuccess);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccessMessage(null);
-    setErrorMessage(null);
-
-    try {
-      await handleSubmit();
-    } catch (error) {
-      // Error is already handled in the hook, but we can display a general message
-      setErrorMessage('Failed to register worker. Please check the form and try again.');
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuccessMessage(null);
+    setErrorMessage(null);
+    setErrors({});
+
+    try {
+      // Step 1: Create user account with role 'worker'
+      const userResponse = await registerMutation.mutateAsync({
+        email: formData.email,
+        username: formData.username,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone: formData.phone || undefined,
+        password: formData.password,
+      });
+
+      // Step 2: Create worker record linked to the user
+      await createWorkerMutation.mutateAsync({
+        user_id: userResponse.id,
+        job_title: formData.job_title || undefined,
+        department: formData.department || undefined,
+        shift_schedule: formData.shift_schedule || undefined,
+      });
+
+      setSuccessMessage('Worker registered successfully!');
+      
+      // Redirect to worker list after a short delay
+      setTimeout(() => {
+        navigate('/workers');
+      }, 1500);
+    } catch (error: any) {
+      console.error('Error registering worker:', error);
+      setErrorMessage(error.message || 'Failed to register worker. Please check the form and try again.');
+    }
+  };
+
+  const isSubmitting = registerMutation.isPending || createWorkerMutation.isPending;
+
   // Check if form is valid (all required fields have values)
   const isFormValid = 
+    formData.email.trim() !== '' &&
+    formData.username.trim() !== '' &&
     formData.first_name.trim() !== '' &&
     formData.last_name.trim() !== '' &&
-    formData.phone.trim() !== '';
+    formData.phone.trim() !== '' &&
+    formData.password.trim() !== '';
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -66,31 +105,50 @@ function AddWorker() {
         Add New Worker
       </Typography>
 
-      {/* Success notification */}
       {successMessage && (
         <Alert severity="success" sx={{ mb: 3 }}>
           {successMessage}
         </Alert>
       )}
 
-      {/* Error notification */}
       {errorMessage && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {errorMessage}
         </Alert>
       )}
 
-      {/* General error from form hook */}
-      {errors.general && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {errors.general}
-        </Alert>
-      )}
-
       <Paper sx={{ p: 4, mt: 3 }}>
-        <form onSubmit={handleFormSubmit}>
+        <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* First Name Field */}
+            <Typography variant="h6" gutterBottom>
+              User Account Information
+            </Typography>
+
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              error={!!errors.email}
+              helperText={errors.email}
+              required
+              fullWidth
+              disabled={isSubmitting}
+            />
+
+            <TextField
+              label="Username"
+              name="username"
+              value={formData.username}
+              onChange={(e) => handleChange('username', e.target.value)}
+              error={!!errors.username}
+              helperText={errors.username}
+              required
+              fullWidth
+              disabled={isSubmitting}
+            />
+
             <TextField
               label="First Name"
               name="first_name"
@@ -101,10 +159,8 @@ function AddWorker() {
               required
               fullWidth
               disabled={isSubmitting}
-              placeholder="Enter first name"
             />
 
-            {/* Last Name Field */}
             <TextField
               label="Last Name"
               name="last_name"
@@ -115,10 +171,8 @@ function AddWorker() {
               required
               fullWidth
               disabled={isSubmitting}
-              placeholder="Enter last name"
             />
 
-            {/* Phone Field */}
             <TextField
               label="Phone Number"
               name="phone"
@@ -129,10 +183,53 @@ function AddWorker() {
               required
               fullWidth
               disabled={isSubmitting}
-              placeholder="Enter phone number"
             />
 
-            {/* Submit Button */}
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              error={!!errors.password}
+              helperText={errors.password}
+              required
+              fullWidth
+              disabled={isSubmitting}
+            />
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+              Worker Information (Optional)
+            </Typography>
+
+            <TextField
+              label="Job Title"
+              name="job_title"
+              value={formData.job_title}
+              onChange={(e) => handleChange('job_title', e.target.value)}
+              fullWidth
+              disabled={isSubmitting}
+            />
+
+            <TextField
+              label="Department"
+              name="department"
+              value={formData.department}
+              onChange={(e) => handleChange('department', e.target.value)}
+              fullWidth
+              disabled={isSubmitting}
+            />
+
+            <TextField
+              label="Shift Schedule"
+              name="shift_schedule"
+              value={formData.shift_schedule}
+              onChange={(e) => handleChange('shift_schedule', e.target.value)}
+              fullWidth
+              disabled={isSubmitting}
+              placeholder="e.g., Monday-Friday 9AM-5PM"
+            />
+
             <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
               <Button
                 type="submit"

@@ -27,6 +27,11 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
+        phone=user.phone,
+        city=user.city,
+        age=user.age,
+        address=user.address,
+        gender=user.gender,
         hashed_password=hashed_password,
         role=models.UserRole.UNDEFINED
     )

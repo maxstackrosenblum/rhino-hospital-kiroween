@@ -2,12 +2,12 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from models import Receptionist
-from schemas import StaffCreate, StaffUpdate
+from models import Receptionist, User
+from schemas import ReceptionistCreate, ReceptionistUpdate
 from .base import BaseStaffRepository
 
 
-class ReceptionistRepository(BaseStaffRepository[Receptionist]):
+class ReceptionistRepository(BaseStaffRepository[Receptionist, ReceptionistCreate, ReceptionistUpdate]):
     """
     Repository for receptionist CRUD operations.
     
@@ -18,20 +18,20 @@ class ReceptionistRepository(BaseStaffRepository[Receptionist]):
     - 11.3: Delete operations
     """
     
-    def create(self, staff_data: StaffCreate) -> Receptionist:
+    def create(self, staff_data: ReceptionistCreate) -> Receptionist:
         """
         Create a new receptionist.
         
         Args:
-            staff_data: Receptionist creation data
+            staff_data: Receptionist creation data (user_id, shift_schedule, desk_number)
             
         Returns:
             Created receptionist instance
         """
         receptionist = Receptionist(
-            first_name=staff_data.first_name,
-            last_name=staff_data.last_name,
-            phone=staff_data.phone
+            user_id=staff_data.user_id,
+            shift_schedule=staff_data.shift_schedule,
+            desk_number=staff_data.desk_number
         )
         self.db.add(receptionist)
         self.db.commit()
@@ -48,7 +48,8 @@ class ReceptionistRepository(BaseStaffRepository[Receptionist]):
         Returns:
             Receptionist instance if found, None otherwise
         """
-        return self.db.query(Receptionist).filter(Receptionist.id == staff_id).first()
+        from sqlalchemy.orm import joinedload
+        return self.db.query(Receptionist).options(joinedload(Receptionist.user)).filter(Receptionist.id == staff_id).first()
     
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Receptionist]:
         """
@@ -61,11 +62,12 @@ class ReceptionistRepository(BaseStaffRepository[Receptionist]):
         Returns:
             List of receptionist instances
         """
-        return self.db.query(Receptionist).offset(skip).limit(limit).all()
+        from sqlalchemy.orm import joinedload
+        return self.db.query(Receptionist).options(joinedload(Receptionist.user)).offset(skip).limit(limit).all()
     
     def search(self, query: str) -> List[Receptionist]:
         """
-        Search for receptionists by first name or last name.
+        Search for receptionists by user's first name or last name.
         Uses case-insensitive LIKE queries.
         
         Args:
@@ -74,22 +76,23 @@ class ReceptionistRepository(BaseStaffRepository[Receptionist]):
         Returns:
             List of receptionist instances matching the query
         """
+        from sqlalchemy.orm import joinedload
         search_pattern = f"%{query}%"
-        return self.db.query(Receptionist).filter(
+        return self.db.query(Receptionist).options(joinedload(Receptionist.user)).join(User).filter(
             or_(
-                Receptionist.first_name.ilike(search_pattern),
-                Receptionist.last_name.ilike(search_pattern)
+                User.first_name.ilike(search_pattern),
+                User.last_name.ilike(search_pattern)
             )
         ).all()
     
-    def update(self, staff_id: int, staff_data: StaffUpdate) -> Optional[Receptionist]:
+    def update(self, staff_id: int, staff_data: ReceptionistUpdate) -> Optional[Receptionist]:
         """
         Update an existing receptionist.
         Only updates fields that are provided (not None).
         
         Args:
             staff_id: Receptionist ID
-            staff_data: Receptionist update data
+            staff_data: Receptionist update data (shift_schedule, desk_number)
             
         Returns:
             Updated receptionist instance if found, None otherwise

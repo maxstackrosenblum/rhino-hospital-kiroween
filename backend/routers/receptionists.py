@@ -49,9 +49,9 @@ def require_admin(current_user: models.User = Depends(auth_utils.get_current_use
     return current_user
 
 
-@router.post("", response_model=schemas.StaffResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=schemas.ReceptionistResponse, status_code=status.HTTP_201_CREATED)
 def create_receptionist(
-    receptionist_data: schemas.StaffCreate,
+    receptionist_data: schemas.ReceptionistCreate,
     service: ReceptionistService = Depends(get_receptionist_service),
     current_user: models.User = Depends(require_admin)
 ):
@@ -74,7 +74,7 @@ def create_receptionist(
     Raises:
         HTTPException: 400 if validation fails, 401 if unauthorized, 403 if not admin
     """
-    logger.info(f"Creating receptionist: {receptionist_data.first_name} {receptionist_data.last_name}")
+    logger.info(f"Creating receptionist for user_id: {receptionist_data.user_id}")
     try:
         receptionist = service.register_staff(receptionist_data)
         logger.info(f"Successfully created receptionist with ID: {receptionist.id}")
@@ -93,7 +93,7 @@ def create_receptionist(
         )
 
 
-@router.get("", response_model=schemas.StaffListResponse)
+@router.get("")
 def list_receptionists(
     search: Optional[str] = None,
     service: ReceptionistService = Depends(get_receptionist_service),
@@ -121,7 +121,7 @@ def list_receptionists(
     logger.info(f"Listing receptionists with search: {search}")
     try:
         result = service.get_staff_list(search=search)
-        logger.info(f"Retrieved {result.total} receptionists")
+        logger.info(f"Retrieved {result['total']} receptionists")
         return result
     except Exception as e:
         logger.error(f"Error listing receptionists: {str(e)}")
@@ -131,7 +131,7 @@ def list_receptionists(
         )
 
 
-@router.get("/{receptionist_id}", response_model=schemas.StaffResponse)
+@router.get("/{receptionist_id}", response_model=schemas.ReceptionistResponse)
 def get_receptionist(
     receptionist_id: int,
     service: ReceptionistService = Depends(get_receptionist_service),
@@ -165,7 +165,7 @@ def get_receptionist(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Receptionist with ID {receptionist_id} not found"
             )
-        logger.info(f"Retrieved receptionist: {receptionist.first_name} {receptionist.last_name}")
+        logger.info(f"Retrieved receptionist with ID: {receptionist.id}")
         return receptionist
     except HTTPException:
         raise
@@ -177,10 +177,10 @@ def get_receptionist(
         )
 
 
-@router.put("/{receptionist_id}", response_model=schemas.StaffResponse)
+@router.put("/{receptionist_id}", response_model=schemas.ReceptionistResponse)
 def update_receptionist(
     receptionist_id: int,
-    receptionist_data: schemas.StaffUpdate,
+    receptionist_data: schemas.ReceptionistUpdate,
     service: ReceptionistService = Depends(get_receptionist_service),
     current_user: models.User = Depends(require_admin)
 ):

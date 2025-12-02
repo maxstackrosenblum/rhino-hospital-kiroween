@@ -13,15 +13,17 @@ from typing import List, Optional, TypeVar, Generic
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from schemas import StaffCreate, StaffUpdate, StaffResponse, StaffListResponse
 from repositories.base import BaseStaffRepository
 from core.logging_config import get_logger
 
-# Generic type for staff models
+# Generic types for staff models and schemas
 StaffModel = TypeVar('StaffModel')
+StaffCreateSchema = TypeVar('StaffCreateSchema')
+StaffUpdateSchema = TypeVar('StaffUpdateSchema')
+StaffResponseSchema = TypeVar('StaffResponseSchema')
 
 
-class BaseStaffService(ABC, Generic[StaffModel]):
+class BaseStaffService(ABC, Generic[StaffModel, StaffCreateSchema, StaffUpdateSchema, StaffResponseSchema]):
     """
     Base service class for staff management operations.
     
@@ -35,8 +37,9 @@ class BaseStaffService(ABC, Generic[StaffModel]):
     
     def __init__(
         self,
-        repository: BaseStaffRepository[StaffModel],
-        staff_type: str
+        repository: BaseStaffRepository[StaffModel, StaffCreateSchema, StaffUpdateSchema],
+        staff_type: str,
+        response_schema_class: type
     ):
         """
         Initialize base staff service.
@@ -44,12 +47,14 @@ class BaseStaffService(ABC, Generic[StaffModel]):
         Args:
             repository: Repository instance for data access
             staff_type: Type of staff ("receptionist" or "worker")
+            response_schema_class: Pydantic schema class for responses
         """
         self.repository = repository
         self.staff_type = staff_type
+        self.response_schema_class = response_schema_class
         self.logger = get_logger(f"{__name__}.{staff_type}")
     
-    def register_staff(self, staff_data: StaffCreate) -> StaffResponse:
+    def register_staff(self, staff_data: StaffCreateSchema) -> StaffResponseSchema:
         """
         Register a new staff member.
         
@@ -91,8 +96,14 @@ class BaseStaffService(ABC, Generic[StaffModel]):
                 staff_id=staff.id
             )
             
-            # Convert to response schema
-            return StaffResponse.model_validate(staff)
+            # Convert to response schema and add user info
+            response = self.response_schema_class.model_validate(staff)
+            if hasattr(staff, 'user') and staff.user:
+                response.first_name = staff.user.first_name
+                response.last_name = staff.user.last_name
+                response.email = staff.user.email
+                response.phone = staff.user.phone
+            return response
             
         except ValueError as e:
             # Log validation error
@@ -111,7 +122,7 @@ class BaseStaffService(ABC, Generic[StaffModel]):
             )
             raise
     
-    def get_staff_by_id(self, staff_id: int) -> Optional[StaffResponse]:
+    def get_staff_by_id(self, staff_id: int) -> Optional[StaffResponseSchema]:
         """
         Retrieve a staff member by ID.
         
@@ -137,7 +148,13 @@ class BaseStaffService(ABC, Generic[StaffModel]):
                     staff_type=self.staff_type,
                     staff_id=staff_id
                 )
-                return StaffResponse.model_validate(staff)
+                response = self.response_schema_class.model_validate(staff)
+                if hasattr(staff, 'user') and staff.user:
+                    response.first_name = staff.user.first_name
+                    response.last_name = staff.user.last_name
+                    response.email = staff.user.email
+                    response.phone = staff.user.phone
+                return response
             else:
                 self.logger.warning(
                     f"{self.staff_type.capitalize()} not found",
@@ -156,7 +173,7 @@ class BaseStaffService(ABC, Generic[StaffModel]):
             )
             raise
     
-    def get_staff_list(self, search: Optional[str] = None) -> StaffListResponse:
+    def get_staff_list(self, search: Optional[str] = None) -> dict:
         """
         Retrieve list of staff members with optional search.
         
@@ -195,16 +212,21 @@ class BaseStaffService(ABC, Generic[StaffModel]):
                 search_query=search if search else "none"
             )
             
-            # Convert to response schema
-            staff_responses = [
-                StaffResponse.model_validate(staff)
-                for staff in staff_list
-            ]
+            # Convert to response schema and add user info
+            staff_responses = []
+            for staff in staff_list:
+                response = self.response_schema_class.model_validate(staff)
+                if hasattr(staff, 'user') and staff.user:
+                    response.first_name = staff.user.first_name
+                    response.last_name = staff.user.last_name
+                    response.email = staff.user.email
+                    response.phone = staff.user.phone
+                staff_responses.append(response)
             
-            return StaffListResponse(
-                items=staff_responses,
-                total=len(staff_responses)
-            )
+            return {
+                "items": staff_responses,
+                "total": len(staff_responses)
+            }
             
         except SQLAlchemyError as e:
             self.logger.log_operation_error(
@@ -218,8 +240,8 @@ class BaseStaffService(ABC, Generic[StaffModel]):
     def update_staff(
         self,
         staff_id: int,
-        staff_data: StaffUpdate
-    ) -> Optional[StaffResponse]:
+        staff_data: StaffUpdateSchema
+    ) -> Optional[StaffResponseSchema]:
         """
         Update an existing staff member.
         
@@ -257,7 +279,13 @@ class BaseStaffService(ABC, Generic[StaffModel]):
                     staff_type=self.staff_type,
                     staff_id=staff_id
                 )
-                return StaffResponse.model_validate(staff)
+                response = self.response_schema_class.model_validate(staff)
+                if hasattr(staff, 'user') and staff.user:
+                    response.first_name = staff.user.first_name
+                    response.last_name = staff.user.last_name
+                    response.email = staff.user.email
+                    response.phone = staff.user.phone if hasattr(staff.user, 'phone') else None
+                return response
             else:
                 # Log not found
                 self.logger.warning(

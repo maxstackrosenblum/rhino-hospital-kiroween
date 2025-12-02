@@ -13,11 +13,12 @@ Requirements:
 """
 from sqlalchemy.orm import Session
 from models import Receptionist
+from schemas import ReceptionistCreate, ReceptionistUpdate, ReceptionistResponse
 from repositories.receptionist_repository import ReceptionistRepository
 from .base_staff_service import BaseStaffService
 
 
-class ReceptionistService(BaseStaffService[Receptionist]):
+class ReceptionistService(BaseStaffService[Receptionist, ReceptionistCreate, ReceptionistUpdate, ReceptionistResponse]):
     """
     Service class for receptionist management operations.
     
@@ -39,7 +40,7 @@ class ReceptionistService(BaseStaffService[Receptionist]):
             db: SQLAlchemy database session
         """
         repository = ReceptionistRepository(db)
-        super().__init__(repository, staff_type="receptionist")
+        super().__init__(repository, staff_type="receptionist", response_schema_class=ReceptionistResponse)
     
     # All CRUD operations are inherited from BaseStaffService
     # Additional receptionist-specific business logic can be added here if needed

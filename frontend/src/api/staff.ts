@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Staff, StaffCreate, StaffUpdate, StaffListResponse } from '../types';
+import { 
+  Staff, StaffCreate, StaffUpdate, StaffListResponse,
+  Receptionist, ReceptionistCreate, ReceptionistUpdate,
+  Worker, WorkerCreate, WorkerUpdate
+} from '../types';
 import { API_URL, authenticatedFetch } from './common';
 
 // Receptionist queries
@@ -30,8 +34,8 @@ export const useCreateReceptionist = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: StaffCreate): Promise<Staff> => {
-      return authenticatedFetch<Staff>(`${API_URL}/api/receptionists`, {
+    mutationFn: async (data: ReceptionistCreate): Promise<Receptionist> => {
+      return authenticatedFetch<Receptionist>(`${API_URL}/api/receptionists`, {
         method: 'POST',
         body: JSON.stringify(data),
       });
@@ -111,8 +115,8 @@ export const useCreateWorker = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: StaffCreate): Promise<Staff> => {
-      return authenticatedFetch<Staff>(`${API_URL}/api/workers`, {
+    mutationFn: async (data: WorkerCreate): Promise<Worker> => {
+      return authenticatedFetch<Worker>(`${API_URL}/api/workers`, {
         method: 'POST',
         body: JSON.stringify(data),
       });

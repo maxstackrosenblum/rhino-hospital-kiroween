@@ -1,5 +1,5 @@
 // User types
-export type UserRole = 'undefined' | 'admin' | 'doctor' | 'receptionist';
+export type UserRole = 'undefined' | 'admin' | 'doctor' | 'receptionist' | 'worker';
 
 export interface User {
   id: number;
@@ -46,7 +46,59 @@ export interface TokenResponse {
   token_type: string;
 }
 
-// Staff types
+// Staff types - Receptionist
+export interface Receptionist {
+  id: number;
+  user_id: number;
+  shift_schedule: string | null;
+  desk_number: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface ReceptionistCreate {
+  user_id: number;
+  shift_schedule?: string;
+  desk_number?: string;
+}
+
+export interface ReceptionistUpdate {
+  shift_schedule?: string;
+  desk_number?: string;
+}
+
+// Staff types - Worker
+export interface Worker {
+  id: number;
+  user_id: number;
+  job_title: string | null;
+  department: string | null;
+  shift_schedule: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface WorkerCreate {
+  user_id: number;
+  job_title?: string;
+  department?: string;
+  shift_schedule?: string;
+}
+
+export interface WorkerUpdate {
+  job_title?: string;
+  department?: string;
+  shift_schedule?: string;
+}
+
+export interface StaffListResponse {
+  items: (Receptionist | Worker)[];
+  total: number;
+}
+
+// Legacy types for backward compatibility (to be removed)
 export interface Staff {
   id: number;
   first_name: string;
@@ -66,11 +118,6 @@ export interface StaffUpdate {
   first_name?: string;
   last_name?: string;
   phone?: string;
-}
-
-export interface StaffListResponse {
-  items: Staff[];
-  total: number;
 }
 
 export interface ApiError {
