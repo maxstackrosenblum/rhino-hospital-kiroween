@@ -266,8 +266,8 @@
   - Commit: `git commit -m "feat: add frontend API client with type definitions"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 8. Implement frontend custom hooks
-- [ ] 8.1 Create useStaffList hook
+- [-] 8. Implement frontend custom hooks
+- [x] 8.1 Create useStaffList hook
   - Implement state management for staff list, loading, and errors
   - Implement search query state and filtering
   - Implement refreshList function to fetch staff
@@ -276,7 +276,7 @@
   - Add error handling and user-friendly error messages
   - _Requirements: 5.2, 10.2, 15.3_
 
-- [ ] 8.2 Create useStaffForm hook
+- [x] 8.2 Create useStaffForm hook
   - Implement form data state management
   - Implement field-level validation
   - Implement error state for validation messages
@@ -286,19 +286,19 @@
   - Add loading state during submission
   - _Requirements: 1.2, 6.2, 15.4_
 
-- [ ] 8.3 Write property test for network error handling
+- [x] 8.3 Write property test for network error handling
   - **Property 24: Network error handling**
   - **Validates: Requirements 15.5**
 
-- [ ] 8.4 Write property test for JWT token inclusion
+- [x] 8.4 Write property test for JWT token inclusion
   - **Property 30: JWT token inclusion**
   - **Validates: Requirements 17.5**
 
-- [ ] 8.5 Write property test for user-friendly not found messages
+- [x] 8.5 Write property test for user-friendly not found messages
   - **Property 33: User-friendly not found messages**
   - **Validates: Requirements 19.5**
 
-- [ ] 8.6 Git commit: Frontend hooks with tests
+- [-] 8.6 Git commit: Frontend hooks with tests
   - Run: `git add frontend/src/hooks/ frontend/src/tests/`
   - Commit: `git commit -m "feat: add custom hooks for staff management"`
   - Push: `git push` (pushes to current branch)
