@@ -409,7 +409,7 @@
   - Commit: `git commit -m "feat: add staff management routes and navigation"`
   - Push: `git push` (pushes to current branch)
 
-- [-] 12. Implement responsive styling and accessibility
+- [x] 12. Implement responsive styling and accessibility
 - [x] 12.1 Style staff management forms
   - Apply consistent styling to form inputs
   - Add responsive layout for mobile devices
@@ -430,15 +430,15 @@
   - Ensure loading states are accessible to screen readers
   - _Requirements: 16.2_
 
-- [-] 12.4 Git commit: Styling and accessibility
+- [x] 12.4 Git commit: Styling and accessibility
   - Run: `git add frontend/src/App.css frontend/src/components/`
   - Commit: `git commit -m "style: add responsive styling and accessibility features"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 13. Final checkpoint - Ensure all tests pass
+- [-] 13. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13.1 Git commit: Final implementation complete
+- [-] 13.1 Git commit: Final implementation complete
   - Run: `git add .`
   - Commit: `git commit -m "feat: complete staff management feature implementation"`
   - Push: `git push` (pushes to current branch)
