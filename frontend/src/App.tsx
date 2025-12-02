@@ -10,14 +10,14 @@ import {
 } from "react-router-dom";
 import "./App.css";
 import { useCurrentUser } from "./api";
-import Navbar from "./components/Navbar.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import { AppThemeProvider } from "./hooks/useTheme.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import Login from "./pages/Login.jsx";
-import Profile from "./pages/Profile.jsx";
-import Settings from "./pages/Settings.jsx";
-import Users from "./pages/Users.jsx";
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AppThemeProvider } from "./hooks/useTheme";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Users from "./pages/Users";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,10 +30,10 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const { data: user, isLoading, refetch } = useCurrentUser();
 
-  const handleLogin = (accessToken) => {
+  const handleLogin = (accessToken: string) => {
     localStorage.setItem("token", accessToken);
     setToken(accessToken);
     refetch();
