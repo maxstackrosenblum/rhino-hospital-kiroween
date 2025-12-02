@@ -435,10 +435,10 @@
   - Commit: `git commit -m "style: add responsive styling and accessibility features"`
   - Push: `git push` (pushes to current branch)
 
-- [-] 13. Final checkpoint - Ensure all tests pass
+- [x] 13. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 13.1 Git commit: Final implementation complete
+- [x] 13.1 Git commit: Final implementation complete
   - Run: `git add .`
   - Commit: `git commit -m "feat: complete staff management feature implementation"`
   - Push: `git push` (pushes to current branch)

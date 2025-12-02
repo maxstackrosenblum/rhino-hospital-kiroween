@@ -28,7 +28,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         first_name=user.first_name,
         last_name=user.last_name,
         hashed_password=hashed_password,
-        role="undefined"
+        role=models.UserRole.UNDEFINED
     )
     db.add(new_user)
     db.commit()
