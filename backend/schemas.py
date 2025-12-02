@@ -69,6 +69,63 @@ class UserCreate(UserBase):
             raise ValueError('Password must be at least 6 characters long')
         return v
 
+class UserRegister(BaseModel):
+    """Schema for user self-registration with minimal required fields"""
+    email: EmailStr
+    username: str
+    password: str
+    first_name: str
+    last_name: str
+    # Optional fields for registration
+    phone: str | None = None
+    city: str | None = None
+    age: int | None = None
+    address: str | None = None
+    gender: Gender | None = None
+    role: UserRole = UserRole.UNDEFINED
+
+    @validator('first_name', 'last_name')
+    def validate_names(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Name cannot be empty')
+        if len(v.strip()) < 2:
+            raise ValueError('Name must be at least 2 characters long')
+        return v.strip()
+
+    @validator('password')
+    def validate_password(cls, v):
+        if not v or len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        return v
+
+    @validator('phone')
+    def validate_phone(cls, v):
+        if v is not None:
+            if not v.strip():
+                raise ValueError('Phone number cannot be empty if provided')
+            phone_digits = ''.join(filter(str.isdigit, v))
+            if len(phone_digits) < 10:
+                raise ValueError('Phone number must contain at least 10 digits')
+            return v.strip()
+        return v
+
+    @validator('age')
+    def validate_age(cls, v):
+        if v is not None:
+            if v < 0:
+                raise ValueError('Age cannot be negative')
+            if v > 150:
+                raise ValueError('Age cannot be greater than 150')
+        return v
+
+    @validator('city', 'address')
+    def validate_optional_fields(cls, v):
+        if v is not None:
+            if not v.strip():
+                raise ValueError('This field cannot be empty if provided')
+            return v.strip()
+        return v
+
 class UserLogin(BaseModel):
     username: str
     password: str
@@ -79,11 +136,11 @@ class UserResponse(BaseModel):
     username: str
     first_name: str
     last_name: str
-    phone: str
-    city: str
-    age: int
-    address: str
-    gender: Gender
+    phone: str | None = None
+    city: str | None = None
+    age: int | None = None
+    address: str | None = None
+    gender: Gender | None = None
     role: UserRole
     created_at: datetime
     updated_at: datetime | None = None

@@ -24,11 +24,11 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     first_name = Column(String, nullable=False, index=True)
     last_name = Column(String, nullable=False, index=True)
-    phone = Column(String, nullable=False)
-    city = Column(String, nullable=False)
-    age = Column(Integer, nullable=False)
-    address = Column(Text, nullable=False)
-    gender = Column(String, nullable=False)  # Gender enum
+    phone = Column(String, nullable=True)  # Optional for registration
+    city = Column(String, nullable=True)   # Optional for registration
+    age = Column(Integer, nullable=True)   # Optional for registration
+    address = Column(Text, nullable=True)  # Optional for registration
+    gender = Column(String, nullable=True) # Optional for registration - Gender enum
     hashed_password = Column(String, nullable=False)
     role = Column(String, nullable=False, index=True)  # UserRole enum
     created_at = Column(DateTime, default=datetime.utcnow)

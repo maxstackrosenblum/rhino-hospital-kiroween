@@ -57,7 +57,7 @@ async def create_user(
             city=user.city,
             age=user.age,
             address=user.address,
-            gender=user.gender.value,
+            gender=user.gender.value if user.gender else None,
             hashed_password=hashed_password,
             role=user.role.value
         )

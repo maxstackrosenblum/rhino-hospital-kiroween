@@ -9,7 +9,7 @@ from database import get_db
 router = APIRouter(prefix="/api", tags=["authentication"])
 
 @router.post("/register", response_model=schemas.UserResponse)
-def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def register(user: schemas.UserRegister, db: Session = Depends(get_db)):
     """Register a new user"""
     # Check if user exists
     db_user = db.query(models.User).filter(
@@ -28,11 +28,11 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
-        phone=user.phone,
-        city=user.city,
-        age=user.age,
-        address=user.address,
-        gender=user.gender,
+        phone=user.phone,        # Can be None
+        city=user.city,          # Can be None
+        age=user.age,            # Can be None
+        address=user.address,    # Can be None
+        gender=user.gender.value if user.gender else None,  # Can be None
         hashed_password=hashed_password,
         role=user.role.value if user.role else "undefined"
     )
