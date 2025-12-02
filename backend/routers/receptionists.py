@@ -40,22 +40,17 @@ def require_admin(current_user: models.User = Depends(auth_utils.get_current_use
     Requirements:
     - 17.1: Verify JWT token
     - 17.2: Verify admin role
-    
-    Note: Currently all authenticated users are treated as admins.
-    This should be enhanced with proper role-based access control.
     """
-    # TODO: Implement proper role checking when User model has role field
-    # For now, any authenticated user can access staff management
-    # if not current_user.is_admin:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_403_FORBIDDEN,
-    #         detail="Admin access required"
-    #     )
+    if current_user.role != models.UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required for staff management"
+        )
     return current_user
 
 
 @router.post("", response_model=schemas.StaffResponse, status_code=status.HTTP_201_CREATED)
-async def create_receptionist(
+def create_receptionist(
     receptionist_data: schemas.StaffCreate,
     service: ReceptionistService = Depends(get_receptionist_service),
     current_user: models.User = Depends(require_admin)
@@ -81,7 +76,7 @@ async def create_receptionist(
     """
     logger.info(f"Creating receptionist: {receptionist_data.first_name} {receptionist_data.last_name}")
     try:
-        receptionist = await service.register_staff(receptionist_data)
+        receptionist = service.register_staff(receptionist_data)
         logger.info(f"Successfully created receptionist with ID: {receptionist.id}")
         return receptionist
     except ValueError as e:
@@ -99,7 +94,7 @@ async def create_receptionist(
 
 
 @router.get("", response_model=schemas.StaffListResponse)
-async def list_receptionists(
+def list_receptionists(
     search: Optional[str] = None,
     service: ReceptionistService = Depends(get_receptionist_service),
     current_user: models.User = Depends(require_admin)
@@ -125,7 +120,7 @@ async def list_receptionists(
     """
     logger.info(f"Listing receptionists with search: {search}")
     try:
-        result = await service.get_staff_list(search=search)
+        result = service.get_staff_list(search=search)
         logger.info(f"Retrieved {result.total} receptionists")
         return result
     except Exception as e:
@@ -137,7 +132,7 @@ async def list_receptionists(
 
 
 @router.get("/{receptionist_id}", response_model=schemas.StaffResponse)
-async def get_receptionist(
+def get_receptionist(
     receptionist_id: int,
     service: ReceptionistService = Depends(get_receptionist_service),
     current_user: models.User = Depends(require_admin)
@@ -163,7 +158,7 @@ async def get_receptionist(
     """
     logger.info(f"Retrieving receptionist with ID: {receptionist_id}")
     try:
-        receptionist = await service.get_staff_by_id(receptionist_id)
+        receptionist = service.get_staff_by_id(receptionist_id)
         if receptionist is None:
             logger.warning(f"Receptionist not found with ID: {receptionist_id}")
             raise HTTPException(
@@ -183,7 +178,7 @@ async def get_receptionist(
 
 
 @router.put("/{receptionist_id}", response_model=schemas.StaffResponse)
-async def update_receptionist(
+def update_receptionist(
     receptionist_id: int,
     receptionist_data: schemas.StaffUpdate,
     service: ReceptionistService = Depends(get_receptionist_service),
@@ -211,7 +206,7 @@ async def update_receptionist(
     """
     logger.info(f"Updating receptionist with ID: {receptionist_id}")
     try:
-        receptionist = await service.update_staff(receptionist_id, receptionist_data)
+        receptionist = service.update_staff(receptionist_id, receptionist_data)
         if receptionist is None:
             logger.warning(f"Receptionist not found with ID: {receptionist_id}")
             raise HTTPException(
@@ -237,7 +232,7 @@ async def update_receptionist(
 
 
 @router.delete("/{receptionist_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_receptionist(
+def delete_receptionist(
     receptionist_id: int,
     service: ReceptionistService = Depends(get_receptionist_service),
     current_user: models.User = Depends(require_admin)
@@ -263,7 +258,7 @@ async def delete_receptionist(
     """
     logger.info(f"Deleting receptionist with ID: {receptionist_id}")
     try:
-        success = await service.delete_staff(receptionist_id)
+        success = service.delete_staff(receptionist_id)
         if not success:
             logger.warning(f"Receptionist not found with ID: {receptionist_id}")
             raise HTTPException(

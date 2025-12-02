@@ -40,22 +40,17 @@ def require_admin(current_user: models.User = Depends(auth_utils.get_current_use
     Requirements:
     - 17.1: Verify JWT token
     - 17.2: Verify admin role
-    
-    Note: Currently all authenticated users are treated as admins.
-    This should be enhanced with proper role-based access control.
     """
-    # TODO: Implement proper role checking when User model has role field
-    # For now, any authenticated user can access staff management
-    # if not current_user.is_admin:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_403_FORBIDDEN,
-    #         detail="Admin access required"
-    #     )
+    if current_user.role != models.UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required for staff management"
+        )
     return current_user
 
 
 @router.post("", response_model=schemas.StaffResponse, status_code=status.HTTP_201_CREATED)
-async def create_worker(
+def create_worker(
     worker_data: schemas.StaffCreate,
     service: WorkerService = Depends(get_worker_service),
     current_user: models.User = Depends(require_admin)
@@ -81,7 +76,7 @@ async def create_worker(
     """
     logger.info(f"Creating worker: {worker_data.first_name} {worker_data.last_name}")
     try:
-        worker = await service.register_staff(worker_data)
+        worker = service.register_staff(worker_data)
         logger.info(f"Successfully created worker with ID: {worker.id}")
         return worker
     except ValueError as e:
@@ -99,7 +94,7 @@ async def create_worker(
 
 
 @router.get("", response_model=schemas.StaffListResponse)
-async def list_workers(
+def list_workers(
     search: Optional[str] = None,
     service: WorkerService = Depends(get_worker_service),
     current_user: models.User = Depends(require_admin)
@@ -125,7 +120,7 @@ async def list_workers(
     """
     logger.info(f"Listing workers with search: {search}")
     try:
-        result = await service.get_staff_list(search=search)
+        result = service.get_staff_list(search=search)
         logger.info(f"Retrieved {result.total} workers")
         return result
     except Exception as e:
@@ -137,7 +132,7 @@ async def list_workers(
 
 
 @router.get("/{worker_id}", response_model=schemas.StaffResponse)
-async def get_worker(
+def get_worker(
     worker_id: int,
     service: WorkerService = Depends(get_worker_service),
     current_user: models.User = Depends(require_admin)
@@ -163,7 +158,7 @@ async def get_worker(
     """
     logger.info(f"Retrieving worker with ID: {worker_id}")
     try:
-        worker = await service.get_staff_by_id(worker_id)
+        worker = service.get_staff_by_id(worker_id)
         if worker is None:
             logger.warning(f"Worker not found with ID: {worker_id}")
             raise HTTPException(
@@ -183,7 +178,7 @@ async def get_worker(
 
 
 @router.put("/{worker_id}", response_model=schemas.StaffResponse)
-async def update_worker(
+def update_worker(
     worker_id: int,
     worker_data: schemas.StaffUpdate,
     service: WorkerService = Depends(get_worker_service),
@@ -211,7 +206,7 @@ async def update_worker(
     """
     logger.info(f"Updating worker with ID: {worker_id}")
     try:
-        worker = await service.update_staff(worker_id, worker_data)
+        worker = service.update_staff(worker_id, worker_data)
         if worker is None:
             logger.warning(f"Worker not found with ID: {worker_id}")
             raise HTTPException(
@@ -237,7 +232,7 @@ async def update_worker(
 
 
 @router.delete("/{worker_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_worker(
+def delete_worker(
     worker_id: int,
     service: WorkerService = Depends(get_worker_service),
     current_user: models.User = Depends(require_admin)
@@ -263,7 +258,7 @@ async def delete_worker(
     """
     logger.info(f"Deleting worker with ID: {worker_id}")
     try:
-        success = await service.delete_staff(worker_id)
+        success = service.delete_staff(worker_id)
         if not success:
             logger.warning(f"Worker not found with ID: {worker_id}")
             raise HTTPException(
