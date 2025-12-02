@@ -45,3 +45,12 @@ export interface TokenResponse {
   access_token: string;
   token_type: string;
 }
+
+// Pagination types
+export interface PaginatedUsersResponse {
+  users: User[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
