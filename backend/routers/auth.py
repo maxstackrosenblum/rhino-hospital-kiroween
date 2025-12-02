@@ -52,5 +52,11 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    if db_user.deleted_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account has been deleted",
+        )
+    
     access_token = auth_utils.create_access_token(data={"sub": db_user.username})
     return {"access_token": access_token, "token_type": "bearer"}

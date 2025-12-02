@@ -20,3 +20,4 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="undefined", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    deleted_at = Column(DateTime, nullable=True, default=None)

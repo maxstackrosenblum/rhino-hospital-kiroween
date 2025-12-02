@@ -1,4 +1,4 @@
-import { Cancel as CancelIcon, Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
+import { Cancel as CancelIcon, Delete as DeleteIcon, Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -6,6 +6,11 @@ import {
   Chip,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControl,
   MenuItem,
   Paper,
@@ -21,14 +26,10 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDeleteUser, useUpdateUser, useUsers } from "../api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-function Users({ user, token }) {
+function Users({ user }) {
   const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({
     email: "",
@@ -36,7 +37,12 @@ function Users({ user, token }) {
     last_name: "",
     role: "",
   });
-  const [success, setSuccess] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  const { data: users = [], isLoading, error: queryError } = useUsers();
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
 
   useEffect(() => {
     // Only admins can access this page
@@ -44,29 +50,9 @@ function Users({ user, token }) {
       navigate("/");
       return;
     }
-    fetchUsers();
   }, [user, navigate]);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      } else {
-        setError("Failed to fetch users");
-      }
-    } catch (err) {
-      setError("Connection error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleEdit = (u) => {
     setEditingUser(u.id);
@@ -76,15 +62,11 @@ function Users({ user, token }) {
       last_name: u.last_name,
       role: u.role,
     });
-    setError("");
-    setSuccess("");
   };
 
   const handleCancel = () => {
     setEditingUser(null);
     setEditForm({ email: "", first_name: "", last_name: "", role: "" });
-    setError("");
-    setSuccess("");
   };
 
   const handleChange = (e) => {
@@ -92,32 +74,14 @@ function Users({ user, token }) {
   };
 
   const handleSave = async (userId) => {
-    setError("");
-    setSuccess("");
-
-    try {
-      const response = await fetch(`${API_URL}/api/users/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+    updateUserMutation.mutate(
+      { userId, data: editForm },
+      {
+        onSuccess: () => {
+          setEditingUser(null);
         },
-        body: JSON.stringify(editForm),
-      });
-
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUsers(users.map((u) => (u.id === userId ? updatedUser : u)));
-        setSuccess("User updated successfully!");
-        setEditingUser(null);
-        setTimeout(() => setSuccess(""), 3000);
-      } else {
-        const data = await response.json();
-        setError(data.detail || "Failed to update user");
       }
-    } catch (err) {
-      setError("Connection error");
-    }
+    );
   };
 
   const getRoleChipColor = (role) => {
@@ -135,7 +99,28 @@ function Users({ user, token }) {
     }
   };
 
-  if (loading) {
+  const handleDeleteClick = (u) => {
+    setUserToDelete(u);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+
+    deleteUserMutation.mutate(userToDelete.id, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false);
+        setUserToDelete(null);
+      },
+    });
+  };
+
+  if (isLoading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -152,15 +137,16 @@ function Users({ user, token }) {
           User Management
         </Typography>
 
-        {error && (
+        {(queryError || updateUserMutation.error || deleteUserMutation.error) && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+            {queryError?.message || updateUserMutation.error?.message || deleteUserMutation.error?.message}
           </Alert>
         )}
 
-        {success && (
+        {(updateUserMutation.isSuccess || deleteUserMutation.isSuccess) && (
           <Alert severity="success" sx={{ mb: 2 }}>
-            {success}
+            {updateUserMutation.isSuccess && "User updated successfully!"}
+            {deleteUserMutation.isSuccess && "User deleted successfully!"}
           </Alert>
         )}
 
@@ -267,15 +253,26 @@ function Users({ user, token }) {
                       </TableCell>
                       <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Button
-                          onClick={() => handleEdit(u)}
-                          variant="contained"
-                          color="primary"
-                          size="small"
-                          startIcon={<EditIcon />}
-                        >
-                          Edit
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            onClick={() => handleEdit(u)}
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            startIcon={<EditIcon />}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteClick(u)}
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            startIcon={<DeleteIcon />}
+                          >
+                            Delete
+                          </Button>
+                        </Box>
                       </TableCell>
                     </>
                   )}
@@ -284,6 +281,44 @@ function Users({ user, token }) {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={handleDeleteCancel}
+          aria-labelledby="delete-user-dialog-title"
+        >
+          <DialogTitle id="delete-user-dialog-title">
+            Delete User?
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete user{' '}
+              <Box component="strong" sx={{ color: 'text.primary' }}>
+                {userToDelete?.username}
+              </Box>
+              ? This will soft delete the account and the user will no longer be able to log in.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel} color="primary">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleDeleteConfirm} 
+              color="error" 
+              variant="contained"
+              sx={{
+                color: '#ffffff',
+                '&:hover': {
+                  color: '#ffffff',
+                }
+              }}
+            >
+              Delete User
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Container>
   );
