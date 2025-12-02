@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -45,7 +45,7 @@ services:
     env_file:
       - .env
     environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      - VITE_API_URL=${VITE_API_URL}
     ports:
       - "3000:3000"
     depends_on:

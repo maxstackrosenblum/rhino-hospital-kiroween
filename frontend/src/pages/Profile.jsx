@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function Profile({ user, token, onUserUpdate }) {
   const navigate = useNavigate();
@@ -9,11 +9,11 @@ function Profile({ user, token, onUserUpdate }) {
     email: user.email,
     first_name: user.first_name,
     last_name: user.last_name,
-    password: '',
-    role: user.role
+    password: "",
+    role: user.role,
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleProfileChange = (e) => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
@@ -21,44 +21,46 @@ function Profile({ user, token, onUserUpdate }) {
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     const updateData = {};
     if (profileData.email !== user.email) updateData.email = profileData.email;
-    if (profileData.first_name !== user.first_name) updateData.first_name = profileData.first_name;
-    if (profileData.last_name !== user.last_name) updateData.last_name = profileData.last_name;
+    if (profileData.first_name !== user.first_name)
+      updateData.first_name = profileData.first_name;
+    if (profileData.last_name !== user.last_name)
+      updateData.last_name = profileData.last_name;
     if (profileData.password) updateData.password = profileData.password;
     if (profileData.role !== user.role) updateData.role = profileData.role;
 
     if (Object.keys(updateData).length === 0) {
-      setError('No changes to save');
+      setError("No changes to save");
       return;
     }
 
     try {
       const response = await fetch(`${API_URL}/api/me`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify(updateData),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         onUserUpdate(data);
-        setSuccess('Profile updated successfully!');
+        setSuccess("Profile updated successfully!");
         setTimeout(() => {
-          navigate('/');
+          navigate("/");
         }, 1500);
       } else {
-        setError(data.detail || 'An error occurred');
+        setError(data.detail || "An error occurred");
       }
     } catch (err) {
-      setError('Connection error');
+      setError("Connection error");
     }
   };
 
@@ -113,15 +115,15 @@ function Profile({ user, token, onUserUpdate }) {
               name="role"
               value={profileData.role}
               onChange={handleProfileChange}
-              disabled={user.role !== 'admin'}
-              className={user.role !== 'admin' ? 'disabled-select' : ''}
+              disabled={user.role !== "admin"}
+              className={user.role !== "admin" ? "disabled-select" : ""}
             >
               <option value="undefined">Undefined</option>
               <option value="admin">Admin</option>
               <option value="doctor">Doctor</option>
               <option value="receptionist">Receptionist</option>
             </select>
-            {user.role !== 'admin' && (
+            {user.role !== "admin" && (
               <small className="help-text">Only admins can change roles</small>
             )}
           </div>
@@ -129,7 +131,11 @@ function Profile({ user, token, onUserUpdate }) {
           {success && <p className="success">{success}</p>}
           <div className="button-group">
             <button type="submit">Save Changes</button>
-            <button type="button" onClick={() => navigate('/')} className="secondary-button">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="secondary-button"
+            >
               Cancel
             </button>
           </div>

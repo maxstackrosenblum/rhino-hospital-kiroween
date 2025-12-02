@@ -1,26 +1,26 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function Users({ user, token }) {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({
-    email: '',
-    first_name: '',
-    last_name: '',
-    role: ''
+    email: "",
+    first_name: "",
+    last_name: "",
+    role: "",
   });
-  const [success, setSuccess] = useState('');
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     // Only admins can access this page
-    if (user.role !== 'admin') {
-      navigate('/');
+    if (user.role !== "admin") {
+      navigate("/");
       return;
     }
     fetchUsers();
@@ -30,18 +30,18 @@ function Users({ user, token }) {
     try {
       const response = await fetch(`${API_URL}/api/users`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
       } else {
-        setError('Failed to fetch users');
+        setError("Failed to fetch users");
       }
     } catch (err) {
-      setError('Connection error');
+      setError("Connection error");
     } finally {
       setLoading(false);
     }
@@ -53,17 +53,17 @@ function Users({ user, token }) {
       email: u.email,
       first_name: u.first_name,
       last_name: u.last_name,
-      role: u.role
+      role: u.role,
     });
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
   };
 
   const handleCancel = () => {
     setEditingUser(null);
-    setEditForm({ email: '', first_name: '', last_name: '', role: '' });
-    setError('');
-    setSuccess('');
+    setEditForm({ email: "", first_name: "", last_name: "", role: "" });
+    setError("");
+    setSuccess("");
   };
 
   const handleChange = (e) => {
@@ -71,41 +71,46 @@ function Users({ user, token }) {
   };
 
   const handleSave = async (userId) => {
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const response = await fetch(`${API_URL}/api/users/${userId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify(editForm),
       });
 
       if (response.ok) {
         const updatedUser = await response.json();
-        setUsers(users.map(u => u.id === userId ? updatedUser : u));
-        setSuccess('User updated successfully!');
+        setUsers(users.map((u) => (u.id === userId ? updatedUser : u)));
+        setSuccess("User updated successfully!");
         setEditingUser(null);
-        setTimeout(() => setSuccess(''), 3000);
+        setTimeout(() => setSuccess(""), 3000);
       } else {
         const data = await response.json();
-        setError(data.detail || 'Failed to update user');
+        setError(data.detail || "Failed to update user");
       }
     } catch (err) {
-      setError('Connection error');
+      setError("Connection error");
     }
   };
 
   const getRoleBadgeClass = (role) => {
-    switch(role) {
-      case 'admin': return 'role-badge role-admin';
-      case 'doctor': return 'role-badge role-doctor';
-      case 'receptionist': return 'role-badge role-receptionist';
-      case 'undefined': return 'role-badge role-undefined';
-      default: return 'role-badge';
+    switch (role) {
+      case "admin":
+        return "role-badge role-admin";
+      case "doctor":
+        return "role-badge role-doctor";
+      case "receptionist":
+        return "role-badge role-receptionist";
+      case "undefined":
+        return "role-badge role-undefined";
+      default:
+        return "role-badge";
     }
   };
 
@@ -119,7 +124,7 @@ function Users({ user, token }) {
         <h1>User Management</h1>
         {error && <p className="error">{error}</p>}
         {success && <p className="success">{success}</p>}
-        
+
         <div className="users-table-container">
           <table className="users-table">
             <thead>
@@ -178,7 +183,10 @@ function Users({ user, token }) {
                       </td>
                       <td>{new Date(u.created_at).toLocaleDateString()}</td>
                       <td>
-                        <button onClick={() => handleSave(u.id)} className="btn-save">
+                        <button
+                          onClick={() => handleSave(u.id)}
+                          className="btn-save"
+                        >
                           Save
                         </button>
                         <button onClick={handleCancel} className="btn-cancel">
@@ -188,7 +196,9 @@ function Users({ user, token }) {
                     </>
                   ) : (
                     <>
-                      <td>{u.first_name} {u.last_name}</td>
+                      <td>
+                        {u.first_name} {u.last_name}
+                      </td>
                       <td>{u.username}</td>
                       <td>{u.email}</td>
                       <td>
@@ -198,7 +208,10 @@ function Users({ user, token }) {
                       </td>
                       <td>{new Date(u.created_at).toLocaleDateString()}</td>
                       <td>
-                        <button onClick={() => handleEdit(u)} className="btn-edit">
+                        <button
+                          onClick={() => handleEdit(u)}
+                          className="btn-edit"
+                        >
                           Edit
                         </button>
                       </td>

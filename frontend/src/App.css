@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
 /* Dark Mode Palette (Default) */
 :root {
   --bg-dark: #2a3240;
@@ -36,8 +38,6 @@
   padding: 0;
   box-sizing: border-box;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 body {
   font-family: Inter, "Space Grotesk", system-ui, sans-serif;
@@ -97,7 +97,11 @@ body {
 }
 
 .logo-text {
-  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  background: linear-gradient(
+    135deg,
+    var(--primary-gradient-start),
+    var(--primary-gradient-end)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -136,7 +140,11 @@ body {
 .user-avatar {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  background: linear-gradient(
+    135deg,
+    var(--primary-gradient-start),
+    var(--primary-gradient-end)
+  );
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -270,7 +278,11 @@ button {
   font-size: 16px;
   border: none;
   border-radius: 8px;
-  background-image: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
+  background-image: linear-gradient(
+    to right,
+    var(--primary-gradient-start),
+    var(--primary-gradient-end)
+  );
   color: #ffffff;
   cursor: pointer;
   font-weight: 600;
@@ -455,7 +467,11 @@ button:active {
   width: 26px;
   left: 2px;
   bottom: 2px;
-  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  background: linear-gradient(
+    135deg,
+    var(--primary-gradient-start),
+    var(--primary-gradient-end)
+  );
   transition: 0.4s;
   border-radius: 50%;
 }
@@ -496,7 +512,11 @@ button:active {
 }
 
 .role-doctor {
-  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  background: linear-gradient(
+    135deg,
+    var(--primary-gradient-start),
+    var(--primary-gradient-end)
+  );
   color: white;
 }
 
@@ -612,7 +632,9 @@ select.disabled-select {
   cursor: pointer;
 }
 
-.btn-edit, .btn-save, .btn-cancel {
+.btn-edit,
+.btn-save,
+.btn-cancel {
   padding: 6px 12px;
   font-size: 14px;
   border: none;
@@ -624,7 +646,11 @@ select.disabled-select {
 }
 
 .btn-edit {
-  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  background: linear-gradient(
+    135deg,
+    var(--primary-gradient-start),
+    var(--primary-gradient-end)
+  );
   color: white;
 }
 

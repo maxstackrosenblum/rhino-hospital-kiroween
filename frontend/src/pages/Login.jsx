@@ -1,18 +1,18 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function Login({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    email: '',
-    first_name: '',
-    last_name: ''
+    username: "",
+    password: "",
+    email: "",
+    first_name: "",
+    last_name: "",
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,19 +20,19 @@ function Login({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
-    const endpoint = isLogin ? '/api/login' : '/api/register';
-    const body = isLogin 
+    const endpoint = isLogin ? "/api/login" : "/api/register";
+    const body = isLogin
       ? { username: formData.username, password: formData.password }
       : formData;
 
     try {
       const response = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -42,20 +42,20 @@ function Login({ onLogin }) {
           onLogin(data.access_token);
         } else {
           setIsLogin(true);
-          setSuccess('Registration successful! Please login.');
+          setSuccess("Registration successful! Please login.");
         }
       } else {
-        setError(data.detail || 'An error occurred');
+        setError(data.detail || "An error occurred");
       }
     } catch (err) {
-      setError('Connection error');
+      setError("Connection error");
     }
   };
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>{isLogin ? 'Login' : 'Register'}</h1>
+        <h1>{isLogin ? "Login" : "Register"}</h1>
         <form onSubmit={handleSubmit}>
           {!isLogin && (
             <>
@@ -101,14 +101,14 @@ function Login({ onLogin }) {
             onChange={handleChange}
             required
           />
-          <button type="submit">{isLogin ? 'Login' : 'Register'}</button>
+          <button type="submit">{isLogin ? "Login" : "Register"}</button>
         </form>
         {error && <p className="error">{error}</p>}
         {success && <p className="success">{success}</p>}
         <p className="toggle">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <span onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? 'Register' : 'Login'}
+            {isLogin ? "Register" : "Login"}
           </span>
         </p>
       </header>
