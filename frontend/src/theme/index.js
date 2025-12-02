@@ -8,10 +8,10 @@ export const createAppTheme = (mode) => {
     palette: {
       mode,
       primary: {
-        main: "#71a885",
-        hover: "#5d8f6f",
+        main: "#16a249",
+        hover: "#14903f",
         gradient: {
-          start: "rgb(113, 168, 133)",
+          start: "rgb(22, 162, 73)",
           end: "rgb(22, 162, 73)",
         },
       },
@@ -103,15 +103,15 @@ export const createAppTheme = (mode) => {
           text: {
             "&:hover": {
               backgroundColor: isDark
-                ? "rgba(113, 168, 133, 0.08)"
-                : "rgba(113, 168, 133, 0.04)",
+                ? "rgba(22, 162, 73, 0.08)"
+                : "rgba(22, 162, 73, 0.04)",
             },
           },
           contained: {
             boxShadow: "none",
             "&:hover": {
               boxShadow: "none",
-              backgroundColor: isDark ? "#5d8f6f" : "#5d8f6f",
+              backgroundColor: isDark ? "#14903f" : "#14903f",
             },
           },
         },
@@ -125,10 +125,10 @@ export const createAppTheme = (mode) => {
                 borderColor: isDark ? "#6d767e" : "#e0e0e0",
               },
               "&:hover fieldset": {
-                borderColor: isDark ? "#71a885" : "#71a885",
+                borderColor: isDark ? "#16a249" : "#16a249",
               },
               "&.Mui-focused fieldset": {
-                borderColor: "#71a885",
+                borderColor: "#16a249",
                 borderWidth: "2px",
               },
             },
