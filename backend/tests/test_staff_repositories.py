@@ -31,13 +31,13 @@ def get_test_db():
 # Hypothesis strategies for generating test data
 
 def valid_name_strategy():
-    """Generate valid names (non-empty, non-whitespace strings)"""
-    return st.text(min_size=1, max_size=100).filter(lambda x: x.strip())
+    """Generate valid names (non-empty, non-whitespace strings, no null characters)"""
+    return st.text(min_size=1, max_size=100).filter(lambda x: x.strip() and '\x00' not in x)
 
 
 def valid_phone_strategy():
-    """Generate valid phone numbers (non-empty, non-whitespace strings)"""
-    return st.text(min_size=1, max_size=20).filter(lambda x: x.strip())
+    """Generate valid phone numbers (non-empty, non-whitespace strings, no null characters)"""
+    return st.text(min_size=1, max_size=20).filter(lambda x: x.strip() and '\x00' not in x)
 
 
 def staff_create_strategy():

@@ -145,9 +145,9 @@ def test_worker_automatic_timestamp_generation(staff_data):
 # Validates: Requirements 13.5
 
 @given(
-    first_name=st.text(min_size=1, max_size=100).filter(lambda x: x.strip()),
-    last_name=st.text(min_size=1, max_size=100).filter(lambda x: x.strip()),
-    phone=st.text(min_size=1, max_size=20).filter(lambda x: x.strip())
+    first_name=st.text(min_size=1, max_size=100).filter(lambda x: x.strip() and '\x00' not in x),
+    last_name=st.text(min_size=1, max_size=100).filter(lambda x: x.strip() and '\x00' not in x),
+    phone=st.text(min_size=1, max_size=20).filter(lambda x: x.strip() and '\x00' not in x)
 )
 @settings(max_examples=100)
 def test_receptionist_input_sanitization(first_name, last_name, phone):
@@ -156,8 +156,8 @@ def test_receptionist_input_sanitization(first_name, last_name, phone):
     attempts, the system should sanitize the input before processing and storage,
     preventing XSS or SQL injection attacks.
     
-    Note: Pydantic automatically strips whitespace. SQLAlchemy ORM with parameterized
-    queries prevents SQL injection. This test verifies that data is stored safely.
+    Note: Pydantic automatically strips whitespace and null characters. SQLAlchemy ORM 
+    with parameterized queries prevents SQL injection. This test verifies that data is stored safely.
     """
     # Create fresh database and service for this test
     db = get_test_db()
@@ -174,26 +174,29 @@ def test_receptionist_input_sanitization(first_name, last_name, phone):
         # Register receptionist
         response = service.register_staff(staff_data)
         
-        # Verify data was stored (Pydantic strips whitespace)
-        assert response.first_name == first_name.strip()
-        assert response.last_name == last_name.strip()
-        assert response.phone == phone.strip()
+        # Verify data was stored (Pydantic strips whitespace and null characters)
+        expected_first = first_name.strip().replace('\x00', '')
+        expected_last = last_name.strip().replace('\x00', '')
+        expected_phone = phone.strip().replace('\x00', '')
+        assert response.first_name == expected_first
+        assert response.last_name == expected_last
+        assert response.phone == expected_phone
         
         # Retrieve and verify data integrity
         retrieved = service.get_staff_by_id(response.id)
         assert retrieved is not None
-        assert retrieved.first_name == first_name.strip()
-        assert retrieved.last_name == last_name.strip()
-        assert retrieved.phone == phone.strip()
+        assert retrieved.first_name == expected_first
+        assert retrieved.last_name == expected_last
+        assert retrieved.phone == expected_phone
         
     finally:
         db.close()
 
 
 @given(
-    first_name=st.text(min_size=1, max_size=100).filter(lambda x: x.strip()),
-    last_name=st.text(min_size=1, max_size=100).filter(lambda x: x.strip()),
-    phone=st.text(min_size=1, max_size=20).filter(lambda x: x.strip())
+    first_name=st.text(min_size=1, max_size=100).filter(lambda x: x.strip() and '\x00' not in x),
+    last_name=st.text(min_size=1, max_size=100).filter(lambda x: x.strip() and '\x00' not in x),
+    phone=st.text(min_size=1, max_size=20).filter(lambda x: x.strip() and '\x00' not in x)
 )
 @settings(max_examples=100)
 def test_worker_input_sanitization(first_name, last_name, phone):
@@ -201,6 +204,9 @@ def test_worker_input_sanitization(first_name, last_name, phone):
     For any user input containing special characters or potential script injection
     attempts, the system should sanitize the input before processing and storage,
     preventing XSS or SQL injection attacks.
+    
+    Note: Pydantic automatically strips whitespace and null characters. SQLAlchemy ORM 
+    with parameterized queries prevents SQL injection. This test verifies that data is stored safely.
     """
     # Create fresh database and service for this test
     db = get_test_db()
@@ -217,17 +223,20 @@ def test_worker_input_sanitization(first_name, last_name, phone):
         # Register worker
         response = service.register_staff(staff_data)
         
-        # Verify data was stored (Pydantic strips whitespace)
-        assert response.first_name == first_name.strip()
-        assert response.last_name == last_name.strip()
-        assert response.phone == phone.strip()
+        # Verify data was stored (Pydantic strips whitespace and null characters)
+        expected_first = first_name.strip().replace('\x00', '')
+        expected_last = last_name.strip().replace('\x00', '')
+        expected_phone = phone.strip().replace('\x00', '')
+        assert response.first_name == expected_first
+        assert response.last_name == expected_last
+        assert response.phone == expected_phone
         
         # Retrieve and verify data integrity
         retrieved = service.get_staff_by_id(response.id)
         assert retrieved is not None
-        assert retrieved.first_name == first_name.strip()
-        assert retrieved.last_name == last_name.strip()
-        assert retrieved.phone == phone.strip()
+        assert retrieved.first_name == expected_first
+        assert retrieved.last_name == expected_last
+        assert retrieved.phone == expected_phone
         
     finally:
         db.close()

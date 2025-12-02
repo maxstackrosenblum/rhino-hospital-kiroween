@@ -176,7 +176,7 @@ def test_staff_update_rejects_empty_phone_if_provided(first_name, last_name, pho
 def test_staff_create_validates_and_sanitizes_input(first_name, last_name, phone):
     """
     For any valid staff registration request, the Pydantic model should validate
-    the data and strip whitespace from fields before processing.
+    the data and strip whitespace and null characters from fields before processing.
     """
     # Add leading/trailing whitespace to test sanitization
     staff_data = StaffCreate(
@@ -185,10 +185,13 @@ def test_staff_create_validates_and_sanitizes_input(first_name, last_name, phone
         phone=f"  {phone}  "
     )
     
-    # Verify that whitespace is stripped
-    assert staff_data.first_name == first_name.strip()
-    assert staff_data.last_name == last_name.strip()
-    assert staff_data.phone == phone.strip()
+    # Verify that whitespace and null characters are stripped
+    expected_first = first_name.strip().replace('\x00', '')
+    expected_last = last_name.strip().replace('\x00', '')
+    expected_phone = phone.strip().replace('\x00', '')
+    assert staff_data.first_name == expected_first
+    assert staff_data.last_name == expected_last
+    assert staff_data.phone == expected_phone
 
 
 @given(
@@ -199,7 +202,7 @@ def test_staff_create_validates_and_sanitizes_input(first_name, last_name, phone
 def test_staff_update_validates_and_sanitizes_input(first_name, last_name, phone):
     """
     For any valid staff update request, the Pydantic model should validate
-    the data and strip whitespace from fields before processing.
+    the data and strip whitespace and null characters from fields before processing.
     """
     # Add leading/trailing whitespace to test sanitization
     staff_data = StaffUpdate(
@@ -208,10 +211,13 @@ def test_staff_update_validates_and_sanitizes_input(first_name, last_name, phone
         phone=f"  {phone}  "
     )
     
-    # Verify that whitespace is stripped
-    assert staff_data.first_name == first_name.strip()
-    assert staff_data.last_name == last_name.strip()
-    assert staff_data.phone == phone.strip()
+    # Verify that whitespace and null characters are stripped
+    expected_first = first_name.strip().replace('\x00', '')
+    expected_last = last_name.strip().replace('\x00', '')
+    expected_phone = phone.strip().replace('\x00', '')
+    assert staff_data.first_name == expected_first
+    assert staff_data.last_name == expected_last
+    assert staff_data.phone == expected_phone
 
 
 def test_staff_create_requires_all_fields():

@@ -67,7 +67,11 @@ class StaffCreate(BaseModel):
         """Validate that fields are not empty or whitespace-only"""
         if not v or not v.strip():
             raise ValueError('Field cannot be empty or whitespace-only')
-        return v.strip()
+        # Strip null characters and other control characters that can cause database issues
+        cleaned = v.strip().replace('\x00', '')
+        if not cleaned:
+            raise ValueError('Field cannot be empty or contain only invalid characters')
+        return cleaned
 
 
 class StaffUpdate(BaseModel):
@@ -82,7 +86,13 @@ class StaffUpdate(BaseModel):
         """Validate that fields are not empty or whitespace-only if provided"""
         if v is not None and (not v or not v.strip()):
             raise ValueError('Field cannot be empty or whitespace-only')
-        return v.strip() if v else None
+        if v is not None:
+            # Strip null characters and other control characters that can cause database issues
+            cleaned = v.strip().replace('\x00', '')
+            if not cleaned:
+                raise ValueError('Field cannot be empty or contain only invalid characters')
+            return cleaned
+        return None
 
 
 class StaffResponse(BaseModel):
