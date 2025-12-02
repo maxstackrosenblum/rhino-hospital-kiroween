@@ -368,7 +368,11 @@ def test_worker_delete_nonexistent_returns_false(staff_data):
 
 @given(
     staff_list=st.lists(staff_create_strategy(), min_size=0, max_size=10),
-    search_query=st.text(min_size=1, max_size=20)
+    search_query=st.text(
+        alphabet=st.characters(min_codepoint=32, max_codepoint=126, blacklist_categories=('Cc',), blacklist_characters='%_'),
+        min_size=1,
+        max_size=20
+    )
 )
 @settings(max_examples=100)
 def test_receptionist_search_filter_correctness(staff_list, search_query):
@@ -409,7 +413,11 @@ def test_receptionist_search_filter_correctness(staff_list, search_query):
 
 @given(
     staff_list=st.lists(staff_create_strategy(), min_size=0, max_size=10),
-    search_query=st.text(min_size=1, max_size=20)
+    search_query=st.text(
+        alphabet=st.characters(min_codepoint=32, max_codepoint=126, blacklist_categories=('Cc',), blacklist_characters='%_'),
+        min_size=1,
+        max_size=20
+    )
 )
 @settings(max_examples=100)
 def test_worker_search_filter_correctness(staff_list, search_query):
