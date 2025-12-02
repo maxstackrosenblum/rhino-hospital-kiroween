@@ -1,7 +1,7 @@
 # Implementation Plan
 
-- [ ] 1. Set up database models and migrations
-- [ ] 1.1 Create Receptionist and Worker SQLAlchemy models
+- [x] 1. Set up database models and migrations
+- [x] 1.1 Create Receptionist and Worker SQLAlchemy models
   - Define Receptionist model with id, first_name, last_name, phone, created_at, updated_at fields
   - Define Worker model with id, first_name, last_name, phone, created_at, updated_at fields
   - Add indexes on first_name and last_name for search performance
@@ -9,18 +9,18 @@
   - Configure updated_at to auto-set on creation and auto-update on modification
   - _Requirements: 11.1, 2.3, 7.3, 18.1, 18.2, 18.3_
 
-- [ ] 1.2 Create Alembic migration for staff tables
+- [x] 1.2 Create Alembic migration for staff tables
   - Generate migration script for receptionists and workers tables
   - Test migration up and down
   - _Requirements: 11.1_
 
-- [ ] 1.3 Git commit: Database models and migrations
+- [x] 1.3 Git commit: Database models and migrations
   - Run: `git add backend/models.py backend/alembic/versions/*`
   - Commit: `git commit -m "feat: add staff database models and migration"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 2. Implement Pydantic schemas for staff management
-- [ ] 2.1 Create request and response schemas
+- [x] 2. Implement Pydantic schemas for staff management
+- [x] 2.1 Create request and response schemas
   - Define StaffCreate schema with validation for first_name, last_name, phone
   - Define StaffUpdate schema with optional fields
   - Define StaffResponse schema with all fields including timestamps
@@ -28,54 +28,54 @@
   - Add validators to ensure fields are not empty or whitespace-only
   - _Requirements: 2.2, 7.2, 12.3, 13.1_
 
-- [ ] 2.2 Write property test for empty field rejection
+- [x] 2.2 Write property test for empty field rejection
   - **Property 4: Empty field rejection**
   - **Validates: Requirements 2.2, 2.5, 7.2, 7.5**
 
-- [ ] 2.3 Write property test for Pydantic validation enforcement
+- [x] 2.3 Write property test for Pydantic validation enforcement
   - **Property 6: Pydantic validation enforcement**
   - **Validates: Requirements 13.1**
 
-- [ ] 2.4 Git commit: Pydantic schemas and validation tests
+- [x] 2.4 Git commit: Pydantic schemas and validation tests
   - Run: `git add backend/schemas.py backend/tests/`
   - Commit: `git commit -m "feat: add Pydantic schemas with validation tests"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 3. Implement Repository Layer
-- [ ] 3.1 Create base repository interface
+- [x] 3. Implement Repository Layer
+- [x] 3.1 Create base repository interface
   - Define BaseStaffRepository abstract class with CRUD methods
   - Include methods: create, get_by_id, get_all, search, update, delete
   - _Requirements: 12.1_
 
-- [ ] 3.2 Implement ReceptionistRepository
+- [x] 3.2 Implement ReceptionistRepository
   - Implement all CRUD operations for receptionists
   - Implement search functionality with LIKE queries on first_name and last_name
   - Handle database sessions via dependency injection
   - _Requirements: 5.2, 11.1, 11.2, 11.3_
 
-- [ ] 3.3 Implement WorkerRepository
+- [x] 3.3 Implement WorkerRepository
   - Implement all CRUD operations for workers
   - Implement search functionality with LIKE queries on first_name and last_name
   - Handle database sessions via dependency injection
   - _Requirements: 10.2, 11.1, 11.2, 11.3_
 
-- [ ] 3.4 Write property test for staff registration round-trip
+- [x] 3.4 Write property test for staff registration round-trip
   - **Property 1: Staff registration round-trip consistency**
   - **Validates: Requirements 2.4, 7.4, 11.1**
 
-- [ ] 3.5 Write property test for staff update preserves unmodified fields
+- [x] 3.5 Write property test for staff update preserves unmodified fields
   - **Property 2: Staff update preserves unmodified fields**
   - **Validates: Requirements 11.2**
 
-- [ ] 3.6 Write property test for staff deletion completeness
+- [x] 3.6 Write property test for staff deletion completeness
   - **Property 3: Staff deletion completeness**
   - **Validates: Requirements 5.5, 10.8, 11.3**
 
-- [ ] 3.7 Write property test for search filter correctness
+- [x] 3.7 Write property test for search filter correctness
   - **Property 8: Search filter correctness**
   - **Validates: Requirements 5.2, 10.2**
 
-- [ ] 3.8 Git commit: Repository layer with tests
+- [x] 3.8 Git commit: Repository layer with tests
   - Run: `git add backend/repositories/ backend/tests/`
   - Commit: `git commit -m "feat: implement repository layer with property tests"`
   - Push: `git push` (pushes to current branch)
