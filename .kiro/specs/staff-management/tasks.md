@@ -340,7 +340,7 @@
   - Commit: `git commit -m "feat: add receptionist management UI components"`
   - Push: `git push` (pushes to current branch)
 
-- [-] 10. Implement worker UI components
+- [x] 10. Implement worker UI components
 - [x] 10.1 Create AddWorker page component
   - Implement form UI with first_name, last_name, phone fields
   - Use useStaffForm hook for form logic
@@ -384,13 +384,13 @@
   - **Property 22: User-friendly error messages**
   - **Validates: Requirements 15.3**
 
-- [-] 10.9 Git commit: Worker UI components with tests
+- [x] 10.9 Git commit: Worker UI components with tests
   - Run: `git add frontend/src/pages/ frontend/src/components/ frontend/src/tests/`
   - Commit: `git commit -m "feat: add worker management UI components"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 11. Add navigation and routing
-- [ ] 11.1 Update App.js with staff management routes
+- [-] 11. Add navigation and routing
+- [x] 11.1 Update App.js with staff management routes
   - Add route for /receptionists/add
   - Add route for /receptionists
   - Add route for /workers/add
@@ -398,13 +398,13 @@
   - Protect all routes with authentication
   - _Requirements: 1.1, 5.1, 6.1, 10.1_
 
-- [ ] 11.2 Update Navbar with staff management links
+- [x] 11.2 Update Navbar with staff management links
   - Add navigation links for receptionist management
   - Add navigation links for worker management
   - Ensure links are only visible to authenticated admins
   - _Requirements: 1.1, 6.1_
 
-- [ ] 11.3 Git commit: Navigation and routing
+- [-] 11.3 Git commit: Navigation and routing
   - Run: `git add frontend/src/App.js frontend/src/components/Navbar.js`
   - Commit: `git commit -m "feat: add staff management routes and navigation"`
   - Push: `git push` (pushes to current branch)

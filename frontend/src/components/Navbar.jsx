@@ -88,12 +88,26 @@ function Navbar({ user, onLogout }) {
         {/* Navigation Menu */}
         <Box sx={{ flexGrow: 1, ml: 3 }}>
           {user.role === 'admin' && (
-            <Button
-              color="primary"
-              onClick={() => navigate('/users')}
-            >
-              Staff
-            </Button>
+            <>
+              <Button
+                color="primary"
+                onClick={() => navigate('/users')}
+              >
+                Users
+              </Button>
+              <Button
+                color="primary"
+                onClick={() => navigate('/receptionists')}
+              >
+                Receptionists
+              </Button>
+              <Button
+                color="primary"
+                onClick={() => navigate('/workers')}
+              >
+                Workers
+              </Button>
+            </>
           )}
         </Box>
 

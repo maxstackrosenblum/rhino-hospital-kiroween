@@ -13,11 +13,15 @@ import { useCurrentUser } from "./api";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AppThemeProvider } from "./hooks/useTheme";
+import AddReceptionist from "./pages/AddReceptionist";
+import AddWorker from "./pages/AddWorker";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import ReceptionistList from "./pages/ReceptionistList";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
+import WorkerList from "./pages/WorkerList";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -120,6 +124,46 @@ function AppContent() {
                 <ProtectedRoute user={user}>
                   <Container maxWidth="xl" sx={{ py: 4 }}>
                     <Users user={user} />
+                  </Container>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/receptionists/add"
+              element={
+                <ProtectedRoute user={user}>
+                  <Container maxWidth="md" sx={{ py: 4 }}>
+                    <AddReceptionist />
+                  </Container>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/receptionists"
+              element={
+                <ProtectedRoute user={user}>
+                  <Container maxWidth="xl" sx={{ py: 4 }}>
+                    <ReceptionistList />
+                  </Container>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/workers/add"
+              element={
+                <ProtectedRoute user={user}>
+                  <Container maxWidth="md" sx={{ py: 4 }}>
+                    <AddWorker />
+                  </Container>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/workers"
+              element={
+                <ProtectedRoute user={user}>
+                  <Container maxWidth="xl" sx={{ py: 4 }}>
+                    <WorkerList />
                   </Container>
                 </ProtectedRoute>
               }
