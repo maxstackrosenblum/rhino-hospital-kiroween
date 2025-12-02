@@ -266,7 +266,7 @@
   - Commit: `git commit -m "feat: add frontend API client with type definitions"`
   - Push: `git push` (pushes to current branch)
 
-- [-] 8. Implement frontend custom hooks
+- [x] 8. Implement frontend custom hooks
 - [x] 8.1 Create useStaffList hook
   - Implement state management for staff list, loading, and errors
   - Implement search query state and filtering
@@ -298,13 +298,13 @@
   - **Property 33: User-friendly not found messages**
   - **Validates: Requirements 19.5**
 
-- [-] 8.6 Git commit: Frontend hooks with tests
+- [x] 8.6 Git commit: Frontend hooks with tests
   - Run: `git add frontend/src/hooks/ frontend/src/tests/`
   - Commit: `git commit -m "feat: add custom hooks for staff management"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 9. Implement receptionist UI components
-- [ ] 9.1 Create AddReceptionist page component
+- [-] 9. Implement receptionist UI components
+- [x] 9.1 Create AddReceptionist page component
   - Implement form UI with first_name, last_name, phone fields
   - Use useStaffForm hook for form logic
   - Display validation errors inline
@@ -313,7 +313,7 @@
   - Display error notification on failure
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 3.1, 3.2, 4.1, 4.2_
 
-- [ ] 9.2 Create ReceptionistList page component
+- [x] 9.2 Create ReceptionistList page component
   - Implement table UI with columns for all receptionist fields
   - Add search input with real-time filtering
   - Use useStaffList hook for data management
@@ -323,19 +323,19 @@
   - Display empty state message when no results
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 9.3 Write property test for form validation state
+- [x] 9.3 Write property test for form validation state
   - **Property 25: Form validation state**
   - **Validates: Requirements 1.2, 6.2**
 
-- [ ] 9.4 Write property test for form submission prevention
+- [x] 9.4 Write property test for form submission prevention
   - **Property 26: Form submission prevention on invalid input**
   - **Validates: Requirements 1.3, 6.3**
 
-- [ ] 9.5 Write property test for loading indicator display
+- [x] 9.5 Write property test for loading indicator display
   - **Property 27: Loading indicator display**
   - **Validates: Requirements 16.2**
 
-- [ ] 9.6 Git commit: Receptionist UI components with tests
+- [-] 9.6 Git commit: Receptionist UI components with tests
   - Run: `git add frontend/src/pages/ frontend/src/components/ frontend/src/tests/`
   - Commit: `git commit -m "feat: add receptionist management UI components"`
   - Push: `git push` (pushes to current branch)
