@@ -32,7 +32,7 @@ export const createAppTheme = (mode) => {
         main: isDark ? "#a8d5c5" : "#00d4aa",
       },
       error: {
-        main: "#ff6b9d",
+        main: isDark ? "#ff8a80" : "#d32f2f",
       },
       divider: isDark ? "#6d767e" : "#d1d7db",
       // Custom colors to match existing design

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+from datetime import datetime
 import auth as auth_utils
 import models
 import schemas
@@ -11,11 +12,15 @@ router = APIRouter(prefix="/api", tags=["users"])
 
 @router.get("/users", response_model=List[schemas.UserResponse])
 async def get_all_users(
+    include_deleted: bool = False,
     current_user: models.User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get all users (admin only)"""
-    users = db.query(models.User).all()
+    query = db.query(models.User)
+    if not include_deleted:
+        query = query.filter(models.User.deleted_at.is_(None))
+    users = query.all()
     return users
 
 @router.put("/users/{user_id}", response_model=schemas.UserResponse)
@@ -100,3 +105,52 @@ async def update_current_user(
     db.commit()
     db.refresh(current_user)
     return current_user
+
+@router.delete("/me")
+async def delete_current_user(
+    current_user: models.User = Depends(auth_utils.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Soft delete current user account"""
+    if current_user.deleted_at:
+        raise HTTPException(status_code=400, detail="User already deleted")
+    
+    current_user.deleted_at = datetime.utcnow()
+    db.commit()
+    return {"message": "User account deleted successfully"}
+
+@router.delete("/users/{user_id}")
+async def delete_user_by_admin(
+    user_id: int,
+    current_user: models.User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Soft delete any user (admin only)"""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.deleted_at:
+        raise HTTPException(status_code=400, detail="User already deleted")
+    
+    user.deleted_at = datetime.utcnow()
+    db.commit()
+    return {"message": f"User {user.username} deleted successfully"}
+
+@router.post("/users/{user_id}/restore")
+async def restore_user(
+    user_id: int,
+    current_user: models.User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Restore a soft-deleted user (admin only)"""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not user.deleted_at:
+        raise HTTPException(status_code=400, detail="User is not deleted")
+    
+    user.deleted_at = None
+    db.commit()
+    return {"message": f"User {user.username} restored successfully"}

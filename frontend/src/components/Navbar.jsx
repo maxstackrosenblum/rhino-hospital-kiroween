@@ -3,6 +3,11 @@ import {
   Avatar,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   IconButton,
   Menu,
@@ -14,8 +19,11 @@ import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 function Navbar({ user, onLogout }) {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -25,6 +33,38 @@ function Navbar({ user, onLogout }) {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleDeleteClick = () => {
+    handleMenuClose();
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/me`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setDeleteDialogOpen(false);
+        onLogout();
+        navigate('/login');
+      } else {
+        const data = await response.json();
+        alert(data.detail || 'Failed to delete account');
+      }
+    } catch (err) {
+      alert('Connection error');
+    }
   };
 
   const getInitials = (firstName, lastName) => {
@@ -101,10 +141,46 @@ function Navbar({ user, onLogout }) {
             Settings
           </MenuItem>
           <Divider />
+          <MenuItem 
+            onClick={handleDeleteClick} 
+            sx={{ 
+              color: 'error.main',
+              '&:hover': {
+                backgroundColor: (theme) => `${theme.palette.error.main}14`,
+              }
+            }}
+          >
+            Delete Account
+          </MenuItem>
           <MenuItem onClick={onLogout}>
             Logout
           </MenuItem>
         </Menu>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={handleDeleteCancel}
+          aria-labelledby="delete-dialog-title"
+        >
+          <DialogTitle id="delete-dialog-title">
+            Delete Account?
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete your account? This action cannot be undone.
+              You will be logged out immediately.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+              Delete Account
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Toolbar>
     </AppBar>
   );

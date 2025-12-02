@@ -1,4 +1,4 @@
-import { Cancel as CancelIcon, Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
+import { Cancel as CancelIcon, Delete as DeleteIcon, Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -6,6 +6,11 @@ import {
   Chip,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControl,
   MenuItem,
   Paper,
@@ -37,6 +42,8 @@ function Users({ user, token }) {
     role: "",
   });
   const [success, setSuccess] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
     // Only admins can access this page
@@ -132,6 +139,49 @@ function Users({ user, token }) {
         return "default";
       default:
         return "default";
+    }
+  };
+
+  const handleDeleteClick = (u) => {
+    setUserToDelete(u);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch(`${API_URL}/api/users/${userToDelete.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setUsers(users.filter((u) => u.id !== userToDelete.id));
+        setSuccess(`User ${userToDelete.username} deleted successfully!`);
+        setDeleteDialogOpen(false);
+        setUserToDelete(null);
+        setTimeout(() => setSuccess(""), 3000);
+      } else {
+        const data = await response.json();
+        setError(data.detail || "Failed to delete user");
+        setDeleteDialogOpen(false);
+        setUserToDelete(null);
+      }
+    } catch (err) {
+      setError("Connection error");
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
     }
   };
 
@@ -267,15 +317,26 @@ function Users({ user, token }) {
                       </TableCell>
                       <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Button
-                          onClick={() => handleEdit(u)}
-                          variant="contained"
-                          color="primary"
-                          size="small"
-                          startIcon={<EditIcon />}
-                        >
-                          Edit
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            onClick={() => handleEdit(u)}
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            startIcon={<EditIcon />}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteClick(u)}
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            startIcon={<DeleteIcon />}
+                          >
+                            Delete
+                          </Button>
+                        </Box>
                       </TableCell>
                     </>
                   )}
@@ -284,6 +345,44 @@ function Users({ user, token }) {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={handleDeleteCancel}
+          aria-labelledby="delete-user-dialog-title"
+        >
+          <DialogTitle id="delete-user-dialog-title">
+            Delete User?
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete user{' '}
+              <Box component="strong" sx={{ color: 'text.primary' }}>
+                {userToDelete?.username}
+              </Box>
+              ? This will soft delete the account and the user will no longer be able to log in.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel} color="primary">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleDeleteConfirm} 
+              color="error" 
+              variant="contained"
+              sx={{
+                color: '#ffffff',
+                '&:hover': {
+                  color: '#ffffff',
+                }
+              }}
+            >
+              Delete User
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Container>
   );
