@@ -10,7 +10,6 @@ import {
   Alert,
   Box,
   Button,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -30,6 +29,8 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import EmptyState from '../components/EmptyState';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useStaffList } from '../hooks/useStaffList';
 import { Staff, StaffUpdate } from '../types';
 
@@ -190,22 +191,23 @@ function WorkerList() {
 
         {/* Loading spinner */}
         {loading && (
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-            <CircularProgress />
-          </Box>
+          <LoadingSpinner message="Loading workers..." />
         )}
 
         {/* Table */}
         {!loading && (
           <>
             {staff.length === 0 ? (
-              <Paper sx={{ p: 4, textAlign: 'center' }}>
-                <Typography variant="body1" color="text.secondary">
-                  {searchQuery
-                    ? 'No workers match your search criteria.'
-                    : 'No workers registered yet. Click "Add Worker" to get started.'}
-                </Typography>
-              </Paper>
+              <EmptyState
+                title={searchQuery ? 'No Results Found' : 'No Workers Yet'}
+                description={
+                  searchQuery
+                    ? 'No workers match your search criteria. Try adjusting your search terms.'
+                    : 'Get started by adding your first worker to the system.'
+                }
+                actionLabel={!searchQuery ? 'Add Worker' : undefined}
+                onAction={!searchQuery ? () => navigate('/workers/add') : undefined}
+              />
             ) : (
               <TableContainer component={Paper}>
                 <Table>

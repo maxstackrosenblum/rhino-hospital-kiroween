@@ -389,7 +389,7 @@
   - Commit: `git commit -m "feat: add worker management UI components"`
   - Push: `git push` (pushes to current branch)
 
-- [-] 11. Add navigation and routing
+- [x] 11. Add navigation and routing
 - [x] 11.1 Update App.js with staff management routes
   - Add route for /receptionists/add
   - Add route for /receptionists
@@ -404,33 +404,33 @@
   - Ensure links are only visible to authenticated admins
   - _Requirements: 1.1, 6.1_
 
-- [-] 11.3 Git commit: Navigation and routing
+- [x] 11.3 Git commit: Navigation and routing
   - Run: `git add frontend/src/App.js frontend/src/components/Navbar.js`
   - Commit: `git commit -m "feat: add staff management routes and navigation"`
   - Push: `git push` (pushes to current branch)
 
-- [ ] 12. Implement responsive styling and accessibility
-- [ ] 12.1 Style staff management forms
+- [-] 12. Implement responsive styling and accessibility
+- [x] 12.1 Style staff management forms
   - Apply consistent styling to form inputs
   - Add responsive layout for mobile devices
   - Ensure proper spacing and visual hierarchy
   - Add focus states for keyboard navigation
   - _Requirements: 16.1, 16.3_
 
-- [ ] 12.2 Style staff list tables
+- [x] 12.2 Style staff list tables
   - Apply consistent table styling
   - Make tables responsive with horizontal scroll on mobile
   - Add hover states for interactive elements
   - Ensure proper contrast for accessibility
   - _Requirements: 16.1_
 
-- [ ] 12.3 Add loading and empty state components
+- [x] 12.3 Add loading and empty state components
   - Create reusable LoadingSpinner component
   - Create EmptyState component for no results
   - Ensure loading states are accessible to screen readers
   - _Requirements: 16.2_
 
-- [ ] 12.4 Git commit: Styling and accessibility
+- [-] 12.4 Git commit: Styling and accessibility
   - Run: `git add frontend/src/App.css frontend/src/components/`
   - Commit: `git commit -m "style: add responsive styling and accessibility features"`
   - Push: `git push` (pushes to current branch)

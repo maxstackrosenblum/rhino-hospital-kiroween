@@ -10,7 +10,6 @@ import {
   Alert,
   Box,
   Button,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -30,6 +29,8 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import EmptyState from '../components/EmptyState';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useStaffList } from '../hooks/useStaffList';
 import { Staff, StaffUpdate } from '../types';
 
@@ -190,22 +191,23 @@ function ReceptionistList() {
 
         {/* Loading spinner */}
         {loading && (
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-            <CircularProgress />
-          </Box>
+          <LoadingSpinner message="Loading receptionists..." />
         )}
 
         {/* Table */}
         {!loading && (
           <>
             {staff.length === 0 ? (
-              <Paper sx={{ p: 4, textAlign: 'center' }}>
-                <Typography variant="body1" color="text.secondary">
-                  {searchQuery
-                    ? 'No receptionists match your search criteria.'
-                    : 'No receptionists registered yet. Click "Add Receptionist" to get started.'}
-                </Typography>
-              </Paper>
+              <EmptyState
+                title={searchQuery ? 'No Results Found' : 'No Receptionists Yet'}
+                description={
+                  searchQuery
+                    ? 'No receptionists match your search criteria. Try adjusting your search terms.'
+                    : 'Get started by adding your first receptionist to the system.'
+                }
+                actionLabel={!searchQuery ? 'Add Receptionist' : undefined}
+                onAction={!searchQuery ? () => navigate('/receptionists/add') : undefined}
+              />
             ) : (
               <TableContainer component={Paper}>
                 <Table>
