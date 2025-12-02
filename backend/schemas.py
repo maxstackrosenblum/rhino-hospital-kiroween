@@ -1,5 +1,12 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime
+from enum import Enum
+
+class UserRole(str, Enum):
+    UNDEFINED = "undefined"
+    ADMIN = "admin"
+    DOCTOR = "doctor"
+    RECEPTIONIST = "receptionist"
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -18,7 +25,9 @@ class UserResponse(BaseModel):
     username: str
     first_name: str | None
     last_name: str | None
+    role: UserRole
     created_at: datetime
+    deleted_at: datetime | None = None
 
     class Config:
         from_attributes = True
@@ -35,6 +44,13 @@ class UserUpdate(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
     password: str | None = None
+    role: UserRole | None = None
+
+class AdminUserUpdate(BaseModel):
+    email: EmailStr | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    role: UserRole | None = None
 
 
 # Staff Management Schemas

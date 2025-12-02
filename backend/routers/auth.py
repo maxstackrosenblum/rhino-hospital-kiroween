@@ -20,14 +20,15 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
             detail="Email or username already registered"
         )
     
-    # Create new user
+    # Create new user with default role 'undefined'
     hashed_password = auth_utils.get_password_hash(user.password)
     new_user = models.User(
         email=user.email,
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        role="undefined"
     )
     db.add(new_user)
     db.commit()
@@ -49,6 +50,12 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if db_user.deleted_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account has been deleted",
         )
     
     access_token = auth_utils.create_access_token(data={"sub": db_user.username})

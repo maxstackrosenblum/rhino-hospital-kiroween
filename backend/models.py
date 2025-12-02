@@ -2,6 +2,13 @@ from sqlalchemy import Column, Integer, String, DateTime, Index
 from sqlalchemy.sql import func
 from datetime import datetime
 from database import Base
+import enum
+
+class UserRole(str, enum.Enum):
+    UNDEFINED = "undefined"
+    ADMIN = "admin"
+    DOCTOR = "doctor"
+    RECEPTIONIST = "receptionist"
 
 class User(Base):
     __tablename__ = "users"
@@ -12,7 +19,9 @@ class User(Base):
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
+    role = Column(String, default="undefined", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    deleted_at = Column(DateTime, nullable=True, default=None)
 
 
 class Receptionist(Base):
