@@ -47,3 +47,18 @@ def create_reset_token() -> str:
 def create_reset_token_expiry() -> datetime:
     """Create expiry time for reset token (1 hour from now)"""
     return datetime.utcnow() + timedelta(hours=1)
+
+def create_refresh_token(data: dict) -> tuple:
+    """Create a refresh token with longer expiration"""
+    import uuid
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    jti = str(uuid.uuid4())
+    to_encode.update({
+        "exp": expire,
+        "jti": jti,
+        "iat": datetime.utcnow(),
+        "type": "refresh"
+    })
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt, jti, expire

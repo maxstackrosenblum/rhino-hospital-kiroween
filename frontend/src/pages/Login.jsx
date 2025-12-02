@@ -51,7 +51,7 @@ function Login({ onLogin }) {
 
       if (response.ok) {
         if (isLogin) {
-          onLogin(data.access_token);
+          onLogin(data.access_token, data.refresh_token);
         } else {
           setIsLogin(true);
           setSuccess("Registration successful! Please login.");

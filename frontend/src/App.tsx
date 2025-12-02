@@ -61,14 +61,18 @@ function AppContent() {
   );
   const { data: user, isLoading, refetch } = useCurrentUser();
 
-  const handleLogin = (accessToken: string) => {
+  const handleLogin = (accessToken: string, refreshToken?: string) => {
     localStorage.setItem("token", accessToken);
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
     setToken(accessToken);
     refetch();
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     setToken(null);
     queryClient.clear();
   };
