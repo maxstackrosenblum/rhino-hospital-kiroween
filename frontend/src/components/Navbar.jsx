@@ -113,46 +113,33 @@ function Navbar({ user, onLogout }) {
           {isMobile ? 'HMS' : 'Hospital Management System'}
         </Typography>
 
-<<<<<<< HEAD
-        {/* Navigation Menu */}
-        <Box sx={{ flexGrow: 1, ml: 3 }}>
-          {user.role === 'admin' && (
-            <>
-=======
         {/* Desktop Navigation Menu */}
         {!isMobile && (
           <Box sx={{ flexGrow: 1, ml: 3 }}>
             {user.role === 'admin' && (
->>>>>>> 0de4a1090d632629fb48068f661fdace5738f584
-              <Button
-                color="primary"
-                onClick={() => navigate('/users')}
-              >
-<<<<<<< HEAD
-                Users
-              </Button>
-              <Button
-                color="primary"
-                onClick={() => navigate('/receptionists')}
-              >
-                Receptionists
-              </Button>
-              <Button
-                color="primary"
-                onClick={() => navigate('/workers')}
-              >
-                Workers
-              </Button>
-            </>
-          )}
-        </Box>
-=======
-                Staff
-              </Button>
+              <>
+                <Button
+                  color="primary"
+                  onClick={() => navigate('/users')}
+                >
+                  Users
+                </Button>
+                <Button
+                  color="primary"
+                  onClick={() => navigate('/receptionists')}
+                >
+                  Receptionists
+                </Button>
+                <Button
+                  color="primary"
+                  onClick={() => navigate('/workers')}
+                >
+                  Workers
+                </Button>
+              </>
             )}
           </Box>
         )}
->>>>>>> 0de4a1090d632629fb48068f661fdace5738f584
 
         {/* User Menu */}
         <IconButton
@@ -222,11 +209,23 @@ function Navbar({ user, onLogout }) {
                 </ListItemButton>
               </ListItem>
               {user.role === 'admin' && (
-                <ListItem disablePadding>
-                  <ListItemButton onClick={() => handleNavigation('/users')}>
-                    <ListItemText primary="Staff" />
-                  </ListItemButton>
-                </ListItem>
+                <>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/users')}>
+                      <ListItemText primary="Users" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/receptionists')}>
+                      <ListItemText primary="Receptionists" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/workers')}>
+                      <ListItemText primary="Workers" />
+                    </ListItemButton>
+                  </ListItem>
+                </>
               )}
               <ListItem disablePadding>
                 <ListItemButton onClick={() => handleNavigation('/profile')}>
