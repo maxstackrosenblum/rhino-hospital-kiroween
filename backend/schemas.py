@@ -69,7 +69,7 @@ class UserCreate(UserBase):
     age: int | None = None
     address: str | None = None
     gender: str | None = None
-    role: UserRole | None = None
+    role: UserRole = UserRole.UNDEFINED
 
     @validator('password')
     def validate_password(cls, v):

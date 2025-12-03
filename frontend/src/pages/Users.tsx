@@ -14,6 +14,8 @@ import {
   Snackbar,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +29,7 @@ import {
   CreateUserDialog,
   DeleteUserDialog,
   EditUserDialog,
+  UsersStack,
   UsersTable,
 } from "../components/users";
 import { useDebounce } from "../hooks/useDebounce";
@@ -38,6 +41,8 @@ interface UsersProps {
 
 function Users({ user }: UsersProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms debounce
   const [roleFilter, setRoleFilter] = useState("");
@@ -233,19 +238,36 @@ function Users({ user }: UsersProps) {
           </Alert>
         )}
 
-        {/* Users Table */}
-        <UsersTable
-          users={users}
-          searchTerm={debouncedSearchTerm}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDeleteClick}
-        />
+        {/* Users Display - Table for desktop, Stack for mobile */}
+        {isMobile ? (
+          <UsersStack
+            users={users}
+            searchTerm={debouncedSearchTerm}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+          />
+        ) : (
+          <UsersTable
+            users={users}
+            searchTerm={debouncedSearchTerm}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+          />
+        )}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 3,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 Showing {users.length} of {totalRecords} users
               </Typography>
@@ -266,7 +288,7 @@ function Users({ user }: UsersProps) {
                 </Select>
               </FormControl>
             </Box>
-            <Pagination 
+            <Pagination
               count={totalPages}
               page={page}
               onChange={(_, value) => setPage(value)}

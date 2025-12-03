@@ -78,13 +78,14 @@ export interface UserCreate {
   username: string;
   first_name: string;
   last_name: string;
-  phone: string;
-  city: string;
-  age: number;
-  address: string;
-  gender: string;
   password: string;
-  role: UserRole;
+  // Optional fields
+  phone?: string;
+  city?: string;
+  age?: number;
+  address?: string;
+  gender?: string;
+  role?: UserRole;
 }
 
 export interface TokenResponse {
@@ -99,7 +100,7 @@ export interface MedicalStaff {
   job_title: string | null;
   department: string | null;
   shift_schedule: string | null;
-  
+
   // User fields (always present)
   user_id: number; // User table ID
   email: string;
@@ -107,7 +108,7 @@ export interface MedicalStaff {
   last_name: string;
   phone: string | null;
   role: UserRole; // To distinguish between medical_staff and receptionist
-  
+
   // Timestamps
   created_at: string;
   updated_at: string;
@@ -335,7 +336,6 @@ export interface DoctorCreate {
   license_number?: string;
 }
 
-
 // Hospitalization types
 export interface DoctorInfo {
   id: number;
@@ -451,7 +451,6 @@ export interface PrescriptionFilters {
   end_date?: string;
   search?: string;
 }
-
 
 // Shift types
 export interface Shift {
