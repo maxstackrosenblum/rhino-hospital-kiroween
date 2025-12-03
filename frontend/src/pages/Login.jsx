@@ -82,6 +82,19 @@ function Login({ onLogin }) {
             maxWidth: 400,
           }}
         >
+          {/* Logo */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <img 
+              src="/logo_big.png" 
+              alt="Hospital Logo" 
+              style={{ 
+                height: '120px',
+                width: 'auto',
+                objectFit: 'contain'
+              }} 
+            />
+          </Box>
+          
           <Typography variant="h4" component="h1" gutterBottom align="center">
             {isLogin ? "Login" : "Register"}
           </Typography>

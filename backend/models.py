@@ -21,6 +21,7 @@ class UserRole(str, enum.Enum):
     MEDICAL_STAFF = "medical_staff"
     RECEPTIONIST = "receptionist"
     PATIENT = "patient"
+    ACCOUNTANT = "accountant"
 
 class Gender(str, enum.Enum):
     MALE = "male"
@@ -179,4 +180,27 @@ class Session(Base):
 
     __table_args__ = (
         Index('ix_sessions_user_revoked_expires', 'user_id', 'revoked_at', 'expires_at'),
+    )
+
+
+class Shift(Base):
+    __tablename__ = "shifts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    date = Column(DateTime, nullable=False, index=True)
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    total_hours = Column(Integer, nullable=False)  # Total hours in minutes
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime, nullable=True, default=None, index=True)
+
+    # Relationship to User
+    user = relationship("User", backref="shifts")
+
+    __table_args__ = (
+        Index('ix_shifts_user_date', 'user_id', 'date', 'deleted_at'),
+        Index('ix_shifts_date_deleted', 'date', 'deleted_at'),
     )

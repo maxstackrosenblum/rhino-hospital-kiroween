@@ -16,6 +16,8 @@ function Dashboard({ user }) {
         return "success";
       case "receptionist":
         return "info";
+      case "accountant":
+        return "warning"; // Orange color
       case "undefined":
         return "default";
       default:
