@@ -1,4 +1,8 @@
-import { useState, useEffect } from 'react';
+import {
+  Delete as DeleteIcon,
+  Devices as DevicesIcon,
+  Refresh as RefreshIcon,
+} from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -17,29 +21,25 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
-} from '@mui/material';
-import {
-  Devices as DevicesIcon,
-  Delete as DeleteIcon,
-  Refresh as RefreshIcon,
-} from '@mui/icons-material';
+} from "@mui/material";
+import { useEffect, useState } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function Sessions() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [sessions, setSessions] = useState([]);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [revokeAllDialog, setRevokeAllDialog] = useState(false);
 
   const fetchSessions = async () => {
     setLoading(true);
-    setError('');
+    setError("");
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/api/sessions`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -47,13 +47,13 @@ function Sessions() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch sessions');
+        throw new Error("Failed to fetch sessions");
       }
 
       const data = await response.json();
       setSessions(data);
     } catch (err) {
-      setError(err.message || 'Failed to load sessions');
+      setError((err as any).message || "Failed to load sessions");
     } finally {
       setLoading(false);
     }
@@ -63,72 +63,76 @@ function Sessions() {
     fetchSessions();
   }, []);
 
-  const handleRevokeSession = async (sessionId) => {
+  const handleRevokeSession = async (sessionId: any) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/api/sessions/${sessionId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to revoke session');
+        throw new Error("Failed to revoke session");
       }
 
-      setSuccess('Session revoked successfully');
+      setSuccess("Session revoked successfully");
       fetchSessions();
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      setError(err.message || 'Failed to revoke session');
+      setError((err as any).message || "Failed to revoke session");
     }
   };
 
   const handleRevokeAll = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/api/sessions`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to revoke sessions');
+        throw new Error("Failed to revoke sessions");
       }
 
-      setSuccess('All sessions revoked. You will need to login again.');
+      setSuccess("All sessions revoked. You will need to login again.");
       setRevokeAllDialog(false);
-      
+
       // Logout after revoking all sessions
       setTimeout(() => {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        localStorage.removeItem("token");
+        window.location.href = "/login";
       }, 2000);
     } catch (err) {
-      setError(err.message || 'Failed to revoke sessions');
+      setError((err as any).message || "Failed to revoke sessions");
       setRevokeAllDialog(false);
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: any) => {
     return new Date(dateString).toLocaleString();
   };
 
-  const getDeviceIcon = (userAgent) => {
+  const getDeviceIcon = (userAgent: any) => {
     if (!userAgent) return <DevicesIcon />;
-    if (userAgent.includes('Mobile')) return '📱';
-    if (userAgent.includes('Tablet')) return '📱';
-    return '💻';
+    if (userAgent.includes("Mobile")) return "📱";
+    if (userAgent.includes("Tablet")) return "📱";
+    return "💻";
   };
 
-  const isCurrentSession = (session) => {
+  const isCurrentSession = (session: any) => {
     // Simple heuristic: most recent activity is likely current session
-    const mostRecent = sessions.reduce((prev, current) => 
-      new Date(current.last_activity) > new Date(prev.last_activity) ? current : prev
-    , sessions[0]);
+    const mostRecent = sessions.reduce(
+      (prev, current) =>
+        new Date(current.last_activity) > new Date(prev.last_activity)
+          ? current
+          : prev,
+      sessions[0]
+    );
     return session.id === mostRecent?.id;
   };
 
@@ -143,11 +147,18 @@ function Sessions() {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
           <Typography variant="h4" fontWeight={700}>
             Active Sessions
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: "flex", gap: 1 }}>
             <IconButton onClick={fetchSessions} title="Refresh">
               <RefreshIcon />
             </IconButton>
@@ -159,13 +170,13 @@ function Sessions() {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
           {error}
         </Alert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>
           {success}
         </Alert>
       )}
@@ -195,31 +206,50 @@ function Sessions() {
           sessions.map((session) => (
             <Card key={session.id} elevation={2}>
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box sx={{ display: 'flex', gap: 2, flex: 1 }}>
-                    <Box sx={{ fontSize: '2rem' }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <Box sx={{ display: "flex", gap: 2, flex: 1 }}>
+                    <Box sx={{ fontSize: "2rem" }}>
                       {getDeviceIcon(session.user_agent)}
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          alignItems: "center",
+                          mb: 1,
+                        }}
+                      >
                         <Typography variant="h6">
-                          {session.device_info || 'Unknown Device'}
+                          {session.device_info || "Unknown Device"}
                         </Typography>
                         {isCurrentSession(session) && (
                           <Chip label="Current" color="primary" size="small" />
                         )}
                       </Box>
                       <Typography variant="body2" color="text.secondary">
-                        <strong>IP:</strong> {session.ip_address || 'Unknown'}
+                        <strong>IP:</strong> {session.ip_address || "Unknown"}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        <strong>Last Active:</strong> {formatDate(session.last_activity)}
+                        <strong>Last Active:</strong>{" "}
+                        {formatDate(session.last_activity)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        <strong>Expires:</strong> {formatDate(session.expires_at)}
+                        <strong>Expires:</strong>{" "}
+                        {formatDate(session.expires_at)}
                       </Typography>
                       {session.user_agent && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ display: "block", mt: 1 }}
+                        >
                           {session.user_agent}
                         </Typography>
                       )}
@@ -244,7 +274,8 @@ function Sessions() {
         <DialogTitle>Revoke All Sessions?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            This will log you out from all devices, including this one. You will need to login again.
+            This will log you out from all devices, including this one. You will
+            need to login again.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

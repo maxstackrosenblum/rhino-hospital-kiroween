@@ -1,16 +1,16 @@
-import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { createAppTheme } from '../theme';
+import CssBaseline from "@mui/material/CssBaseline";
+import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
+import { createContext, useContext, useEffect, useState } from "react";
+import { createAppTheme } from "../theme";
 
 // Create theme context
-const ThemeContext = createContext();
+const ThemeContext = createContext({} as any);
 
 // Theme provider component
-export function AppThemeProvider({ children }) {
+export function AppThemeProvider({ children }: any) {
   const [mode, setMode] = useState(() => {
     // Initialize from localStorage or default to 'dark'
-    return localStorage.getItem('theme') || 'dark';
+    return localStorage.getItem("theme") || "dark";
   });
 
   // Create MUI theme based on current mode
@@ -18,19 +18,19 @@ export function AppThemeProvider({ children }) {
 
   // Update localStorage and document attribute when theme changes
   useEffect(() => {
-    localStorage.setItem('theme', mode);
-    document.documentElement.setAttribute('data-theme', mode);
+    localStorage.setItem("theme", mode);
+    document.documentElement.setAttribute("data-theme", mode);
   }, [mode]);
 
   const toggleTheme = () => {
-    setMode(prevMode => prevMode === 'dark' ? 'light' : 'dark');
+    setMode((prevMode) => (prevMode === "dark" ? "light" : "dark"));
   };
 
   const contextValue = {
     mode,
     theme,
     toggleTheme,
-    setMode
+    setMode,
   };
 
   return (
@@ -47,7 +47,7 @@ export function AppThemeProvider({ children }) {
 export function useAppTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useAppTheme must be used within an AppThemeProvider');
+    throw new Error("useAppTheme must be used within an AppThemeProvider");
   }
   return context;
 }

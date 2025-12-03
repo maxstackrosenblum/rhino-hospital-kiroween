@@ -8,9 +8,9 @@ import {
   Paper,
   Switch,
   Typography,
-} from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { useAppTheme } from '../hooks/useTheme.jsx';
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useAppTheme } from "../hooks/useTheme";
 
 function Settings() {
   const navigate = useNavigate();
@@ -26,7 +26,13 @@ function Settings() {
 
           <Card sx={{ mt: 3 }}>
             <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <Box>
                   <Typography variant="h6" component="h3">
                     Theme
@@ -38,23 +44,20 @@ function Settings() {
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={mode === 'light'}
+                      checked={mode === "light"}
                       onChange={toggleTheme}
                       color="primary"
                     />
                   }
-                  label={mode === 'light' ? 'Light' : 'Dark'}
+                  label={mode === "light" ? "Light" : "Dark"}
                   labelPlacement="start"
                 />
               </Box>
             </CardContent>
           </Card>
 
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/')}
-            >
+          <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
+            <Button variant="outlined" onClick={() => navigate("/")}>
               Close
             </Button>
           </Box>

@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-function Login({ onLogin }) {
+function Login({ onLogin }: any) {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
@@ -26,11 +26,11 @@ function Login({ onLogin }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleChange = (e) => {
+  const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -83,18 +83,18 @@ function Login({ onLogin }) {
           }}
         >
           {/* Logo */}
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-            <img 
-              src="/logo_big.png" 
-              alt="Hospital Logo" 
-              style={{ 
-                height: '120px',
-                width: 'auto',
-                objectFit: 'contain'
-              }} 
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <img
+              src="/logo_big.png"
+              alt="Hospital Logo"
+              style={{
+                height: "120px",
+                width: "auto",
+                objectFit: "contain",
+              }}
             />
           </Box>
-          
+
           <Typography variant="h4" component="h1" gutterBottom align="center">
             {isLogin ? "Login" : "Register"}
           </Typography>
@@ -195,7 +195,7 @@ function Login({ onLogin }) {
               <Link
                 component="button"
                 variant="body2"
-                onClick={() => navigate('/forgot-password')}
+                onClick={() => navigate("/forgot-password")}
                 sx={{ cursor: "pointer" }}
               >
                 Forgot Password?

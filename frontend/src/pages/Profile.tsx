@@ -13,7 +13,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUpdateCurrentUser } from "../api";
 
-function Profile({ user }) {
+function Profile({ user }: any) {
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState({
     email: user.email,
@@ -24,14 +24,14 @@ function Profile({ user }) {
   });
   const updateProfileMutation = useUpdateCurrentUser();
 
-  const handleProfileChange = (e) => {
+  const handleProfileChange = (e: any) => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
   };
 
-  const handleProfileSubmit = async (e) => {
+  const handleProfileSubmit = async (e: any) => {
     e.preventDefault();
 
-    const updateData = {};
+    const updateData: any = {};
     if (profileData.email !== user.email) updateData.email = profileData.email;
     if (profileData.first_name !== user.first_name)
       updateData.first_name = profileData.first_name;

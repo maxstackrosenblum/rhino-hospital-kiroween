@@ -1,7 +1,7 @@
 import { Box, Container } from "@mui/material";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Navigate,
   Route,
@@ -88,33 +88,36 @@ function AppContent() {
 
     const checkTokenExpiration = async () => {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const payload = JSON.parse(atob(token.split(".")[1]));
         const expiresAt = payload.exp * 1000;
         const now = Date.now();
         const fiveMinutes = 5 * 60 * 1000;
 
         // If token expires in less than 5 minutes, refresh it
         if (expiresAt - now < fiveMinutes) {
-          const refreshToken = localStorage.getItem('refreshToken');
+          const refreshToken = localStorage.getItem("refreshToken");
           if (refreshToken) {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ refresh_token: refreshToken }),
-            });
+            const response = await fetch(
+              `${import.meta.env.VITE_API_URL}/api/refresh`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refresh_token: refreshToken }),
+              }
+            );
 
             if (response.ok) {
               const data = await response.json();
-              localStorage.setItem('token', data.access_token);
+              localStorage.setItem("token", data.access_token);
               if (data.refresh_token) {
-                localStorage.setItem('refreshToken', data.refresh_token);
+                localStorage.setItem("refreshToken", data.refresh_token);
               }
               setToken(data.access_token);
             }
           }
         }
       } catch (error) {
-        console.error('Failed to check token expiration:', error);
+        console.error("Failed to check token expiration:", error);
       }
     };
 
@@ -203,7 +206,7 @@ function AppContent() {
                   element={
                     <ProtectedRoute user={user}>
                       <Container maxWidth="xl" sx={{ py: 4 }}>
-                        <Users user={user} />
+                        <Users user={user as any} />
                       </Container>
                     </ProtectedRoute>
                   }
@@ -213,7 +216,7 @@ function AppContent() {
                   element={
                     <ProtectedRoute user={user}>
                       <Container maxWidth="xl" sx={{ py: 4 }}>
-                        <Patients user={user} />
+                        <Patients user={user as any} />
                       </Container>
                     </ProtectedRoute>
                   }
@@ -223,7 +226,7 @@ function AppContent() {
                   element={
                     <ProtectedRoute user={user}>
                       <Container maxWidth="xl" sx={{ py: 4 }}>
-                        <Doctors user={user} />
+                        <Doctors user={user as any} />
                       </Container>
                     </ProtectedRoute>
                   }
@@ -232,7 +235,7 @@ function AppContent() {
                   path="/medical-staff"
                   element={
                     <ProtectedRoute user={user}>
-                      <MedicalStaffList user={user} />
+                      <MedicalStaffList user={user as any} />
                     </ProtectedRoute>
                   }
                 />
@@ -240,7 +243,7 @@ function AppContent() {
                   path="/hospitalizations"
                   element={
                     <ProtectedRoute user={user}>
-                      <Hospitalizations user={user} />
+                      <Hospitalizations user={user as any} />
                     </ProtectedRoute>
                   }
                 />
@@ -248,7 +251,7 @@ function AppContent() {
                   path="/prescriptions"
                   element={
                     <ProtectedRoute user={user}>
-                      <Prescriptions user={user} />
+                      <Prescriptions user={user as any} />
                     </ProtectedRoute>
                   }
                 />
@@ -256,7 +259,7 @@ function AppContent() {
                   path="/shifts"
                   element={
                     <ProtectedRoute user={user}>
-                      <Shifts user={user} />
+                      <Shifts user={user as any} />
                     </ProtectedRoute>
                   }
                 />
@@ -264,28 +267,20 @@ function AppContent() {
                   path="/shifts-report"
                   element={
                     <ProtectedRoute user={user}>
-                      <ShiftsReport user={user} />
+                      <ShiftsReport user={user as any} />
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/forgot-password"
                   element={
-                    user ? (
-                      <Navigate to="/" replace />
-                    ) : (
-                      <ForgotPassword />
-                    )
+                    user ? <Navigate to="/" replace /> : <ForgotPassword />
                   }
                 />
                 <Route
                   path="/reset-password"
                   element={
-                    user ? (
-                      <Navigate to="/" replace />
-                    ) : (
-                      <ResetPassword />
-                    )
+                    user ? <Navigate to="/" replace /> : <ResetPassword />
                   }
                 />
                 <Route

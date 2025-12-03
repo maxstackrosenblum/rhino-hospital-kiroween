@@ -1,4 +1,9 @@
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon } from "@mui/icons-material";
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
 import {
   Alert,
   Autocomplete,
@@ -31,6 +36,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDoctors } from "../api/doctors";
 import {
   useCreateHospitalization,
   useDeleteHospitalization,
@@ -38,8 +44,13 @@ import {
   useUpdateHospitalization,
 } from "../api/hospitalizations";
 import { usePatients } from "../api/patients";
-import { useDoctors } from "../api/doctors";
-import { Hospitalization, HospitalizationCreate, HospitalizationUpdate, Patient, User } from "../types";
+import {
+  Hospitalization,
+  HospitalizationCreate,
+  HospitalizationUpdate,
+  Patient,
+  User,
+} from "../types";
 
 interface HospitalizationsProps {
   user: User;
@@ -49,15 +60,17 @@ function Hospitalizations({ user }: HospitalizationsProps) {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingHospitalization, setEditingHospitalization] = useState<Hospitalization | null>(null);
-  const [hospitalizationToDelete, setHospitalizationToDelete] = useState<Hospitalization | null>(null);
+  const [editingHospitalization, setEditingHospitalization] =
+    useState<Hospitalization | null>(null);
+  const [hospitalizationToDelete, setHospitalizationToDelete] =
+    useState<Hospitalization | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [patientSearch, setPatientSearch] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "my-patients">(
-    user.role === "doctor" ? "my-patients" : "active"
-  );
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "active" | "my-patients"
+  >(user.role === "doctor" ? "my-patients" : "active");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -72,7 +85,9 @@ function Hospitalizations({ user }: HospitalizationsProps) {
 
   // Check permissions
   useEffect(() => {
-    if (!["admin", "doctor", "medical_staff", "receptionist"].includes(user.role)) {
+    if (
+      !["admin", "doctor", "medical_staff", "receptionist"].includes(user.role)
+    ) {
       navigate("/");
     }
   }, [user, navigate]);
@@ -82,37 +97,42 @@ function Hospitalizations({ user }: HospitalizationsProps) {
     setPage(1);
   }, [searchTerm, filterStatus]);
 
-  const { data: hospitalizationsResponse, isLoading, error } = useHospitalizations({
+  const {
+    data: hospitalizationsResponse,
+    isLoading,
+    error,
+  } = useHospitalizations({
     page,
     page_size: pageSize,
     search: searchTerm,
     active_only: filterStatus === "active",
   });
-  
+
   const allHospitalizations = hospitalizationsResponse?.hospitalizations || [];
   const totalPages = hospitalizationsResponse?.total_pages || 0;
   const totalRecords = hospitalizationsResponse?.total || 0;
-  const { data: patientsResponse, isLoading: patientsLoading } = usePatients({ 
-    search: patientSearch, 
-    page_size: 50 
+  const { data: patientsResponse, isLoading: patientsLoading } = usePatients({
+    search: patientSearch,
+    page_size: 50,
   });
   const { data: doctorsResponse } = useDoctors({ page_size: 100 });
   const doctors = doctorsResponse?.doctors || [];
-  const allPatients = Array.isArray(patientsResponse) 
-    ? patientsResponse 
-    : (patientsResponse?.patients || patientsResponse?.items || []);
+  const allPatients = Array.isArray(patientsResponse)
+    ? patientsResponse
+    : patientsResponse?.patients || (patientsResponse as any)?.items || [];
   // Filter to only show patients with complete profiles (id is not null)
-  const patients = allPatients.filter(p => p.id !== null);
-  
+  const patients = allPatients.filter((p: any) => p.id !== null);
+
   // Find current user's doctor ID if they're a doctor
-  const currentDoctor = doctors.find(d => d.user_id === user.id);
+  const currentDoctor = doctors.find((d) => d.user_id === user.id);
 
   // Client-side filtering for "my-patients" (server handles active_only and search)
-  const hospitalizations = 
+  const hospitalizations =
     filterStatus === "my-patients" && currentDoctor
-      ? allHospitalizations.filter(h => 
-          !h.discharge_date && 
-          h.doctors?.some(d => d.id === currentDoctor.id)
+      ? allHospitalizations.filter(
+          (h) =>
+            !h.discharge_date &&
+            h.doctors?.some((d) => d.id === currentDoctor.id)
         )
       : allHospitalizations;
 
@@ -125,11 +145,13 @@ function Hospitalizations({ user }: HospitalizationsProps) {
       setEditingHospitalization(hospitalization);
       setFormData({
         patient_id: hospitalization.patient_id.toString(),
-        admission_date: hospitalization.admission_date.split('T')[0],
-        discharge_date: hospitalization.discharge_date ? hospitalization.discharge_date.split('T')[0] : "",
+        admission_date: hospitalization.admission_date.split("T")[0],
+        discharge_date: hospitalization.discharge_date
+          ? hospitalization.discharge_date.split("T")[0]
+          : "",
         diagnosis: hospitalization.diagnosis,
         summary: hospitalization.summary || "",
-        doctor_ids: hospitalization.doctors?.map(d => d.id) || [],
+        doctor_ids: hospitalization.doctors?.map((d) => d.id) || [],
       });
       setSelectedPatient(null);
     } else {
@@ -155,19 +177,23 @@ function Hospitalizations({ user }: HospitalizationsProps) {
 
   const handleSubmit = () => {
     // For new hospitalizations, use the patient's id (from patients table)
-    const patientId = editingHospitalization 
-      ? parseInt(formData.patient_id) 
+    const patientId = editingHospitalization
+      ? parseInt(formData.patient_id)
       : selectedPatient?.id;
 
     if (!patientId) {
-      alert("Selected patient does not have a complete profile. Please complete their patient profile first.");
+      alert(
+        "Selected patient does not have a complete profile. Please complete their patient profile first."
+      );
       return;
     }
 
     const data: HospitalizationCreate | HospitalizationUpdate = {
       ...(editingHospitalization ? {} : { patient_id: patientId }),
       admission_date: new Date(formData.admission_date).toISOString(),
-      ...(formData.discharge_date && { discharge_date: new Date(formData.discharge_date).toISOString() }),
+      ...(formData.discharge_date && {
+        discharge_date: new Date(formData.discharge_date).toISOString(),
+      }),
       diagnosis: formData.diagnosis,
       ...(formData.summary && { summary: formData.summary }),
       doctor_ids: formData.doctor_ids,
@@ -213,11 +239,22 @@ function Hospitalizations({ user }: HospitalizationsProps) {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
           <Typography variant="h3" component="h1" fontWeight={700}>
             Hospitalizations
           </Typography>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+          >
             Add Hospitalization
           </Button>
         </Box>
@@ -244,7 +281,11 @@ function Hospitalizations({ user }: HospitalizationsProps) {
             <Select
               value={filterStatus}
               label="Filter"
-              onChange={(e) => setFilterStatus(e.target.value as "all" | "active" | "my-patients")}
+              onChange={(e) =>
+                setFilterStatus(
+                  e.target.value as "all" | "active" | "my-patients"
+                )
+              }
             >
               {user.role === "doctor" && (
                 <MenuItem value="my-patients">My Patients</MenuItem>
@@ -295,23 +336,34 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                     <TableCell>
                       <Box>
                         <Typography variant="body2" fontWeight={500}>
-                          {hospitalization.patient_first_name} {hospitalization.patient_last_name}
+                          {hospitalization.patient_first_name}{" "}
+                          {hospitalization.patient_last_name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Age: {hospitalization.patient_age} • ID: {hospitalization.patient_id}
+                          Age: {hospitalization.patient_age} • ID:{" "}
+                          {hospitalization.patient_id}
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>{new Date(hospitalization.admission_date).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {new Date(
+                        hospitalization.admission_date
+                      ).toLocaleDateString()}
+                    </TableCell>
                     <TableCell>
                       {hospitalization.discharge_date
-                        ? new Date(hospitalization.discharge_date).toLocaleDateString()
+                        ? new Date(
+                            hospitalization.discharge_date
+                          ).toLocaleDateString()
                         : "Active"}
                     </TableCell>
                     <TableCell>{hospitalization.diagnosis}</TableCell>
                     <TableCell>
-                      {hospitalization.doctors && hospitalization.doctors.length > 0 ? (
-                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {hospitalization.doctors &&
+                      hospitalization.doctors.length > 0 ? (
+                        <Box
+                          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
+                        >
                           {hospitalization.doctors.map((doctor) => (
                             <Chip
                               key={doctor.id}
@@ -322,16 +374,26 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                           ))}
                         </Box>
                       ) : (
-                        <Typography variant="body2" color="text.secondary">No doctors assigned</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          No doctors assigned
+                        </Typography>
                       )}
                     </TableCell>
                     <TableCell>{hospitalization.summary || "-"}</TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", gap: 1 }}>
-                        <IconButton onClick={() => handleOpenDialog(hospitalization)} color="primary" size="small">
+                        <IconButton
+                          onClick={() => handleOpenDialog(hospitalization)}
+                          color="primary"
+                          size="small"
+                        >
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => handleDeleteClick(hospitalization)} color="error" size="small">
+                        <IconButton
+                          onClick={() => handleDeleteClick(hospitalization)}
+                          color="error"
+                          size="small"
+                        >
                           <DeleteIcon />
                         </IconButton>
                       </Box>
@@ -345,10 +407,18 @@ function Hospitalizations({ user }: HospitalizationsProps) {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 3,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                Showing {hospitalizations.length} of {totalRecords} hospitalizations
+                Showing {hospitalizations.length} of {totalRecords}{" "}
+                hospitalizations
               </Typography>
               <FormControl size="small" sx={{ minWidth: 100 }}>
                 <InputLabel>Per page</InputLabel>
@@ -367,7 +437,7 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                 </Select>
               </FormControl>
             </Box>
-            <Pagination 
+            <Pagination
               count={totalPages}
               page={page}
               onChange={(_, value) => setPage(value)}
@@ -379,21 +449,36 @@ function Hospitalizations({ user }: HospitalizationsProps) {
         )}
 
         {/* Create/Edit Dialog */}
-        <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>{editingHospitalization ? "Edit Hospitalization" : "Add Hospitalization"}</DialogTitle>
+        <Dialog
+          open={dialogOpen}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            {editingHospitalization
+              ? "Edit Hospitalization"
+              : "Add Hospitalization"}
+          </DialogTitle>
           <DialogContent>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
+            >
               {!editingHospitalization && (
                 <Autocomplete
                   options={patients}
                   loading={patientsLoading}
-                  getOptionLabel={(option) => 
+                  getOptionLabel={(option) =>
                     `${option.first_name} ${option.last_name} - ${option.email}`
                   }
-                  isOptionEqualToValue={(option, value) => option.user_id === value.user_id}
+                  isOptionEqualToValue={(option, value) =>
+                    option.user_id === value.user_id
+                  }
                   value={selectedPatient}
                   onChange={(_, newValue) => setSelectedPatient(newValue)}
-                  onInputChange={(_, newInputValue) => setPatientSearch(newInputValue)}
+                  onInputChange={(_, newInputValue) =>
+                    setPatientSearch(newInputValue)
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -415,7 +500,9 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                       </Box>
                     </li>
                   )}
-                  noOptionsText={patientsLoading ? "Loading..." : "No patients found"}
+                  noOptionsText={
+                    patientsLoading ? "Loading..." : "No patients found"
+                  }
                   fullWidth
                 />
               )}
@@ -423,7 +510,9 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                 label="Admission Date"
                 type="date"
                 value={formData.admission_date}
-                onChange={(e) => setFormData({ ...formData, admission_date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, admission_date: e.target.value })
+                }
                 required
                 fullWidth
                 InputLabelProps={{ shrink: true }}
@@ -432,14 +521,18 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                 label="Discharge Date"
                 type="date"
                 value={formData.discharge_date}
-                onChange={(e) => setFormData({ ...formData, discharge_date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, discharge_date: e.target.value })
+                }
                 fullWidth
                 InputLabelProps={{ shrink: true }}
               />
               <TextField
                 label="Diagnosis"
                 value={formData.diagnosis}
-                onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, diagnosis: e.target.value })
+                }
                 required
                 fullWidth
                 multiline
@@ -448,7 +541,9 @@ function Hospitalizations({ user }: HospitalizationsProps) {
               <TextField
                 label="Summary"
                 value={formData.summary}
-                onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, summary: e.target.value })
+                }
                 fullWidth
                 multiline
                 rows={3}
@@ -456,12 +551,21 @@ function Hospitalizations({ user }: HospitalizationsProps) {
               <Autocomplete
                 multiple
                 options={doctors}
-                getOptionLabel={(option) => 
-                  `Dr. ${option.first_name} ${option.last_name}${option.specialization ? ` - ${option.specialization}` : ''}`
+                getOptionLabel={(option) =>
+                  `Dr. ${option.first_name} ${option.last_name}${
+                    option.specialization ? ` - ${option.specialization}` : ""
+                  }`
                 }
-                value={doctors.filter(d => d.id && formData.doctor_ids.includes(d.id))}
+                value={doctors.filter(
+                  (d) => d.id && formData.doctor_ids.includes(d.id)
+                )}
                 onChange={(_, newValue) => {
-                  setFormData({ ...formData, doctor_ids: newValue.map(d => d.id!).filter(id => id !== null) });
+                  setFormData({
+                    ...formData,
+                    doctor_ids: newValue
+                      .map((d) => d.id!)
+                      .filter((id) => id !== null),
+                  });
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -490,7 +594,7 @@ function Hospitalizations({ user }: HospitalizationsProps) {
               onClick={handleSubmit}
               variant="contained"
               disabled={
-                createMutation.isPending || 
+                createMutation.isPending ||
                 updateMutation.isPending ||
                 (!editingHospitalization && !selectedPatient)
               }
@@ -501,14 +605,24 @@ function Hospitalizations({ user }: HospitalizationsProps) {
         </Dialog>
 
         {/* Delete Dialog */}
-        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+        >
           <DialogTitle>Delete Hospitalization?</DialogTitle>
           <DialogContent>
-            <Typography>Are you sure you want to delete this hospitalization record?</Typography>
+            <Typography>
+              Are you sure you want to delete this hospitalization record?
+            </Typography>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleDeleteConfirm} color="error" variant="contained" disabled={deleteMutation.isPending}>
+            <Button
+              onClick={handleDeleteConfirm}
+              color="error"
+              variant="contained"
+              disabled={deleteMutation.isPending}
+            >
               Delete
             </Button>
           </DialogActions>

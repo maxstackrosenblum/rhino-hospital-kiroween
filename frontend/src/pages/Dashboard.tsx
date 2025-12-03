@@ -7,8 +7,8 @@ import {
   Typography,
 } from "@mui/material";
 
-function Dashboard({ user }) {
-  const getRoleChipColor = (role) => {
+function Dashboard({ user }: any) {
+  const getRoleChipColor = (role: any) => {
     switch (role) {
       case "admin":
         return "secondary";
@@ -51,7 +51,8 @@ function Dashboard({ user }) {
               />
             </Box>
             <Typography variant="body1">
-              <strong>Member since:</strong> {new Date(user.created_at).toLocaleDateString()}
+              <strong>Member since:</strong>{" "}
+              {new Date(user.created_at).toLocaleDateString()}
             </Typography>
           </Box>
         </CardContent>
