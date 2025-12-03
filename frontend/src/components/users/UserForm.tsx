@@ -79,17 +79,17 @@ function UserForm<T extends "create" | "update">({
   useEffect(() => {
     if (mode === "update" && initialData) {
       setFormData({
-        email: initialData.email,
-        username: "username" in initialData ? initialData.username : "",
-        first_name: initialData.first_name,
-        last_name: initialData.last_name,
-        phone: initialData.phone,
-        city: initialData.city,
-        age: initialData.age.toString(),
-        address: initialData.address,
-        gender: initialData.gender,
-        password: "password" in initialData ? initialData.password : "",
-        role: initialData.role,
+        email: initialData.email || "",
+        username: "username" in initialData ? initialData.username || "" : "",
+        first_name: initialData.first_name || "",
+        last_name: initialData.last_name || "",
+        phone: initialData.phone || "",
+        city: initialData.city || "",
+        age: initialData.age != null ? initialData.age.toString() : "",
+        address: initialData.address || "",
+        gender: initialData.gender || "",
+        password: "password" in initialData ? initialData.password || "" : "",
+        role: initialData.role || "undefined",
       });
     } else {
       setFormData(INITIAL_FORM_DATA);

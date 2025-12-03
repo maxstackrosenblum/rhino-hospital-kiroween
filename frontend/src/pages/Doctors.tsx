@@ -193,17 +193,6 @@ function Doctors({ user }: DoctorsProps) {
           )}
         </Box>
 
-        {/* Success Message */}
-        {successMessage && (
-          <Alert
-            severity="success"
-            sx={{ mb: 2 }}
-            onClose={() => setSuccessMessage("")}
-          >
-            {successMessage}
-          </Alert>
-        )}
-
         {/* Only show query errors (loading data errors) above the table */}
         {queryError && (
           <Alert severity="error" sx={{ mb: 2 }}>

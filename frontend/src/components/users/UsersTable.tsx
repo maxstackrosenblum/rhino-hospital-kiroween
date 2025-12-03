@@ -118,8 +118,8 @@ function UsersTable({
                 <TableCell>
                   <Chip
                     label={
-                      user.role === "medical_staff" 
-                        ? "Medical Staff" 
+                      user.role === "medical_staff"
+                        ? "Medical Staff"
                         : user.role.charAt(0).toUpperCase() + user.role.slice(1)
                     }
                     color={getRoleChipColor(user.role)}
