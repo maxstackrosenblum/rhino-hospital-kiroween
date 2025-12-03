@@ -1,12 +1,12 @@
 """
-Test configuration and fixtures for staff management tests.
+Test configuration and fixtures for medical staff management tests.
 """
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database import Base
-from models import Receptionist, Worker
+from models import MedicalStaff, User
 
 
 # Use in-memory SQLite database for testing
@@ -34,18 +34,29 @@ def test_db():
 
 
 @pytest.fixture(scope="function")
-def receptionist_repo(test_db):
+def medical_staff_repo(test_db):
     """
-    Create a ReceptionistRepository instance with test database.
+    Create a MedicalStaffRepository instance with test database.
     """
-    from repositories import ReceptionistRepository
-    return ReceptionistRepository(test_db)
+    from repositories.medical_staff_repository import MedicalStaffRepository
+    return MedicalStaffRepository(test_db)
 
 
 @pytest.fixture(scope="function")
-def worker_repo(test_db):
+def test_user(test_db):
     """
-    Create a WorkerRepository instance with test database.
+    Create a test user for medical staff tests.
     """
-    from repositories import WorkerRepository
-    return WorkerRepository(test_db)
+    user = User(
+        email="test@example.com",
+        username="testuser",
+        first_name="Test",
+        last_name="User",
+        phone="1234567890",
+        hashed_password="hashed_password",
+        role="medical_staff"
+    )
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+    return user
