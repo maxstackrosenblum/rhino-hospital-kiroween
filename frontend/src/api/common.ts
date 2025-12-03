@@ -48,6 +48,11 @@ export const fetchWithRetry = async <T>(
         throw new Error(error.detail || 'An error occurred');
       }
 
+      // Handle 204 No Content responses
+      if (response.status === 204) {
+        return {} as T;
+      }
+
       return response.json();
     } catch (error) {
       lastError = error as Error;

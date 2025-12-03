@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
-  Staff, StaffCreate, StaffUpdate, StaffListResponse,
+  StaffListResponse,
   MedicalStaff, MedicalStaffCreate, MedicalStaffUpdate
 } from '../types';
 import { API_URL, authenticatedFetch } from './common';
@@ -72,8 +72,8 @@ export const useDeleteMedicalStaff = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: number): Promise<{ message: string }> => {
-      return authenticatedFetch<{ message: string }>(
+    mutationFn: async (id: number): Promise<void> => {
+      await authenticatedFetch<void>(
         `${API_URL}/api/medical-staff/${id}`,
         {
           method: 'DELETE',
