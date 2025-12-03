@@ -10,6 +10,7 @@ class UserRole(str, Enum):
     MEDICAL_STAFF = "medical_staff"
     RECEPTIONIST = "receptionist"
     PATIENT = "patient"
+    ACCOUNTANT = "accountant"
 
 class Gender(str, Enum):
     MALE = "male"
@@ -714,6 +715,49 @@ class PaginatedHospitalizationsResponse(BaseModel):
 
 class PaginatedPrescriptionsResponse(BaseModel):
     prescriptions: list[PrescriptionResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+# Shift Schemas
+class ShiftCreate(BaseModel):
+    date: str  # YYYY-MM-DD
+    start_time: str  # HH:MM or ISO format
+    end_time: str  # HH:MM or ISO format
+    notes: Optional[str] = None
+
+class ShiftUpdate(BaseModel):
+    date: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    notes: Optional[str] = None
+
+class ShiftResponse(BaseModel):
+    id: int
+    user_id: int
+    date: datetime
+    start_time: datetime
+    end_time: datetime
+    total_hours: int  # in minutes
+    notes: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
+    # User info (computed fields)
+    user_first_name: Optional[str] = None
+    user_last_name: Optional[str] = None
+    user_role: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
+class PaginatedShiftsResponse(BaseModel):
+    shifts: list[ShiftResponse]
     total: int
     page: int
     page_size: int

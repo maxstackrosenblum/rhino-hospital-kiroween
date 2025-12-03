@@ -7,7 +7,9 @@ import {
   Container,
   FormControl,
   InputAdornment,
+  InputLabel,
   MenuItem,
+  Pagination,
   Select,
   Snackbar,
   TextField,
@@ -39,6 +41,8 @@ function Users({ user }: UsersProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms debounce
   const [roleFilter, setRoleFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -54,14 +58,21 @@ function Users({ user }: UsersProps) {
     }
   }, [user, navigate]);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm, roleFilter]);
+
   // API hooks
   const {
     data: usersResponse,
     isLoading,
     error: queryError,
-  } = useUsers(1, 100, debouncedSearchTerm, roleFilter);
+  } = useUsers(page, pageSize, debouncedSearchTerm, roleFilter);
 
   const users = usersResponse?.users || [];
+  const totalPages = usersResponse?.total_pages || 0;
+  const totalRecords = usersResponse?.total || 0;
 
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
@@ -230,6 +241,41 @@ function Users({ user }: UsersProps) {
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
         />
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Showing {users.length} of {totalRecords} users
+              </Typography>
+              <FormControl size="small" sx={{ minWidth: 100 }}>
+                <InputLabel>Per page</InputLabel>
+                <Select
+                  value={pageSize}
+                  label="Per page"
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={25}>25</MenuItem>
+                  <MenuItem value={50}>50</MenuItem>
+                  <MenuItem value={100}>100</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <Pagination 
+              count={totalPages}
+              page={page}
+              onChange={(_, value) => setPage(value)}
+              color="primary"
+              showFirstButton
+              showLastButton
+            />
+          </Box>
+        )}
 
         {/* Create User Dialog */}
         <CreateUserDialog

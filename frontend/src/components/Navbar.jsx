@@ -96,22 +96,40 @@ function Navbar({ user, onLogout }) {
         )}
 
         {/* Logo */}
-        <Typography
-          variant="h6"
-          component="div"
+        {/* Logo and Title */}
+        <Box 
           onClick={() => navigate('/')}
-          sx={{
-            cursor: 'pointer',
-            fontWeight: 700,
-            fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.25rem' },
-            background: `linear-gradient(135deg, ${theme.palette.primary.gradient.start}, ${theme.palette.primary.gradient.end})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1.5, 
             flexGrow: { xs: 1, md: 0 },
+            cursor: 'pointer'
           }}
         >
-          {isMobile ? 'HMS' : 'Hospital Management System'}
-        </Typography>
+          <img 
+            src="/logo.png" 
+            alt="Hospital Logo" 
+            style={{ 
+              height: isMobile ? '45px' : '60px',
+              width: 'auto',
+              objectFit: 'contain'
+            }} 
+          />
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.25rem' },
+              background: `linear-gradient(135deg, ${theme.palette.primary.gradient.start}, ${theme.palette.primary.gradient.end})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            {isMobile ? 'HMS' : 'Hospital Management System'}
+          </Typography>
+        </Box>
 
         {/* Desktop Navigation Menu */}
         {!isMobile && (
@@ -139,6 +157,24 @@ function Navbar({ user, onLogout }) {
                   Prescriptions
                 </Button>
               </>
+            )}
+            {/* My Shifts Link */}
+            {['doctor', 'medical_staff', 'receptionist'].includes(user.role) && (
+              <Button
+                color="primary"
+                onClick={() => navigate('/shifts')}
+              >
+                My Shifts
+              </Button>
+            )}
+            {/* Reports Link */}
+            {['admin', 'accountant'].includes(user.role) && (
+              <Button
+                color="primary"
+                onClick={() => navigate('/shifts-report')}
+              >
+                Reports
+              </Button>
             )}
             {user.role === 'admin' && (
               <>
@@ -252,6 +288,57 @@ function Navbar({ user, onLogout }) {
                   <ListItem disablePadding>
                     <ListItemButton onClick={() => handleNavigation('/prescriptions')}>
                       <ListItemText primary="Prescriptions" />
+                    </ListItemButton>
+                  </ListItem>
+                </>
+              )}
+              {/* Shifts Section */}
+              {['doctor', 'medical_staff', 'receptionist', 'admin', 'accountant'].includes(user.role) && (
+                <>
+                  <Divider sx={{ my: 1 }} />
+                  <ListItem>
+                    <ListItemText 
+                      primary="Shifts" 
+                      primaryTypographyProps={{ 
+                        variant: 'caption', 
+                        color: 'text.secondary',
+                        fontWeight: 600 
+                      }} 
+                    />
+                  </ListItem>
+                  {['doctor', 'medical_staff', 'receptionist'].includes(user.role) && (
+                    <ListItem disablePadding>
+                      <ListItemButton onClick={() => handleNavigation('/shifts')}>
+                        <ListItemText primary="My Shifts" />
+                      </ListItemButton>
+                    </ListItem>
+                  )}
+                  {['admin', 'accountant'].includes(user.role) && (
+                    <ListItem disablePadding>
+                      <ListItemButton onClick={() => handleNavigation('/shifts-report')}>
+                        <ListItemText primary="Shifts Report" />
+                      </ListItemButton>
+                    </ListItem>
+                  )}
+                </>
+              )}
+              {/* Reports Section */}
+              {['admin', 'accountant'].includes(user.role) && (
+                <>
+                  <Divider sx={{ my: 1 }} />
+                  <ListItem>
+                    <ListItemText 
+                      primary="Reports" 
+                      primaryTypographyProps={{ 
+                        variant: 'caption', 
+                        color: 'text.secondary',
+                        fontWeight: 600 
+                      }} 
+                    />
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/shifts-report')}>
+                      <ListItemText primary="Shifts Report" />
                     </ListItemButton>
                   </ListItem>
                 </>

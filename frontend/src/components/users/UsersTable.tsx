@@ -42,6 +42,8 @@ function UsersTable({
         return "info";
       case "patient":
         return "primary";
+      case "accountant":
+        return "warning"; // Orange color
       case "undefined":
         return "default";
       default:

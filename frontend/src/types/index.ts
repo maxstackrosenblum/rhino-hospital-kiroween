@@ -5,7 +5,8 @@ export type UserRole =
   | "doctor"
   | "medical_staff"
   | "receptionist"
-  | "patient";
+  | "patient"
+  | "accountant";
 
 export interface User {
   id: number;
@@ -448,5 +449,55 @@ export interface PrescriptionFilters {
   patient_id?: number;
   start_date?: string;
   end_date?: string;
+  search?: string;
+}
+
+
+// Shift types
+export interface Shift {
+  id: number;
+  user_id: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  total_hours: number; // in minutes
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+  user_first_name?: string;
+  user_last_name?: string;
+  user_role?: string;
+}
+
+export interface ShiftCreate {
+  date: string;
+  start_time: string;
+  end_time: string;
+  notes?: string;
+}
+
+export interface ShiftUpdate {
+  date?: string;
+  start_time?: string;
+  end_time?: string;
+  notes?: string;
+}
+
+export interface PaginatedShiftsResponse {
+  shifts: Shift[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface ShiftFilters {
+  page?: number;
+  page_size?: number;
+  user_id?: number;
+  start_date?: string;
+  end_date?: string;
+  role?: string;
   search?: string;
 }

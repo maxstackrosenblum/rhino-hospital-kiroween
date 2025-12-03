@@ -27,6 +27,8 @@ import Profile from "./pages/Profile";
 import ResetPassword from "./pages/ResetPassword";
 import Sessions from "./pages/Sessions";
 import Settings from "./pages/Settings";
+import Shifts from "./pages/Shifts";
+import ShiftsReport from "./pages/ShiftsReport";
 import Users from "./pages/Users";
 
 const queryClient = new QueryClient({
@@ -247,6 +249,22 @@ function AppContent() {
                   element={
                     <ProtectedRoute user={user}>
                       <Prescriptions user={user} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/shifts"
+                  element={
+                    <ProtectedRoute user={user}>
+                      <Shifts user={user} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/shifts-report"
+                  element={
+                    <ProtectedRoute user={user}>
+                      <ShiftsReport user={user} />
                     </ProtectedRoute>
                   }
                 />
