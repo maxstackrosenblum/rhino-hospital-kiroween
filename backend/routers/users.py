@@ -57,9 +57,9 @@ async def create_user(
             city=user.city,
             age=user.age,
             address=user.address,
-            gender=user.gender.value if user.gender else None,
+            gender=user.gender.value if user.gender and hasattr(user.gender, 'value') else user.gender,
             hashed_password=hashed_password,
-            role=user.role.value
+            role=user.role.value if hasattr(user.role, 'value') else user.role
         )
         db.add(db_user)
         db.commit()
