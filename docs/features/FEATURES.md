@@ -223,7 +223,7 @@ Email is optional. Configure via environment variables:
 - `SMTP_FROM_EMAIL`, `SMTP_FROM_NAME`
 - `FRONTEND_URL` for reset links
 
-See `EMAIL_SETUP.md` for detailed configuration guide.
+See [Email Setup Guide](../setup/EMAIL_SETUP.md) for detailed configuration guide.
 
 ## Future Enhancements
 
@@ -234,3 +234,4 @@ See `EMAIL_SETUP.md` for detailed configuration guide.
 - Appointment scheduling
 - Medical records system
 - Real-time notifications
+

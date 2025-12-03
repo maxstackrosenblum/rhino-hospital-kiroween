@@ -316,3 +316,4 @@ def send_email_async(to_email, subject, content):
 5. Set up monitoring for production
 6. Consider adding welcome emails
 7. Implement email verification for new users
+

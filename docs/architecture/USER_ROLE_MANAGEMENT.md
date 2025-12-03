@@ -280,9 +280,9 @@ if user_update.role and user_update.role.value != user.role:
 
 ## Related Documentation
 
-- [MEDICAL_STAFF_MANAGEMENT.md](./MEDICAL_STAFF_MANAGEMENT.md) - Medical staff details
-- [README.md](./README.md) - Project overview
-- [SESSION_MANAGEMENT.md](./SESSION_MANAGEMENT.md) - Authentication system
+- [Medical Staff Management](../features/MEDICAL_STAFF_MANAGEMENT.md) - Medical staff details
+- [README](../../README.md) - Project overview
+- [Session Management](./SESSION_MANAGEMENT.md) - Authentication system
 
 ---
 
@@ -330,3 +330,4 @@ FROM users u
 JOIN patients p ON u.id = p.user_id 
 WHERE p.deleted_at IS NOT NULL;
 ```
+

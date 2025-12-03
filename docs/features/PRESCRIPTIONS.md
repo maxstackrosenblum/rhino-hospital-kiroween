@@ -376,9 +376,9 @@ Soft delete a prescription.
 
 ## Related Documentation
 
-- [HOSPITALIZATIONS.md](./HOSPITALIZATIONS.md) - Hospitalization management
-- [USER_ROLE_MANAGEMENT.md](./USER_ROLE_MANAGEMENT.md) - Role-based access
-- [README.md](./README.md) - Project overview
+- [Hospitalizations](./HOSPITALIZATIONS.md) - Hospitalization management
+- [User Role Management](../architecture/USER_ROLE_MANAGEMENT.md) - Role-based access
+- [README](../../README.md) - Project overview
 
 ## Database Queries
 
@@ -416,3 +416,4 @@ SELECT * FROM prescriptions
 WHERE medicines::text LIKE '%Amoxicillin%'
   AND deleted_at IS NULL;
 ```
+
