@@ -42,8 +42,10 @@ function Patients({ user }: PatientsProps) {
 
   // Check user permissions
   useEffect(() => {
-    // Only doctors, receptionists, and admins can access this page
-    if (!["admin", "doctor", "receptionist"].includes(user.role)) {
+    // Only doctors, medical staff, receptionists, and admins can access this page
+    if (
+      !["admin", "doctor", "medical_staff", "receptionist"].includes(user.role)
+    ) {
       navigate("/");
       return;
     }
@@ -84,8 +86,10 @@ function Patients({ user }: PatientsProps) {
     }
   }, [deletePatientMutation.isSuccess]);
 
-  // Check if user can modify patients (receptionist or admin)
-  const canModify = ["admin", "receptionist"].includes(user.role);
+  // Check if user can modify patients (medical staff, receptionist, or admin)
+  const canModify = ["admin", "medical_staff", "receptionist"].includes(
+    user.role
+  );
   const canDelete = user.role === "admin";
 
   // Handlers for editing
@@ -197,17 +201,6 @@ function Patients({ user }: PatientsProps) {
             <CircularProgress size={20} />
           )}
         </Box>
-
-        {/* Success Message */}
-        {successMessage && (
-          <Alert
-            severity="success"
-            sx={{ mb: 2 }}
-            onClose={() => setSuccessMessage("")}
-          >
-            {successMessage}
-          </Alert>
-        )}
 
         {/* Only show query errors (loading data errors) above the table */}
         {queryError && (

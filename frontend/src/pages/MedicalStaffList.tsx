@@ -22,7 +22,12 @@ import DeleteMedicalStaffDialog from "../components/medical-staff/DeleteMedicalS
 import EditMedicalStaffDialog from "../components/medical-staff/EditMedicalStaffDialog";
 import MedicalStaffTable from "../components/medical-staff/MedicalStaffTable";
 import { useDebounce } from "../hooks/useDebounce";
-import { MedicalStaff, MedicalStaffCreate, MedicalStaffUpdate, User } from "../types";
+import {
+  MedicalStaff,
+  MedicalStaffCreate,
+  MedicalStaffUpdate,
+  User,
+} from "../types";
 
 interface MedicalStaffListProps {
   user: User;
@@ -32,7 +37,8 @@ function MedicalStaffList({ user }: MedicalStaffListProps) {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [completeProfileDialogOpen, setCompleteProfileDialogOpen] = useState(false);
+  const [completeProfileDialogOpen, setCompleteProfileDialogOpen] =
+    useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<MedicalStaff | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -187,15 +193,6 @@ function MedicalStaffList({ user }: MedicalStaffListProps) {
         </Box>
 
         {/* Success Message */}
-        {successMessage && (
-          <Alert
-            severity="success"
-            sx={{ mb: 2 }}
-            onClose={() => setSuccessMessage("")}
-          >
-            {successMessage}
-          </Alert>
-        )}
 
         {/* Query errors */}
         {queryError && (

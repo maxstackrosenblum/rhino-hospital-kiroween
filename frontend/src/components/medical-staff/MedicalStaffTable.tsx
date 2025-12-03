@@ -97,7 +97,7 @@ function MedicalStaffTable({
           ) : (
             medicalStaff.map((staff) => {
               const hasProfile = staff.id !== null;
-              
+
               return (
                 <TableRow key={staff.user_id} hover>
                   <TableCell>
@@ -109,15 +109,20 @@ function MedicalStaffTable({
                     {staff.first_name} {staff.last_name}
                   </TableCell>
                   <TableCell>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+                    <Typography
+                      variant="body2"
+                      sx={{
                         textTransform: "capitalize",
-                        color: staff.role === "receptionist" ? "primary.main" : "success.main",
-                        fontWeight: 500
+                        color:
+                          staff.role === "receptionist"
+                            ? "primary.main"
+                            : "success.main",
+                        fontWeight: 500,
                       }}
                     >
-                      {staff.role === "medical_staff" ? "Medical Staff" : "Receptionist"}
+                      {staff.role === "medical_staff"
+                        ? "Medical Staff"
+                        : "Receptionist"}
                     </Typography>
                   </TableCell>
                   <TableCell>{staff.email}</TableCell>
@@ -137,7 +142,9 @@ function MedicalStaffTable({
                   </TableCell>
                   <TableCell>
                     {staff.department ? (
-                      <Typography variant="body2">{staff.department}</Typography>
+                      <Typography variant="body2">
+                        {staff.department}
+                      </Typography>
                     ) : (
                       <Typography
                         variant="body2"
