@@ -1,4 +1,4 @@
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
+import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon } from "@mui/icons-material";
 import {
   Alert,
   Autocomplete,
@@ -11,8 +11,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   IconButton,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Snackbar,
   Table,
   TableBody,
@@ -48,6 +53,10 @@ function Hospitalizations({ user }: HospitalizationsProps) {
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [patientSearch, setPatientSearch] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "my-patients">(
+    user.role === "doctor" ? "my-patients" : "active"
+  );
 
   const [formData, setFormData] = useState({
     patient_id: "",
@@ -65,7 +74,7 @@ function Hospitalizations({ user }: HospitalizationsProps) {
     }
   }, [user, navigate]);
 
-  const { data: hospitalizations = [], isLoading, error } = useHospitalizations();
+  const { data: allHospitalizations = [], isLoading, error } = useHospitalizations();
   const { data: patientsResponse, isLoading: patientsLoading } = usePatients({ 
     search: patientSearch, 
     page_size: 50 
@@ -77,6 +86,38 @@ function Hospitalizations({ user }: HospitalizationsProps) {
     : (patientsResponse?.patients || patientsResponse?.items || []);
   // Filter to only show patients with complete profiles (id is not null)
   const patients = allPatients.filter(p => p.id !== null);
+  
+  // Find current user's doctor ID if they're a doctor
+  const currentDoctor = doctors.find(d => d.user_id === user.id);
+
+  // Filter hospitalizations
+  const filteredByStatus = 
+    filterStatus === "active"
+      ? allHospitalizations.filter(h => !h.discharge_date)
+      : filterStatus === "my-patients" && currentDoctor
+      ? allHospitalizations.filter(h => 
+          !h.discharge_date && 
+          h.doctors?.some(d => d.id === currentDoctor.id)
+        )
+      : allHospitalizations;
+
+  // Search by patient name, username, or email
+  const searchedHospitalizations = searchTerm
+    ? filteredByStatus.filter(h => {
+        const searchLower = searchTerm.toLowerCase();
+        const firstName = h.patient_first_name?.toLowerCase() || "";
+        const lastName = h.patient_last_name?.toLowerCase() || "";
+        const fullName = `${firstName} ${lastName}`;
+        // Note: username and email not in response, searching by name only
+        return fullName.includes(searchLower);
+      })
+    : filteredByStatus;
+
+  // Sort by admission_date in reverse order (newest first)
+  const hospitalizations = [...searchedHospitalizations].sort((a, b) => 
+    new Date(b.admission_date).getTime() - new Date(a.admission_date).getTime()
+  );
+
   const createMutation = useCreateHospitalization();
   const updateMutation = useUpdateHospitalization();
   const deleteMutation = useDeleteHospitalization();
@@ -181,6 +222,39 @@ function Hospitalizations({ user }: HospitalizationsProps) {
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
             Add Hospitalization
           </Button>
+        </Box>
+
+        {/* Search Bar and Filter */}
+        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
+          <TextField
+            fullWidth
+            placeholder="Search by patient name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Filter</InputLabel>
+            <Select
+              value={filterStatus}
+              label="Filter"
+              onChange={(e) => setFilterStatus(e.target.value as "all" | "active" | "my-patients")}
+            >
+              {user.role === "doctor" && (
+                <MenuItem value="my-patients">My Patients</MenuItem>
+              )}
+              <MenuItem value="active">Active Hospitalizations</MenuItem>
+              <MenuItem value="all">All Hospitalizations</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
 
         {error && (

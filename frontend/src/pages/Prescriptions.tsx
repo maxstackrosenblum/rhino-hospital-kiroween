@@ -1,4 +1,4 @@
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Remove as RemoveIcon } from "@mui/icons-material";
+import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Remove as RemoveIcon, Search as SearchIcon } from "@mui/icons-material";
 import {
   Alert,
   Autocomplete,
@@ -10,8 +10,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   IconButton,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Snackbar,
   Table,
   TableBody,
@@ -32,6 +37,7 @@ import {
 } from "../api/prescriptions";
 import { useHospitalizations } from "../api/hospitalizations";
 import { usePatients } from "../api/patients";
+import { useDoctors } from "../api/doctors";
 import { MedicineItem, Patient, Prescription, PrescriptionCreate, User } from "../types";
 
 interface PrescriptionsProps {
@@ -48,6 +54,13 @@ function Prescriptions({ user }: PrescriptionsProps) {
   const [patientSearch, setPatientSearch] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [dateError, setDateError] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "hospitalized" | "my-patients">(
+    user.role === "doctor" ? "my-patients" : "hospitalized"
+  );
+  const today = new Date().toISOString().split('T')[0];
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
 
   const [formData, setFormData] = useState({
     patient_id: "",
@@ -65,17 +78,67 @@ function Prescriptions({ user }: PrescriptionsProps) {
     }
   }, [user, navigate]);
 
-  const { data: prescriptions = [], isLoading, error } = usePrescriptions();
+  const { data: allPrescriptions = [], isLoading, error } = usePrescriptions();
   const { data: patientsResponse, isLoading: patientsLoading } = usePatients({ 
     search: patientSearch, 
     page_size: 50 
   });
   const { data: hospitalizations = [] } = useHospitalizations();
+  const { data: doctorsResponse } = useDoctors({ page_size: 100 });
+  const doctors = doctorsResponse?.doctors || [];
   const allPatients = Array.isArray(patientsResponse) 
     ? patientsResponse 
     : (patientsResponse?.patients || patientsResponse?.items || []);
   // Filter to only show patients with complete profiles (id is not null)
   const patients = allPatients.filter(p => p.id !== null);
+
+  // Find current user's doctor ID if they're a doctor
+  const currentDoctor = doctors.find(d => d.user_id === user.id);
+
+  // Get hospitalized patient IDs
+  const hospitalizedPatientIds = new Set(
+    hospitalizations.filter(h => !h.discharge_date).map(h => h.patient_id)
+  );
+
+  // Get my patient IDs (for doctors)
+  const myPatientIds = new Set(
+    currentDoctor
+      ? hospitalizations
+          .filter(h => !h.discharge_date && h.doctors?.some(d => d.id === currentDoctor.id))
+          .map(h => h.patient_id)
+      : []
+  );
+
+  // Filter by status
+  const filteredByStatus = 
+    filterStatus === "hospitalized"
+      ? allPrescriptions.filter(p => hospitalizedPatientIds.has(p.patient_id))
+      : filterStatus === "my-patients" && currentDoctor
+      ? allPrescriptions.filter(p => myPatientIds.has(p.patient_id))
+      : allPrescriptions;
+
+  // Filter by date range
+  const filteredByDate = filteredByStatus.filter(p => {
+    const prescriptionDate = new Date(p.date).toISOString().split('T')[0];
+    return prescriptionDate >= startDate && prescriptionDate <= endDate;
+  });
+
+  // Search by patient name
+  const searchedPrescriptions = searchTerm
+    ? filteredByDate.filter(p => {
+        const searchLower = searchTerm.toLowerCase();
+        const firstName = p.patient_first_name?.toLowerCase() || "";
+        const lastName = p.patient_last_name?.toLowerCase() || "";
+        const fullName = `${firstName} ${lastName}`;
+        return fullName.includes(searchLower);
+      })
+    : filteredByDate;
+
+  // Sort by date in reverse order (newest first)
+  const prescriptions = [...searchedPrescriptions].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
   const createMutation = useCreatePrescription();
   const updateMutation = useUpdatePrescription();
   const deleteMutation = useDeletePrescription();
@@ -278,6 +341,55 @@ function Prescriptions({ user }: PrescriptionsProps) {
               Add Prescription
             </Button>
           )}
+        </Box>
+
+        {/* Search Bar, Filter, and Date Range */}
+        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+          <TextField
+            sx={{ flex: 1, minWidth: 250 }}
+            placeholder="Search by patient name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Filter</InputLabel>
+            <Select
+              value={filterStatus}
+              label="Filter"
+              onChange={(e) => setFilterStatus(e.target.value as "all" | "hospitalized" | "my-patients")}
+            >
+              {user.role === "doctor" && (
+                <MenuItem value="my-patients">My Patients</MenuItem>
+              )}
+              <MenuItem value="hospitalized">Active Hospitalizations</MenuItem>
+              <MenuItem value="all">All Prescriptions</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            label="From Date"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ width: 160 }}
+          />
+          <TextField
+            label="To Date"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ width: 160 }}
+          />
         </Box>
 
         {error && (
