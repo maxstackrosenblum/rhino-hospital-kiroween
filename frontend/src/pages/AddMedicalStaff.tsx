@@ -11,19 +11,19 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRegister } from '../api';
-import { useCreateReceptionist } from '../api/staff';
+import { useCreateMedicalStaff } from '../api/staff';
 
 /**
- * AddReceptionist page component
- * Creates a user account and then creates a receptionist record linked to that user
+ * AddMedicalStaff page component
+ * Creates a user account and then creates a medical staff record linked to that user
  */
-function AddReceptionist() {
+function AddMedicalStaff() {
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const registerMutation = useRegister();
-  const createReceptionistMutation = useCreateReceptionist();
+  const createMedicalStaffMutation = useCreateMedicalStaff();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -32,15 +32,15 @@ function AddReceptionist() {
     last_name: '',
     phone: '',
     password: '',
+    job_title: '',
+    department: '',
     shift_schedule: '',
-    desk_number: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error for this field
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -57,7 +57,7 @@ function AddReceptionist() {
     setErrors({});
 
     try {
-      // Step 1: Create user account with role 'receptionist'
+      // Step 1: Create user account with role 'medical_staff'
       const userResponse = await registerMutation.mutateAsync({
         email: formData.email,
         username: formData.username,
@@ -65,31 +65,30 @@ function AddReceptionist() {
         last_name: formData.last_name,
         phone: formData.phone || undefined,
         password: formData.password,
-        role: 'receptionist' as any,
+        role: 'medical_staff' as any,
       });
 
-      // Step 2: Create receptionist record linked to the user
-      await createReceptionistMutation.mutateAsync({
+      // Step 2: Create medical staff record linked to the user
+      await createMedicalStaffMutation.mutateAsync({
         user_id: userResponse.id,
+        job_title: formData.job_title || undefined,
+        department: formData.department || undefined,
         shift_schedule: formData.shift_schedule || undefined,
-        desk_number: formData.desk_number || undefined,
       });
 
-      setSuccessMessage('Receptionist registered successfully!');
+      setSuccessMessage('Medical staff registered successfully!');
       
-      // Redirect to receptionist list after a short delay
       setTimeout(() => {
-        navigate('/receptionists');
+        navigate('/medical-staff');
       }, 1500);
     } catch (error: any) {
-      console.error('Error registering receptionist:', error);
-      setErrorMessage(error.message || 'Failed to register receptionist. Please check the form and try again.');
+      console.error('Error registering medical staff:', error);
+      setErrorMessage(error.message || 'Failed to register medical staff. Please check the form and try again.');
     }
   };
 
-  const isSubmitting = registerMutation.isPending || createReceptionistMutation.isPending;
+  const isSubmitting = registerMutation.isPending || createMedicalStaffMutation.isPending;
 
-  // Check if form is valid (all required fields have values)
   const isFormValid = 
     formData.email.trim() !== '' &&
     formData.username.trim() !== '' &&
@@ -101,7 +100,7 @@ function AddReceptionist() {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h3" component="h1" gutterBottom fontWeight={700}>
-        Add New Receptionist
+        Add New Medical Staff
       </Typography>
 
       {successMessage && (
@@ -198,8 +197,26 @@ function AddReceptionist() {
             />
 
             <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-              Receptionist Information (Optional)
+              Medical Staff Information (Optional)
             </Typography>
+
+            <TextField
+              label="Job Title"
+              name="job_title"
+              value={formData.job_title}
+              onChange={(e) => handleChange('job_title', e.target.value)}
+              fullWidth
+              disabled={isSubmitting}
+            />
+
+            <TextField
+              label="Department"
+              name="department"
+              value={formData.department}
+              onChange={(e) => handleChange('department', e.target.value)}
+              fullWidth
+              disabled={isSubmitting}
+            />
 
             <TextField
               label="Shift Schedule"
@@ -209,16 +226,6 @@ function AddReceptionist() {
               fullWidth
               disabled={isSubmitting}
               placeholder="e.g., Monday-Friday 9AM-5PM"
-            />
-
-            <TextField
-              label="Desk Number"
-              name="desk_number"
-              value={formData.desk_number}
-              onChange={(e) => handleChange('desk_number', e.target.value)}
-              fullWidth
-              disabled={isSubmitting}
-              placeholder="e.g., Desk 5"
             />
 
             <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
@@ -236,7 +243,7 @@ function AddReceptionist() {
                     <span>Registering...</span>
                   </Box>
                 ) : (
-                  'Register Receptionist'
+                  'Register Medical Staff'
                 )}
               </Button>
 
@@ -244,7 +251,7 @@ function AddReceptionist() {
                 type="button"
                 variant="outlined"
                 color="secondary"
-                onClick={() => navigate('/receptionists')}
+                onClick={() => navigate('/medical-staff')}
                 disabled={isSubmitting}
                 sx={{ py: 1.5, minWidth: 120 }}
               >
@@ -258,4 +265,4 @@ function AddReceptionist() {
   );
 }
 
-export default AddReceptionist;
+export default AddMedicalStaff;

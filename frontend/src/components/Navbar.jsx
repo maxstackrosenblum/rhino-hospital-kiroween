@@ -126,15 +126,9 @@ function Navbar({ user, onLogout }) {
                 </Button>
                 <Button
                   color="primary"
-                  onClick={() => navigate('/receptionists')}
+                  onClick={() => navigate('/medical-staff')}
                 >
-                  Receptionists
-                </Button>
-                <Button
-                  color="primary"
-                  onClick={() => navigate('/workers')}
-                >
-                  Workers
+                  Medical Staff
                 </Button>
               </>
             )}
@@ -216,13 +210,8 @@ function Navbar({ user, onLogout }) {
                     </ListItemButton>
                   </ListItem>
                   <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleNavigation('/receptionists')}>
-                      <ListItemText primary="Receptionists" />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleNavigation('/workers')}>
-                      <ListItemText primary="Workers" />
+                    <ListItemButton onClick={() => handleNavigation('/medical-staff')}>
+                      <ListItemText primary="Medical Staff" />
                     </ListItemButton>
                   </ListItem>
                 </>

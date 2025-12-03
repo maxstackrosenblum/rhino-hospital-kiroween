@@ -1,52 +1,51 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Staff, StaffCreate, StaffUpdate, StaffListResponse,
-  Receptionist, ReceptionistCreate, ReceptionistUpdate,
-  Worker, WorkerCreate, WorkerUpdate
+  MedicalStaff, MedicalStaffCreate, MedicalStaffUpdate
 } from '../types';
 import { API_URL, authenticatedFetch } from './common';
 
-// Receptionist queries
-export const useReceptionists = (search?: string) => {
+// Medical Staff queries
+export const useMedicalStaff = (search?: string) => {
   return useQuery<StaffListResponse>({
-    queryKey: ['receptionists', search],
+    queryKey: ['medical-staff', search],
     queryFn: async () => {
       const url = search
-        ? `${API_URL}/api/receptionists?search=${encodeURIComponent(search)}`
-        : `${API_URL}/api/receptionists`;
+        ? `${API_URL}/api/medical-staff?search=${encodeURIComponent(search)}`
+        : `${API_URL}/api/medical-staff`;
       return authenticatedFetch<StaffListResponse>(url);
     },
   });
 };
 
-export const useReceptionist = (id: number) => {
-  return useQuery<Staff>({
-    queryKey: ['receptionist', id],
+export const useMedicalStaffMember = (id: number) => {
+  return useQuery<MedicalStaff>({
+    queryKey: ['medical-staff', id],
     queryFn: async () => {
-      return authenticatedFetch<Staff>(`${API_URL}/api/receptionists/${id}`);
+      return authenticatedFetch<MedicalStaff>(`${API_URL}/api/medical-staff/${id}`);
     },
     enabled: !!id,
   });
 };
 
-// Receptionist mutations
-export const useCreateReceptionist = () => {
+// Medical Staff mutations
+export const useCreateMedicalStaff = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: ReceptionistCreate): Promise<Receptionist> => {
-      return authenticatedFetch<Receptionist>(`${API_URL}/api/receptionists`, {
+    mutationFn: async (data: MedicalStaffCreate): Promise<MedicalStaff> => {
+      return authenticatedFetch<MedicalStaff>(`${API_URL}/api/medical-staff`, {
         method: 'POST',
         body: JSON.stringify(data),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['receptionists'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-staff'] });
     },
   });
 };
 
-export const useUpdateReceptionist = () => {
+export const useUpdateMedicalStaff = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -55,115 +54,34 @@ export const useUpdateReceptionist = () => {
       data,
     }: {
       id: number;
-      data: StaffUpdate;
-    }): Promise<Staff> => {
-      return authenticatedFetch<Staff>(`${API_URL}/api/receptionists/${id}`, {
+      data: MedicalStaffUpdate;
+    }): Promise<MedicalStaff> => {
+      return authenticatedFetch<MedicalStaff>(`${API_URL}/api/medical-staff/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       });
     },
-    onSuccess: (_data: Staff, variables: { id: number; data: StaffUpdate }) => {
-      queryClient.invalidateQueries({ queryKey: ['receptionists'] });
-      queryClient.invalidateQueries({ queryKey: ['receptionist', variables.id] });
+    onSuccess: (_data: MedicalStaff, variables: { id: number; data: MedicalStaffUpdate }) => {
+      queryClient.invalidateQueries({ queryKey: ['medical-staff'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-staff', variables.id] });
     },
   });
 };
 
-export const useDeleteReceptionist = () => {
+export const useDeleteMedicalStaff = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: number): Promise<{ message: string }> => {
       return authenticatedFetch<{ message: string }>(
-        `${API_URL}/api/receptionists/${id}`,
+        `${API_URL}/api/medical-staff/${id}`,
         {
           method: 'DELETE',
         }
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['receptionists'] });
-    },
-  });
-};
-
-// Worker queries
-export const useWorkers = (search?: string) => {
-  return useQuery<StaffListResponse>({
-    queryKey: ['workers', search],
-    queryFn: async () => {
-      const url = search
-        ? `${API_URL}/api/workers?search=${encodeURIComponent(search)}`
-        : `${API_URL}/api/workers`;
-      return authenticatedFetch<StaffListResponse>(url);
-    },
-  });
-};
-
-export const useWorker = (id: number) => {
-  return useQuery<Staff>({
-    queryKey: ['worker', id],
-    queryFn: async () => {
-      return authenticatedFetch<Staff>(`${API_URL}/api/workers/${id}`);
-    },
-    enabled: !!id,
-  });
-};
-
-// Worker mutations
-export const useCreateWorker = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: WorkerCreate): Promise<Worker> => {
-      return authenticatedFetch<Worker>(`${API_URL}/api/workers`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workers'] });
-    },
-  });
-};
-
-export const useUpdateWorker = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      id,
-      data,
-    }: {
-      id: number;
-      data: StaffUpdate;
-    }): Promise<Staff> => {
-      return authenticatedFetch<Staff>(`${API_URL}/api/workers/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
-    },
-    onSuccess: (_data: Staff, variables: { id: number; data: StaffUpdate }) => {
-      queryClient.invalidateQueries({ queryKey: ['workers'] });
-      queryClient.invalidateQueries({ queryKey: ['worker', variables.id] });
-    },
-  });
-};
-
-export const useDeleteWorker = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: number): Promise<{ message: string }> => {
-      return authenticatedFetch<{ message: string }>(
-        `${API_URL}/api/workers/${id}`,
-        {
-          method: 'DELETE',
-        }
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workers'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-staff'] });
     },
   });
 };

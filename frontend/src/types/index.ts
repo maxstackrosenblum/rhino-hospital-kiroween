@@ -1,5 +1,5 @@
 // User types
-export type UserRole = 'undefined' | 'admin' | 'doctor' | 'receptionist' | 'worker';
+export type UserRole = 'undefined' | 'admin' | 'doctor' | 'medical_staff';
 
 export interface User {
   id: number;
@@ -52,30 +52,8 @@ export interface TokenResponse {
   token_type: string;
 }
 
-// Staff types - Receptionist
-export interface Receptionist {
-  id: number;
-  user_id: number;
-  shift_schedule: string | null;
-  desk_number: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-}
-
-export interface ReceptionistCreate {
-  user_id: number;
-  shift_schedule?: string;
-  desk_number?: string;
-}
-
-export interface ReceptionistUpdate {
-  shift_schedule?: string;
-  desk_number?: string;
-}
-
-// Staff types - Worker
-export interface Worker {
+// Staff types - Medical Staff
+export interface MedicalStaff {
   id: number;
   user_id: number;
   job_title: string | null;
@@ -84,23 +62,27 @@ export interface Worker {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
 }
 
-export interface WorkerCreate {
+export interface MedicalStaffCreate {
   user_id: number;
   job_title?: string;
   department?: string;
   shift_schedule?: string;
 }
 
-export interface WorkerUpdate {
+export interface MedicalStaffUpdate {
   job_title?: string;
   department?: string;
   shift_schedule?: string;
 }
 
 export interface StaffListResponse {
-  items: (Receptionist | Worker)[];
+  items: MedicalStaff[];
   total: number;
 }
 

@@ -9,8 +9,7 @@ class UserRole(str, enum.Enum):
     UNDEFINED = "undefined"
     ADMIN = "admin"
     DOCTOR = "doctor"
-    RECEPTIONIST = "receptionist"
-    WORKER = "worker"
+    MEDICAL_STAFF = "medical_staff"
 
 class User(Base):
     __tablename__ = "users"
@@ -31,23 +30,8 @@ class User(Base):
     deleted_at = Column(DateTime, nullable=True, default=None)
 
 
-class Receptionist(Base):
-    __tablename__ = "receptionists"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, unique=True)
-    shift_schedule = Column(String(255), nullable=True)
-    desk_number = Column(String(50), nullable=True)
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
-    deleted_at = Column(DateTime, nullable=True, default=None)
-
-    # Relationship to User
-    user = relationship("User", backref="receptionist")
-
-
-class Worker(Base):
-    __tablename__ = "workers"
+class MedicalStaff(Base):
+    __tablename__ = "medical_staff"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False, unique=True)
@@ -59,4 +43,4 @@ class Worker(Base):
     deleted_at = Column(DateTime, nullable=True, default=None)
 
     # Relationship to User
-    user = relationship("User", backref="worker")
+    user = relationship("User", backref="medical_staff")

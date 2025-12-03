@@ -6,8 +6,7 @@ class UserRole(str, Enum):
     UNDEFINED = "undefined"
     ADMIN = "admin"
     DOCTOR = "doctor"
-    RECEPTIONIST = "receptionist"
-    WORKER = "worker"
+    MEDICAL_STAFF = "medical_staff"
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -71,55 +70,23 @@ class AdminUserUpdate(BaseModel):
 
 # Staff Management Schemas
 
-class ReceptionistCreate(BaseModel):
-    """Schema for creating a new receptionist"""
-    user_id: int
-    shift_schedule: str | None = None
-    desk_number: str | None = None
-
-
-class ReceptionistUpdate(BaseModel):
-    """Schema for updating an existing receptionist"""
-    shift_schedule: str | None = None
-    desk_number: str | None = None
-
-
-class ReceptionistResponse(BaseModel):
-    """Schema for receptionist response"""
-    id: int
-    user_id: int
-    shift_schedule: str | None
-    desk_number: str | None
-    created_at: datetime
-    updated_at: datetime
-    deleted_at: datetime | None = None
-    # User information for display
-    first_name: str | None = None
-    last_name: str | None = None
-    email: str | None = None
-    phone: str | None = None
-
-    class Config:
-        from_attributes = True
-
-
-class WorkerCreate(BaseModel):
-    """Schema for creating a new worker"""
+class MedicalStaffCreate(BaseModel):
+    """Schema for creating a new medical staff member"""
     user_id: int
     job_title: str | None = None
     department: str | None = None
     shift_schedule: str | None = None
 
 
-class WorkerUpdate(BaseModel):
-    """Schema for updating an existing worker"""
+class MedicalStaffUpdate(BaseModel):
+    """Schema for updating an existing medical staff member"""
     job_title: str | None = None
     department: str | None = None
     shift_schedule: str | None = None
 
 
-class WorkerResponse(BaseModel):
-    """Schema for worker response"""
+class MedicalStaffResponse(BaseModel):
+    """Schema for medical staff response"""
     id: int
     user_id: int
     job_title: str | None
