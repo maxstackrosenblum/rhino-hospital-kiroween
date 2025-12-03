@@ -1,12 +1,16 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AdminUserUpdate,
   PaginatedUsersResponse,
   User,
   UserCreate,
 } from "../types";
-import { API_URL, getAuthHeaders, handleApiError } from "./common";
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { API_URL, getAuthHeaders, handleApiError, fetchWithAuth, handleApiError } from './common';
+import {
+  API_URL,
+  fetchWithAuth,
+  getAuthHeaders,
+  handleApiError,
+} from "./common";
 
 // Users queries (admin only)
 export const useUsers = (
@@ -72,9 +76,15 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, data }: { userId: number; data: AdminUserUpdate }): Promise<User> => {
+    mutationFn: async ({
+      userId,
+      data,
+    }: {
+      userId: number;
+      data: AdminUserUpdate;
+    }): Promise<User> => {
       const response = await fetchWithAuth(`${API_URL}/api/users/${userId}`, {
-        method: 'PUT',
+        method: "PUT",
         body: JSON.stringify(data),
       });
       return handleApiError<User>(response);
@@ -92,7 +102,7 @@ export const useDeleteUser = () => {
   return useMutation({
     mutationFn: async (userId: number): Promise<{ message: string }> => {
       const response = await fetchWithAuth(`${API_URL}/api/users/${userId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       return handleApiError<{ message: string }>(response);
     },

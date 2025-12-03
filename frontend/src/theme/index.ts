@@ -1,7 +1,7 @@
 import { createTheme } from "@mui/material/styles";
 
 // Create MUI theme that matches existing CSS variables
-export const createAppTheme = (mode) => {
+export const createAppTheme = (mode: any) => {
   const isDark = mode === "dark";
 
   return createTheme({
@@ -14,16 +14,16 @@ export const createAppTheme = (mode) => {
           start: "rgb(22, 162, 73)",
           end: "rgb(22, 162, 73)",
         },
-      },
+      } as any,
       secondary: {
         main: "#16a249",
         hover: "#14903f",
-      },
+      } as any,
       background: {
         default: isDark ? "#2a3240" : "#f2f4f8",
         paper: isDark ? "#3d4653" : "#ffffff",
         input: isDark ? "#4a5463" : "#e8e8e8",
-      },
+      } as any,
       text: {
         primary: isDark ? "#f2f4f8" : "#1a1d23",
         secondary: isDark ? "#d1d7db" : "#495057",
@@ -40,8 +40,8 @@ export const createAppTheme = (mode) => {
         accent: isDark ? "#d1d7db" : "#3d4653",
         border: isDark ? "#6d767e" : "#d1d7db",
         borderBottom: "rgb(217, 217, 217)",
-      },
-    },
+      } as any,
+    } as any,
     typography: {
       fontFamily: 'Inter, "Space Grotesk", system-ui, sans-serif',
       h1: {
@@ -81,7 +81,7 @@ export const createAppTheme = (mode) => {
       ...Array(19).fill(
         "0 19px 38px rgba(0, 0, 0, 0.30), 0 15px 12px rgba(0, 0, 0, 0.22)"
       ),
-    ],
+    ] as any,
     components: {
       MuiCssBaseline: {
         styleOverrides: {

@@ -1,4 +1,9 @@
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Remove as RemoveIcon, Search as SearchIcon } from "@mui/icons-material";
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
 import {
   Alert,
   Autocomplete,
@@ -30,16 +35,22 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDoctors } from "../api/doctors";
+import { useHospitalizations } from "../api/hospitalizations";
+import { usePatients } from "../api/patients";
 import {
   useCreatePrescription,
   useDeletePrescription,
   usePrescriptions,
   useUpdatePrescription,
 } from "../api/prescriptions";
-import { useHospitalizations } from "../api/hospitalizations";
-import { usePatients } from "../api/patients";
-import { useDoctors } from "../api/doctors";
-import { MedicineItem, Patient, Prescription, PrescriptionCreate, User } from "../types";
+import {
+  MedicineItem,
+  Patient,
+  Prescription,
+  PrescriptionCreate,
+  User,
+} from "../types";
 
 interface PrescriptionsProps {
   user: User;
@@ -49,17 +60,19 @@ function Prescriptions({ user }: PrescriptionsProps) {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null);
-  const [prescriptionToDelete, setPrescriptionToDelete] = useState<Prescription | null>(null);
+  const [editingPrescription, setEditingPrescription] =
+    useState<Prescription | null>(null);
+  const [prescriptionToDelete, setPrescriptionToDelete] =
+    useState<Prescription | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [patientSearch, setPatientSearch] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [dateError, setDateError] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "hospitalized" | "my-patients">(
-    user.role === "doctor" ? "my-patients" : "hospitalized"
-  );
-  const today = new Date().toISOString().split('T')[0];
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "hospitalized" | "my-patients"
+  >(user.role === "doctor" ? "my-patients" : "hospitalized");
+  const today = new Date().toISOString().split("T")[0];
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
 
@@ -81,62 +94,72 @@ function Prescriptions({ user }: PrescriptionsProps) {
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  
+
   // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
   }, [searchTerm, startDate, endDate, filterStatus]);
-  
-  const { data: prescriptionsResponse, isLoading, error } = usePrescriptions({
+
+  const {
+    data: prescriptionsResponse,
+    isLoading,
+    error,
+  } = usePrescriptions({
     page,
     page_size: pageSize,
     search: searchTerm,
     start_date: startDate,
     end_date: endDate,
   });
-  
+
   const allPrescriptions = prescriptionsResponse?.prescriptions || [];
   const totalPages = prescriptionsResponse?.total_pages || 0;
   const totalRecords = prescriptionsResponse?.total || 0;
-  
-  const { data: patientsResponse, isLoading: patientsLoading } = usePatients({ 
-    search: patientSearch, 
-    page_size: 50 
+
+  const { data: patientsResponse, isLoading: patientsLoading } = usePatients({
+    search: patientSearch,
+    page_size: 50,
   });
-  const { data: hospitalizationsResponse } = useHospitalizations({ page_size: 100 });
+  const { data: hospitalizationsResponse } = useHospitalizations({
+    page_size: 100,
+  });
   const hospitalizations = hospitalizationsResponse?.hospitalizations || [];
   const { data: doctorsResponse } = useDoctors({ page_size: 100 });
   const doctors = doctorsResponse?.doctors || [];
-  const allPatients = Array.isArray(patientsResponse) 
-    ? patientsResponse 
-    : (patientsResponse?.patients || patientsResponse?.items || []);
+  const allPatients = Array.isArray(patientsResponse)
+    ? patientsResponse
+    : patientsResponse?.patients || (patientsResponse as any)?.items || [];
   // Filter to only show patients with complete profiles (id is not null)
-  const patients = allPatients.filter(p => p.id !== null);
+  const patients = allPatients.filter((p: any) => p.id !== null);
 
   // Find current user's doctor ID if they're a doctor
-  const currentDoctor = doctors.find(d => d.user_id === user.id);
+  const currentDoctor = doctors.find((d) => d.user_id === user.id);
 
   // Get hospitalized patient IDs
   const hospitalizedPatientIds = new Set(
-    hospitalizations.filter(h => !h.discharge_date).map(h => h.patient_id)
+    hospitalizations.filter((h) => !h.discharge_date).map((h) => h.patient_id)
   );
 
   // Get my patient IDs (for doctors)
   const myPatientIds = new Set(
     currentDoctor
       ? hospitalizations
-          .filter(h => !h.discharge_date && h.doctors?.some(d => d.id === currentDoctor.id))
-          .map(h => h.patient_id)
+          .filter(
+            (h) =>
+              !h.discharge_date &&
+              h.doctors?.some((d) => d.id === currentDoctor.id)
+          )
+          .map((h) => h.patient_id)
       : []
   );
 
   // Client-side filtering for status (hospitalized/my-patients)
   // Server already handles search, date range via API
-  const prescriptions = 
+  const prescriptions =
     filterStatus === "hospitalized"
-      ? allPrescriptions.filter(p => hospitalizedPatientIds.has(p.patient_id))
+      ? allPrescriptions.filter((p) => hospitalizedPatientIds.has(p.patient_id))
       : filterStatus === "my-patients" && currentDoctor
-      ? allPrescriptions.filter(p => myPatientIds.has(p.patient_id))
+      ? allPrescriptions.filter((p) => myPatientIds.has(p.patient_id))
       : allPrescriptions;
 
   const createMutation = useCreatePrescription();
@@ -146,7 +169,10 @@ function Prescriptions({ user }: PrescriptionsProps) {
   const addMedicine = () => {
     setFormData({
       ...formData,
-      medicines: [...formData.medicines, { name: "", dosage: "", frequency: "", duration: "" }],
+      medicines: [
+        ...formData.medicines,
+        { name: "", dosage: "", frequency: "", duration: "" },
+      ],
     });
   };
 
@@ -159,7 +185,11 @@ function Prescriptions({ user }: PrescriptionsProps) {
     }
   };
 
-  const handleMedicineChange = (index: number, field: string, value: string) => {
+  const handleMedicineChange = (
+    index: number,
+    field: string,
+    value: string
+  ) => {
     const updatedMedicines = [...formData.medicines];
     updatedMedicines[index] = { ...updatedMedicines[index], [field]: value };
     setFormData({ ...formData, medicines: updatedMedicines });
@@ -171,10 +201,10 @@ function Prescriptions({ user }: PrescriptionsProps) {
       setEditingPrescription(prescription);
       setFormData({
         patient_id: prescription.patient_id.toString(),
-        date: prescription.date.split('T')[0],
+        date: prescription.date.split("T")[0],
         start_date: "",
         end_date: "",
-        medicines: prescription.medicines.map(m => ({
+        medicines: prescription.medicines.map((m) => ({
           name: m.name || "",
           dosage: m.dosage || "",
           frequency: m.frequency || "",
@@ -204,9 +234,15 @@ function Prescriptions({ user }: PrescriptionsProps) {
     setEditingPrescription(null);
   };
 
-  const validateDatesAgainstHospitalization = (patientId: number, startDate: string, endDate: string): string | null => {
-    const patientHospitalizations = hospitalizations.filter(h => h.patient_id === patientId);
-    
+  const validateDatesAgainstHospitalization = (
+    patientId: number,
+    startDate: string,
+    endDate: string
+  ): string | null => {
+    const patientHospitalizations = hospitalizations.filter(
+      (h) => h.patient_id === patientId
+    );
+
     if (patientHospitalizations.length === 0) {
       return "Warning: Patient has no hospitalization records. Prescriptions should be given during hospitalization.";
     }
@@ -218,23 +254,29 @@ function Prescriptions({ user }: PrescriptionsProps) {
     prescriptionEnd.setHours(23, 59, 59, 999);
 
     // Check if prescription dates fall within any hospitalization period
-    const isWithinHospitalization = patientHospitalizations.some(h => {
+    const isWithinHospitalization = patientHospitalizations.some((h) => {
       const admissionDate = new Date(h.admission_date);
       admissionDate.setHours(0, 0, 0, 0);
-      
+
       // If still admitted (no discharge date), use far future date
-      const dischargeDate = h.discharge_date 
-        ? new Date(h.discharge_date) 
-        : new Date('2099-12-31');
+      const dischargeDate = h.discharge_date
+        ? new Date(h.discharge_date)
+        : new Date("2099-12-31");
       dischargeDate.setHours(23, 59, 59, 999);
-      
-      return prescriptionStart >= admissionDate && prescriptionEnd <= dischargeDate;
+
+      return (
+        prescriptionStart >= admissionDate && prescriptionEnd <= dischargeDate
+      );
     });
 
     if (!isWithinHospitalization) {
-      const activeHospitalization = patientHospitalizations.find(h => !h.discharge_date);
+      const activeHospitalization = patientHospitalizations.find(
+        (h) => !h.discharge_date
+      );
       if (activeHospitalization) {
-        const admissionDate = new Date(activeHospitalization.admission_date).toLocaleDateString();
+        const admissionDate = new Date(
+          activeHospitalization.admission_date
+        ).toLocaleDateString();
         return `Prescription dates must fall within hospitalization period (admitted: ${admissionDate}, currently active).`;
       } else {
         return "Prescription dates must fall within a hospitalization period. Patient is not currently hospitalized.";
@@ -246,8 +288,8 @@ function Prescriptions({ user }: PrescriptionsProps) {
 
   const handleSubmit = () => {
     const medicines: MedicineItem[] = formData.medicines
-      .filter(m => m.name.trim()) // Only include medicines with names
-      .map(m => ({
+      .filter((m) => m.name.trim()) // Only include medicines with names
+      .map((m) => ({
         name: m.name.trim(),
         dosage: m.dosage.trim() || undefined,
         frequency: m.frequency.trim() || undefined,
@@ -265,7 +307,8 @@ function Prescriptions({ user }: PrescriptionsProps) {
         {
           id: editingPrescription.id,
           data: {
-            date: new Date(formData.date).toISOString(),
+            start_date: new Date(formData.date).toISOString(),
+            end_date: new Date(formData.date).toISOString(),
             medicines,
           },
         },
@@ -281,7 +324,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
       if (!selectedPatient) return;
 
       if (!selectedPatient.id) {
-        setDateError("Selected patient does not have a complete profile. Please complete their patient profile first.");
+        setDateError(
+          "Selected patient does not have a complete profile. Please complete their patient profile first."
+        );
         return;
       }
 
@@ -305,7 +350,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
 
       createMutation.mutate(data, {
         onSuccess: (response) => {
-          setSuccessMessage(`Created ${response.created_count} prescription(s) successfully!`);
+          setSuccessMessage(
+            `Created ${response.created_count} prescription(s) successfully!`
+          );
           handleCloseDialog();
         },
       });
@@ -332,19 +379,38 @@ function Prescriptions({ user }: PrescriptionsProps) {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
           <Typography variant="h3" component="h1" fontWeight={700}>
             Prescriptions
           </Typography>
           {canWrite && (
-            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+            >
               Add Prescription
             </Button>
           )}
         </Box>
 
         {/* Search Bar, Filter, and Date Range */}
-        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+        <Box
+          sx={{
+            mb: 3,
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            flexWrap: "wrap",
+          }}
+        >
           <TextField
             sx={{ flex: 1, minWidth: 250 }}
             placeholder="Search by patient name..."
@@ -365,7 +431,11 @@ function Prescriptions({ user }: PrescriptionsProps) {
             <Select
               value={filterStatus}
               label="Filter"
-              onChange={(e) => setFilterStatus(e.target.value as "all" | "hospitalized" | "my-patients")}
+              onChange={(e) =>
+                setFilterStatus(
+                  e.target.value as "all" | "hospitalized" | "my-patients"
+                )
+              }
             >
               {user.role === "doctor" && (
                 <MenuItem value="my-patients">My Patients</MenuItem>
@@ -405,19 +475,29 @@ function Prescriptions({ user }: PrescriptionsProps) {
                 <TableCell sx={{ fontWeight: 600 }}>Patient</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Medicines</TableCell>
-                {canWrite && <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>}
+                {canWrite && (
+                  <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={canWrite ? 4 : 3} align="center" sx={{ py: 6 }}>
+                  <TableCell
+                    colSpan={canWrite ? 4 : 3}
+                    align="center"
+                    sx={{ py: 6 }}
+                  >
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : prescriptions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={canWrite ? 4 : 3} align="center" sx={{ py: 6 }}>
+                  <TableCell
+                    colSpan={canWrite ? 4 : 3}
+                    align="center"
+                    sx={{ py: 6 }}
+                  >
                     <Typography variant="h6" color="text.secondary">
                       No prescriptions found
                     </Typography>
@@ -429,14 +509,18 @@ function Prescriptions({ user }: PrescriptionsProps) {
                     <TableCell>
                       <Box>
                         <Typography variant="body2" fontWeight={500}>
-                          {prescription.patient_first_name} {prescription.patient_last_name}
+                          {prescription.patient_first_name}{" "}
+                          {prescription.patient_last_name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Age: {prescription.patient_age} • ID: {prescription.patient_id}
+                          Age: {prescription.patient_age} • ID:{" "}
+                          {prescription.patient_id}
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>{new Date(prescription.date).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {new Date(prescription.date).toLocaleDateString()}
+                    </TableCell>
                     <TableCell>
                       {prescription.medicines.map((med, idx) => (
                         <Box key={idx}>
@@ -449,10 +533,18 @@ function Prescriptions({ user }: PrescriptionsProps) {
                     {canWrite && (
                       <TableCell>
                         <Box sx={{ display: "flex", gap: 1 }}>
-                          <IconButton onClick={() => handleOpenDialog(prescription)} color="primary" size="small">
+                          <IconButton
+                            onClick={() => handleOpenDialog(prescription)}
+                            color="primary"
+                            size="small"
+                          >
                             <EditIcon />
                           </IconButton>
-                          <IconButton onClick={() => handleDeleteClick(prescription)} color="error" size="small">
+                          <IconButton
+                            onClick={() => handleDeleteClick(prescription)}
+                            color="error"
+                            size="small"
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </Box>
@@ -467,8 +559,15 @@ function Prescriptions({ user }: PrescriptionsProps) {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 3,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 Showing {prescriptions.length} of {totalRecords} prescriptions
               </Typography>
@@ -489,7 +588,7 @@ function Prescriptions({ user }: PrescriptionsProps) {
                 </Select>
               </FormControl>
             </Box>
-            <Pagination 
+            <Pagination
               count={totalPages}
               page={page}
               onChange={(_, value) => setPage(value)}
@@ -501,24 +600,37 @@ function Prescriptions({ user }: PrescriptionsProps) {
         )}
 
         {/* Create/Edit Dialog */}
-        <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>{editingPrescription ? "Edit Prescription" : "Add Prescription"}</DialogTitle>
+        <Dialog
+          open={dialogOpen}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            {editingPrescription ? "Edit Prescription" : "Add Prescription"}
+          </DialogTitle>
           <DialogContent>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
+            >
               {!editingPrescription && (
                 <Autocomplete
                   options={patients}
                   loading={patientsLoading}
-                  getOptionLabel={(option) => 
+                  getOptionLabel={(option) =>
                     `${option.first_name} ${option.last_name} - ${option.email}`
                   }
-                  isOptionEqualToValue={(option, value) => option.user_id === value.user_id}
+                  isOptionEqualToValue={(option, value) =>
+                    option.user_id === value.user_id
+                  }
                   value={selectedPatient}
                   onChange={(_, newValue) => {
                     setSelectedPatient(newValue);
                     setDateError("");
                   }}
-                  onInputChange={(_, newInputValue) => setPatientSearch(newInputValue)}
+                  onInputChange={(_, newInputValue) =>
+                    setPatientSearch(newInputValue)
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -540,7 +652,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
                       </Box>
                     </li>
                   )}
-                  noOptionsText={patientsLoading ? "Loading..." : "No patients found"}
+                  noOptionsText={
+                    patientsLoading ? "Loading..." : "No patients found"
+                  }
                   fullWidth
                 />
               )}
@@ -554,7 +668,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
                   label="Date"
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
                   required
                   fullWidth
                   InputLabelProps={{ shrink: true }}
@@ -565,7 +681,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
                     label="Start Date"
                     type="date"
                     value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, start_date: e.target.value })
+                    }
                     required
                     fullWidth
                     InputLabelProps={{ shrink: true }}
@@ -575,7 +693,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
                     label="End Date"
                     type="date"
                     value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, end_date: e.target.value })
+                    }
                     required
                     fullWidth
                     InputLabelProps={{ shrink: true }}
@@ -585,7 +705,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
               )}
               {/* Medicines Array */}
               <Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+                >
                   <Typography variant="h6">Medicines</Typography>
                   <IconButton
                     onClick={addMedicine}
@@ -597,8 +719,23 @@ function Prescriptions({ user }: PrescriptionsProps) {
                   </IconButton>
                 </Box>
                 {formData.medicines.map((medicine, index) => (
-                  <Box key={index} sx={{ mb: 2, p: 2, border: "1px solid #e0e0e0", borderRadius: 1 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                  <Box
+                    key={index}
+                    sx={{
+                      mb: 2,
+                      p: 2,
+                      border: "1px solid #e0e0e0",
+                      borderRadius: 1,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 1,
+                      }}
+                    >
                       <Typography variant="subtitle2" color="text.secondary">
                         Medicine {index + 1}
                       </Typography>
@@ -613,11 +750,19 @@ function Prescriptions({ user }: PrescriptionsProps) {
                         </IconButton>
                       )}
                     </Box>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1.5,
+                      }}
+                    >
                       <TextField
                         label="Medicine Name"
                         value={medicine.name}
-                        onChange={(e) => handleMedicineChange(index, "name", e.target.value)}
+                        onChange={(e) =>
+                          handleMedicineChange(index, "name", e.target.value)
+                        }
                         required
                         fullWidth
                         size="small"
@@ -626,7 +771,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
                       <TextField
                         label="Dosage"
                         value={medicine.dosage}
-                        onChange={(e) => handleMedicineChange(index, "dosage", e.target.value)}
+                        onChange={(e) =>
+                          handleMedicineChange(index, "dosage", e.target.value)
+                        }
                         fullWidth
                         size="small"
                         placeholder="e.g., 500mg"
@@ -634,7 +781,13 @@ function Prescriptions({ user }: PrescriptionsProps) {
                       <TextField
                         label="Frequency"
                         value={medicine.frequency}
-                        onChange={(e) => handleMedicineChange(index, "frequency", e.target.value)}
+                        onChange={(e) =>
+                          handleMedicineChange(
+                            index,
+                            "frequency",
+                            e.target.value
+                          )
+                        }
                         fullWidth
                         size="small"
                         placeholder="e.g., twice daily"
@@ -642,7 +795,13 @@ function Prescriptions({ user }: PrescriptionsProps) {
                       <TextField
                         label="Duration"
                         value={medicine.duration}
-                        onChange={(e) => handleMedicineChange(index, "duration", e.target.value)}
+                        onChange={(e) =>
+                          handleMedicineChange(
+                            index,
+                            "duration",
+                            e.target.value
+                          )
+                        }
                         fullWidth
                         size="small"
                         placeholder="e.g., 7 days"
@@ -655,12 +814,12 @@ function Prescriptions({ user }: PrescriptionsProps) {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button 
-              onClick={handleSubmit} 
-              variant="contained" 
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
               disabled={
-                createMutation.isPending || 
-                updateMutation.isPending || 
+                createMutation.isPending ||
+                updateMutation.isPending ||
                 (!editingPrescription && !selectedPatient)
               }
             >
@@ -670,14 +829,24 @@ function Prescriptions({ user }: PrescriptionsProps) {
         </Dialog>
 
         {/* Delete Dialog */}
-        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+        >
           <DialogTitle>Delete Prescription?</DialogTitle>
           <DialogContent>
-            <Typography>Are you sure you want to delete this prescription?</Typography>
+            <Typography>
+              Are you sure you want to delete this prescription?
+            </Typography>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleDeleteConfirm} color="error" variant="contained" disabled={deleteMutation.isPending}>
+            <Button
+              onClick={handleDeleteConfirm}
+              color="error"
+              variant="contained"
+              disabled={deleteMutation.isPending}
+            >
               Delete
             </Button>
           </DialogActions>

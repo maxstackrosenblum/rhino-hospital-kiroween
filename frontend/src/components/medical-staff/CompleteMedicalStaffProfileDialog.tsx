@@ -38,7 +38,7 @@ function CompleteMedicalStaffProfileDialog({
         <MedicalStaffForm
           mode="profile"
           initialData={medicalStaff || undefined}
-          onSubmit={onSubmit}
+          onSubmit={onSubmit as any}
           onCancel={handleClose}
           isSubmitting={isCompleting}
           submitError={submitError}

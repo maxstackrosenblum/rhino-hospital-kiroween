@@ -1,39 +1,42 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Alert,
-  Box,
   Button,
+  CircularProgress,
   Container,
   Paper,
   TextField,
   Typography,
-  CircularProgress,
-} from '@mui/material';
+} from "@mui/material";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 function ResetPassword() {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const token = searchParams.get("token");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(true);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [tokenValid, setTokenValid] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) {
-      setError('Invalid reset link');
+      setError("Invalid reset link");
       setVerifying(false);
       return;
     }
 
     // Verify token
-    fetch(`${import.meta.env.VITE_API_URL}/api/password-reset/verify-token?token=${token}`)
+    fetch(
+      `${
+        import.meta.env.VITE_API_URL
+      }/api/password-reset/verify-token?token=${token}`
+    )
       .then((res) => {
-        if (!res.ok) throw new Error('Invalid or expired token');
+        if (!res.ok) throw new Error("Invalid or expired token");
         return res.json();
       })
       .then(() => {
@@ -41,43 +44,46 @@ function ResetPassword() {
         setVerifying(false);
       })
       .catch((err) => {
-        setError(err.message || 'Invalid or expired reset link');
+        setError((err as any).message || "Invalid or expired reset link");
         setVerifying(false);
       });
   }, [token]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/password-reset/reset`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, new_password: password }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/password-reset/reset`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, new_password: password }),
+        }
+      );
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to reset password');
+        throw new Error(data.detail || "Failed to reset password");
       }
 
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 3000);
+      setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
-      setError(err.message || 'An error occurred');
+      setError((err as any).message || "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -86,7 +92,7 @@ function ResetPassword() {
   if (verifying) {
     return (
       <Container maxWidth="sm" sx={{ py: 8 }}>
-        <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+        <Paper elevation={3} sx={{ p: 4, textAlign: "center" }}>
           <CircularProgress />
           <Typography sx={{ mt: 2 }}>Verifying reset link...</Typography>
         </Paper>
@@ -102,12 +108,12 @@ function ResetPassword() {
             Invalid Link
           </Typography>
           <Alert severity="error" sx={{ mb: 3 }}>
-            {error || 'This password reset link is invalid or has expired.'}
+            {error || "This password reset link is invalid or has expired."}
           </Alert>
           <Button
             variant="contained"
             fullWidth
-            onClick={() => navigate('/forgot-password')}
+            onClick={() => navigate("/forgot-password")}
           >
             Request New Link
           </Button>
@@ -174,7 +180,7 @@ function ResetPassword() {
             fullWidth
             disabled={loading}
           >
-            {loading ? 'Resetting...' : 'Reset Password'}
+            {loading ? "Resetting..." : "Reset Password"}
           </Button>
         </form>
       </Paper>

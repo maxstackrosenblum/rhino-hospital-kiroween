@@ -1,6 +1,6 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate } from "react-router-dom";
 
-function ProtectedRoute({ children, user }) {
+function ProtectedRoute({ children, user }: any) {
   if (!user) {
     return <Navigate to="/login" replace />;
   }

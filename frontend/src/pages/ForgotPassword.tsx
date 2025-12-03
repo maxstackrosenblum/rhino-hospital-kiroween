@@ -1,41 +1,43 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Alert,
-  Box,
   Button,
   Container,
   Paper,
   TextField,
   Typography,
-} from '@mui/material';
+} from "@mui/material";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function ForgotPassword() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/password-reset/request`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/password-reset/request`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to request password reset');
+        throw new Error("Failed to request password reset");
       }
 
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'An error occurred');
+      setError((err as any).message || "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -49,12 +51,13 @@ function ForgotPassword() {
             Check Your Email
           </Typography>
           <Alert severity="success" sx={{ mb: 3 }}>
-            If an account exists with that email, we've sent password reset instructions.
+            If an account exists with that email, we've sent password reset
+            instructions.
           </Alert>
           <Button
             variant="outlined"
             fullWidth
-            onClick={() => navigate('/login')}
+            onClick={() => navigate("/login")}
           >
             Back to Login
           </Button>
@@ -70,7 +73,8 @@ function ForgotPassword() {
           Forgot Password
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Enter your email address and we'll send you instructions to reset your password.
+          Enter your email address and we'll send you instructions to reset your
+          password.
         </Typography>
 
         {error && (
@@ -97,14 +101,10 @@ function ForgotPassword() {
             disabled={loading}
             sx={{ mb: 2 }}
           >
-            {loading ? 'Sending...' : 'Send Reset Link'}
+            {loading ? "Sending..." : "Send Reset Link"}
           </Button>
 
-          <Button
-            variant="text"
-            fullWidth
-            onClick={() => navigate('/login')}
-          >
+          <Button variant="text" fullWidth onClick={() => navigate("/login")}>
             Back to Login
           </Button>
         </form>

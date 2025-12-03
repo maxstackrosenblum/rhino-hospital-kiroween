@@ -1,4 +1,4 @@
-import { Menu as MenuIcon } from '@mui/icons-material';
+import { Menu as MenuIcon } from "@mui/icons-material";
 import {
   AppBar,
   Avatar,
@@ -21,22 +21,22 @@ import {
   Toolbar,
   Typography,
   useMediaQuery,
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDeleteCurrentUser } from '../api';
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDeleteCurrentUser } from "../api";
 
-function Navbar({ user, onLogout }) {
+function Navbar({ user, onLogout }: any) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const deleteAccountMutation = useDeleteCurrentUser();
 
-  const handleMenuOpen = (event) => {
+  const handleMenuOpen = (event: any) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -58,19 +58,21 @@ function Navbar({ user, onLogout }) {
       onSuccess: () => {
         setDeleteDialogOpen(false);
         onLogout();
-        navigate('/login');
+        navigate("/login");
       },
       onError: (error) => {
-        alert(error.message || 'Failed to delete account');
+        alert(error.message || "Failed to delete account");
       },
     });
   };
 
-  const getInitials = (firstName, lastName) => {
-    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
+  const getInitials = (firstName: any, lastName: any) => {
+    return `${firstName?.charAt(0) || ""}${
+      lastName?.charAt(0) || ""
+    }`.toUpperCase();
   };
 
-  const handleNavigation = (path) => {
+  const handleNavigation = (path: any) => {
     navigate(path);
     handleMenuClose();
     setMobileMenuOpen(false);
@@ -97,103 +99,97 @@ function Navbar({ user, onLogout }) {
 
         {/* Logo */}
         {/* Logo and Title */}
-        <Box 
-          onClick={() => navigate('/')}
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 1.5, 
+        <Box
+          onClick={() => navigate("/")}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
             flexGrow: { xs: 1, md: 0 },
-            cursor: 'pointer'
+            cursor: "pointer",
           }}
         >
-          <img 
-            src="/logo.png" 
-            alt="Hospital Logo" 
-            style={{ 
-              height: isMobile ? '45px' : '60px',
-              width: 'auto',
-              objectFit: 'contain'
-            }} 
+          <img
+            src="/logo.png"
+            alt="Hospital Logo"
+            style={{
+              height: isMobile ? "45px" : "60px",
+              width: "auto",
+              objectFit: "contain",
+            }}
           />
           <Typography
             variant="h6"
             component="div"
             sx={{
               fontWeight: 700,
-              fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.25rem' },
-              background: `linear-gradient(135deg, ${theme.palette.primary.gradient.start}, ${theme.palette.primary.gradient.end})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              fontSize: { xs: "0.9rem", sm: "1.1rem", md: "1.25rem" },
+              background: `linear-gradient(135deg, ${
+                (theme.palette.primary as any).gradient.start
+              }, ${(theme.palette.primary as any).gradient.end})`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
           >
-            {isMobile ? 'HMS' : 'Hospital Management System'}
+            {isMobile ? "HMS" : "Hospital Management System"}
           </Typography>
         </Box>
 
         {/* Desktop Navigation Menu */}
         {!isMobile && (
           <Box sx={{ flexGrow: 1, ml: 3 }}>
-            {['admin', 'doctor', 'receptionist'].includes(user.role) && (
-              <Button
-                color="primary"
-                onClick={() => navigate('/patients')}
-              >
+            {["admin", "doctor", "receptionist"].includes(user.role) && (
+              <Button color="primary" onClick={() => navigate("/patients")}>
                 Patients
               </Button>
             )}
-            {['admin', 'doctor', 'medical_staff', 'receptionist'].includes(user.role) && (
+            {["admin", "doctor", "medical_staff", "receptionist"].includes(
+              user.role
+            ) && (
               <>
                 <Button
                   color="primary"
-                  onClick={() => navigate('/hospitalizations')}
+                  onClick={() => navigate("/hospitalizations")}
                 >
                   Hospitalizations
                 </Button>
                 <Button
                   color="primary"
-                  onClick={() => navigate('/prescriptions')}
+                  onClick={() => navigate("/prescriptions")}
                 >
                   Prescriptions
                 </Button>
               </>
             )}
             {/* My Shifts Link */}
-            {['doctor', 'medical_staff', 'receptionist'].includes(user.role) && (
-              <Button
-                color="primary"
-                onClick={() => navigate('/shifts')}
-              >
+            {["doctor", "medical_staff", "receptionist"].includes(
+              user.role
+            ) && (
+              <Button color="primary" onClick={() => navigate("/shifts")}>
                 My Shifts
               </Button>
             )}
             {/* Reports Link */}
-            {['admin', 'accountant'].includes(user.role) && (
+            {["admin", "accountant"].includes(user.role) && (
               <Button
                 color="primary"
-                onClick={() => navigate('/shifts-report')}
+                onClick={() => navigate("/shifts-report")}
               >
                 Reports
               </Button>
             )}
-            {user.role === 'admin' && (
+            {user.role === "admin" && (
               <>
-                <Button
-                  color="primary"
-                  onClick={() => navigate('/doctors')}
-                >
+                <Button color="primary" onClick={() => navigate("/doctors")}>
                   Doctors
                 </Button>
                 <Button
                   color="primary"
-                  onClick={() => navigate('/medical-staff')}
+                  onClick={() => navigate("/medical-staff")}
                 >
                   Medical Staff
                 </Button>
-                <Button
-                  color="primary"
-                  onClick={() => navigate('/users')}
-                >
+                <Button color="primary" onClick={() => navigate("/users")}>
                   Users
                 </Button>
               </>
@@ -209,11 +205,13 @@ function Navbar({ user, onLogout }) {
         >
           <Avatar
             sx={{
-              bgcolor: 'primary.main',
-              background: `linear-gradient(135deg, ${theme.palette.primary.gradient.start}, ${theme.palette.primary.gradient.end})`,
+              bgcolor: "primary.main",
+              background: `linear-gradient(135deg, ${
+                (theme.palette.primary as any).gradient.start
+              }, ${(theme.palette.primary as any).gradient.end})`,
               width: { xs: 32, sm: 40 },
               height: { xs: 32, sm: 40 },
-              fontSize: { xs: '0.875rem', sm: '1rem' },
+              fontSize: { xs: "0.875rem", sm: "1rem" },
             }}
           >
             {getInitials(user.first_name, user.last_name)}
@@ -224,38 +222,36 @@ function Navbar({ user, onLogout }) {
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
           anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
+            vertical: "bottom",
+            horizontal: "right",
           }}
           transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
+            vertical: "top",
+            horizontal: "right",
           }}
         >
-          <MenuItem onClick={() => handleNavigation('/profile')}>
+          <MenuItem onClick={() => handleNavigation("/profile")}>
             Profile
           </MenuItem>
-          <MenuItem onClick={() => handleNavigation('/sessions')}>
+          <MenuItem onClick={() => handleNavigation("/sessions")}>
             Sessions
           </MenuItem>
-          <MenuItem onClick={() => handleNavigation('/settings')}>
+          <MenuItem onClick={() => handleNavigation("/settings")}>
             Settings
           </MenuItem>
           <Divider />
           <MenuItem
             onClick={handleDeleteClick}
             sx={{
-              color: 'error.main',
-              '&:hover': {
+              color: "error.main",
+              "&:hover": {
                 backgroundColor: (theme) => `${theme.palette.error.main}14`,
-              }
+              },
             }}
           >
             Delete Account
           </MenuItem>
-          <MenuItem onClick={onLogout}>
-            Logout
-          </MenuItem>
+          <MenuItem onClick={onLogout}>Logout</MenuItem>
         </Menu>
 
         {/* Mobile Drawer Menu */}
@@ -267,55 +263,73 @@ function Navbar({ user, onLogout }) {
           <Box sx={{ width: 250, pt: 2 }}>
             <List>
               <ListItem disablePadding>
-                <ListItemButton onClick={() => handleNavigation('/')}>
+                <ListItemButton onClick={() => handleNavigation("/")}>
                   <ListItemText primary="Home" />
                 </ListItemButton>
               </ListItem>
-              {['admin', 'doctor', 'receptionist'].includes(user.role) && (
+              {["admin", "doctor", "receptionist"].includes(user.role) && (
                 <ListItem disablePadding>
-                  <ListItemButton onClick={() => handleNavigation('/patients')}>
+                  <ListItemButton onClick={() => handleNavigation("/patients")}>
                     <ListItemText primary="Patients" />
                   </ListItemButton>
                 </ListItem>
               )}
-              {['admin', 'doctor', 'medical_staff', 'receptionist'].includes(user.role) && (
+              {["admin", "doctor", "medical_staff", "receptionist"].includes(
+                user.role
+              ) && (
                 <>
                   <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleNavigation('/hospitalizations')}>
+                    <ListItemButton
+                      onClick={() => handleNavigation("/hospitalizations")}
+                    >
                       <ListItemText primary="Hospitalizations" />
                     </ListItemButton>
                   </ListItem>
                   <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleNavigation('/prescriptions')}>
+                    <ListItemButton
+                      onClick={() => handleNavigation("/prescriptions")}
+                    >
                       <ListItemText primary="Prescriptions" />
                     </ListItemButton>
                   </ListItem>
                 </>
               )}
               {/* Shifts Section */}
-              {['doctor', 'medical_staff', 'receptionist', 'admin', 'accountant'].includes(user.role) && (
+              {[
+                "doctor",
+                "medical_staff",
+                "receptionist",
+                "admin",
+                "accountant",
+              ].includes(user.role) && (
                 <>
                   <Divider sx={{ my: 1 }} />
                   <ListItem>
-                    <ListItemText 
-                      primary="Shifts" 
-                      primaryTypographyProps={{ 
-                        variant: 'caption', 
-                        color: 'text.secondary',
-                        fontWeight: 600 
-                      }} 
+                    <ListItemText
+                      primary="Shifts"
+                      primaryTypographyProps={{
+                        variant: "caption",
+                        color: "text.secondary",
+                        fontWeight: 600,
+                      }}
                     />
                   </ListItem>
-                  {['doctor', 'medical_staff', 'receptionist'].includes(user.role) && (
+                  {["doctor", "medical_staff", "receptionist"].includes(
+                    user.role
+                  ) && (
                     <ListItem disablePadding>
-                      <ListItemButton onClick={() => handleNavigation('/shifts')}>
+                      <ListItemButton
+                        onClick={() => handleNavigation("/shifts")}
+                      >
                         <ListItemText primary="My Shifts" />
                       </ListItemButton>
                     </ListItem>
                   )}
-                  {['admin', 'accountant'].includes(user.role) && (
+                  {["admin", "accountant"].includes(user.role) && (
                     <ListItem disablePadding>
-                      <ListItemButton onClick={() => handleNavigation('/shifts-report')}>
+                      <ListItemButton
+                        onClick={() => handleNavigation("/shifts-report")}
+                      >
                         <ListItemText primary="Shifts Report" />
                       </ListItemButton>
                     </ListItem>
@@ -323,57 +337,63 @@ function Navbar({ user, onLogout }) {
                 </>
               )}
               {/* Reports Section */}
-              {['admin', 'accountant'].includes(user.role) && (
+              {["admin", "accountant"].includes(user.role) && (
                 <>
                   <Divider sx={{ my: 1 }} />
                   <ListItem>
-                    <ListItemText 
-                      primary="Reports" 
-                      primaryTypographyProps={{ 
-                        variant: 'caption', 
-                        color: 'text.secondary',
-                        fontWeight: 600 
-                      }} 
+                    <ListItemText
+                      primary="Reports"
+                      primaryTypographyProps={{
+                        variant: "caption",
+                        color: "text.secondary",
+                        fontWeight: 600,
+                      }}
                     />
                   </ListItem>
                   <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleNavigation('/shifts-report')}>
+                    <ListItemButton
+                      onClick={() => handleNavigation("/shifts-report")}
+                    >
                       <ListItemText primary="Shifts Report" />
                     </ListItemButton>
                   </ListItem>
                 </>
               )}
-              {user.role === 'admin' && (
+              {user.role === "admin" && (
                 <>
                   <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleNavigation('/doctors')}>
+                    <ListItemButton
+                      onClick={() => handleNavigation("/doctors")}
+                    >
                       <ListItemText primary="Doctors" />
                     </ListItemButton>
                   </ListItem>
                   <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleNavigation('/medical-staff')}>
+                    <ListItemButton
+                      onClick={() => handleNavigation("/medical-staff")}
+                    >
                       <ListItemText primary="Medical Staff" />
                     </ListItemButton>
                   </ListItem>
                   <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleNavigation('/users')}>
+                    <ListItemButton onClick={() => handleNavigation("/users")}>
                       <ListItemText primary="Users" />
                     </ListItemButton>
                   </ListItem>
                 </>
               )}
               <ListItem disablePadding>
-                <ListItemButton onClick={() => handleNavigation('/profile')}>
+                <ListItemButton onClick={() => handleNavigation("/profile")}>
                   <ListItemText primary="Profile" />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
-                <ListItemButton onClick={() => handleNavigation('/sessions')}>
+                <ListItemButton onClick={() => handleNavigation("/sessions")}>
                   <ListItemText primary="Sessions" />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
-                <ListItemButton onClick={() => handleNavigation('/settings')}>
+                <ListItemButton onClick={() => handleNavigation("/settings")}>
                   <ListItemText primary="Settings" />
                 </ListItemButton>
               </ListItem>
@@ -384,16 +404,18 @@ function Navbar({ user, onLogout }) {
                     setMobileMenuOpen(false);
                     handleDeleteClick();
                   }}
-                  sx={{ color: 'error.main' }}
+                  sx={{ color: "error.main" }}
                 >
                   <ListItemText primary="Delete Account" />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
-                <ListItemButton onClick={() => {
-                  setMobileMenuOpen(false);
-                  onLogout();
-                }}>
+                <ListItemButton
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onLogout();
+                  }}
+                >
                   <ListItemText primary="Logout" />
                 </ListItemButton>
               </ListItem>
@@ -407,20 +429,22 @@ function Navbar({ user, onLogout }) {
           onClose={handleDeleteCancel}
           aria-labelledby="delete-dialog-title"
         >
-          <DialogTitle id="delete-dialog-title">
-            Delete Account?
-          </DialogTitle>
+          <DialogTitle id="delete-dialog-title">Delete Account?</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Are you sure you want to delete your account? This action cannot be undone.
-              You will be logged out immediately.
+              Are you sure you want to delete your account? This action cannot
+              be undone. You will be logged out immediately.
             </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDeleteCancel} color="primary">
               Cancel
             </Button>
-            <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            <Button
+              onClick={handleDeleteConfirm}
+              color="error"
+              variant="contained"
+            >
               Delete Account
             </Button>
           </DialogActions>
