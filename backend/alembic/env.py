@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from database import Base
-from models import User
+from models import User, MedicalStaff
 
 # this is the Alembic Config object
 config = context.config

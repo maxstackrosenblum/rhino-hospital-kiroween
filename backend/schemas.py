@@ -7,6 +7,7 @@ class UserRole(str, Enum):
     UNDEFINED = "undefined"
     ADMIN = "admin"
     DOCTOR = "doctor"
+    MEDICAL_STAFF = "medical_staff"
     RECEPTIONIST = "receptionist"
     PATIENT = "patient"
 
@@ -62,6 +63,12 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     """Schema for admin to create basic user accounts with role selection"""
     password: str
+    phone: str | None = None
+    city: str | None = None
+    age: int | None = None
+    address: str | None = None
+    gender: str | None = None
+    role: UserRole | None = None
 
     @validator('password')
     def validate_password(cls, v):
@@ -223,7 +230,7 @@ class AdminUserUpdate(BaseModel):
     address: str | None = None
     gender: Gender | None = None
     role: UserRole | None = None
-
+    
     @validator('first_name', 'last_name')
     def validate_names(cls, v):
         if v is not None:
@@ -261,6 +268,42 @@ class AdminUserUpdate(BaseModel):
                 raise ValueError('This field cannot be empty')
             return v.strip()
         return v
+
+# Staff Management Schemas
+
+class MedicalStaffCreate(BaseModel):
+    """Schema for creating a new medical staff member"""
+    user_id: int
+    job_title: str | None = None
+    department: str | None = None
+    shift_schedule: str | None = None
+
+
+class MedicalStaffUpdate(BaseModel):
+    """Schema for updating an existing medical staff member"""
+    job_title: str | None = None
+    department: str | None = None
+    shift_schedule: str | None = None
+
+
+class MedicalStaffResponse(BaseModel):
+    """Schema for medical staff response"""
+    id: int
+    user_id: int
+    job_title: str | None
+    department: str | None
+    shift_schedule: str | None
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: datetime | None = None
+    # User information for display
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+
+    class Config:
+        from_attributes = True
 
 class PaginatedUsersResponse(BaseModel):
     users: list[UserResponse]
@@ -355,11 +398,11 @@ class PatientResponse(BaseModel):
     username: str
     first_name: str
     last_name: str
-    phone: str
-    city: str
-    age: int
-    address: str
-    gender: Gender
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    age: Optional[int] = None
+    address: Optional[str] = None
+    gender: Optional[Gender] = None
     role: UserRole
 
     # Status fields
@@ -517,11 +560,11 @@ class DoctorResponse(BaseModel):
     username: str
     first_name: str
     last_name: str
-    phone: str
-    city: str
-    age: int
-    address: str
-    gender: Gender
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    age: Optional[int] = None
+    address: Optional[str] = None
+    gender: Optional[Gender] = None
     role: UserRole
 
     # Status fields

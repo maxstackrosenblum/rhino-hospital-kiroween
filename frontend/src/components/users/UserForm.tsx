@@ -477,6 +477,7 @@ function UserForm<T extends "create" | "update">({
             >
               <MenuItem value="admin">Admin</MenuItem>
               <MenuItem value="doctor">Doctor</MenuItem>
+              <MenuItem value="medical_staff">Medical Staff</MenuItem>
               <MenuItem value="receptionist">Receptionist</MenuItem>
               <MenuItem value="patient">Patient</MenuItem>
             </Select>

@@ -125,20 +125,26 @@ function Navbar({ user, onLogout }) {
               </Button>
             )}
             {user.role === 'admin' && (
-              <Button
-                color="primary"
-                onClick={() => navigate('/doctors')}
-              >
-                Doctors
-              </Button>
-            )}
-            {user.role === 'admin' && (
-              <Button
-                color="primary"
-                onClick={() => navigate('/users')}
-              >
-                Staff
-              </Button>
+              <>
+                <Button
+                  color="primary"
+                  onClick={() => navigate('/doctors')}
+                >
+                  Doctors
+                </Button>
+                <Button
+                  color="primary"
+                  onClick={() => navigate('/medical-staff')}
+                >
+                  Medical Staff
+                </Button>
+                <Button
+                  color="primary"
+                  onClick={() => navigate('/users')}
+                >
+                  Users
+                </Button>
+              </>
             )}
           </Box>
         )}
@@ -213,12 +219,31 @@ function Navbar({ user, onLogout }) {
                   <ListItemText primary="Home" />
                 </ListItemButton>
               </ListItem>
-              {user.role === 'admin' && (
+              {['admin', 'doctor', 'receptionist'].includes(user.role) && (
                 <ListItem disablePadding>
-                  <ListItemButton onClick={() => handleNavigation('/users')}>
-                    <ListItemText primary="Staff" />
+                  <ListItemButton onClick={() => handleNavigation('/patients')}>
+                    <ListItemText primary="Patients" />
                   </ListItemButton>
                 </ListItem>
+              )}
+              {user.role === 'admin' && (
+                <>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/doctors')}>
+                      <ListItemText primary="Doctors" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/medical-staff')}>
+                      <ListItemText primary="Medical Staff" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/users')}>
+                      <ListItemText primary="Users" />
+                    </ListItemButton>
+                  </ListItem>
+                </>
               )}
               <ListItem disablePadding>
                 <ListItemButton onClick={() => handleNavigation('/profile')}>

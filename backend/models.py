@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Index, Enum, ForeignKey, Text, ForeignKey, JSON
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from datetime import datetime
 from database import Base
 import enum
@@ -8,6 +9,7 @@ class UserRole(str, enum.Enum):
     UNDEFINED = "undefined"
     ADMIN = "admin"
     DOCTOR = "doctor"
+    MEDICAL_STAFF = "medical_staff"
     RECEPTIONIST = "receptionist"
     PATIENT = "patient"
 
@@ -43,6 +45,7 @@ class User(Base):
     # Relationships
     patient = relationship("Patient", back_populates="user", uselist=False)
     doctor = relationship("Doctor", back_populates="user", uselist=False)
+    medical_staff = relationship("MedicalStaff", back_populates="user", uselist=False)
 
 
 class Patient(Base):
@@ -74,9 +77,25 @@ class Doctor(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True, default=None)
-
     # Relationships
     user = relationship("User", back_populates="doctor")
+
+
+class MedicalStaff(Base):
+    __tablename__ = "medical_staff"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, unique=True)
+    job_title = Column(String(100), nullable=True)
+    department = Column(String(100), nullable=True)
+    shift_schedule = Column(String(255), nullable=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime, nullable=True, default=None)
+
+    # Relationship to User
+    user = relationship("User", back_populates="medical_staff")
+
 
 class Session(Base):
     __tablename__ = "sessions"
