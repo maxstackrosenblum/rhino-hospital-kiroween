@@ -191,7 +191,7 @@ async def get_patient_profile_status(
         )
 
 
-@router.get("/", response_model=PaginatedPatientsResponse)
+@router.get("", response_model=PaginatedPatientsResponse)
 async def get_patients(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Number of records per page"),

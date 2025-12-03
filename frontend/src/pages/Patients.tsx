@@ -4,7 +4,11 @@ import {
   Box,
   CircularProgress,
   Container,
+  FormControl,
   InputAdornment,
+  InputLabel,
+  MenuItem,
+  Select,
   Snackbar,
   TextField,
   Typography,
@@ -17,6 +21,8 @@ import {
   usePatients,
   useUpdatePatient,
 } from "../api/patients";
+import { useHospitalizations } from "../api/hospitalizations";
+import { useDoctors } from "../api/doctors";
 import CompletePatientProfileDialog from "../components/patients/CompletePatientProfileDialog";
 import DeletePatientDialog from "../components/patients/DeletePatientDialog";
 import EditPatientDialog from "../components/patients/EditPatientDialog";
@@ -31,6 +37,9 @@ interface PatientsProps {
 function Patients({ user }: PatientsProps) {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "hospitalized" | "my-patients">(
+    user.role === "doctor" ? "my-patients" : "hospitalized"
+  );
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms debounce
   const [completeProfileDialogOpen, setCompleteProfileDialogOpen] =
     useState(false);
@@ -61,7 +70,46 @@ function Patients({ user }: PatientsProps) {
     page_size: 100,
   });
 
-  const patients = patientsResponse?.patients || [];
+  const { data: hospitalizationsResponse } = useHospitalizations({ page_size: 100 });
+  const hospitalizations = hospitalizationsResponse?.hospitalizations || [];
+  const { data: doctorsResponse } = useDoctors({ page_size: 100 });
+  const doctors = doctorsResponse?.doctors || [];
+
+  // Find current user's doctor ID if they're a doctor
+  const currentDoctor = doctors.find(d => d.user_id === user.id);
+
+  // Get currently hospitalized patient IDs
+  const hospitalizedPatientIds = new Set(
+    hospitalizations
+      .filter(h => !h.discharge_date) // Only active hospitalizations
+      .map(h => h.patient_id)
+  );
+
+  // Get patient IDs for current doctor's hospitalizations
+  const myPatientIds = new Set(
+    currentDoctor
+      ? hospitalizations
+          .filter(h => 
+            !h.discharge_date && // Only active hospitalizations
+            h.doctors?.some(d => d.id === currentDoctor.id) // Doctor is assigned
+          )
+          .map(h => h.patient_id)
+      : []
+  );
+
+  // Filter and sort patients
+  const allPatients = patientsResponse?.patients || [];
+  const filteredPatients = 
+    filterStatus === "hospitalized"
+      ? allPatients.filter(p => p.id && hospitalizedPatientIds.has(p.id))
+      : filterStatus === "my-patients"
+      ? allPatients.filter(p => p.id && myPatientIds.has(p.id))
+      : allPatients;
+  
+  // Sort by created_at in reverse order (newest first)
+  const patients = [...filteredPatients].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
   const createPatientProfileMutation = useCompletePatientProfile();
   const updatePatientMutation = useUpdatePatient();
@@ -180,7 +228,7 @@ function Patients({ user }: PatientsProps) {
           </Typography>
         </Box>
 
-        {/* Search Bar */}
+        {/* Search Bar and Filter */}
         <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
           <TextField
             fullWidth
@@ -197,6 +245,20 @@ function Patients({ user }: PatientsProps) {
               },
             }}
           />
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Filter</InputLabel>
+            <Select
+              value={filterStatus}
+              label="Filter"
+              onChange={(e) => setFilterStatus(e.target.value as "all" | "hospitalized" | "my-patients")}
+            >
+              {user.role === "doctor" && (
+                <MenuItem value="my-patients">My Patients</MenuItem>
+              )}
+              <MenuItem value="hospitalized">Currently Hospitalized</MenuItem>
+              <MenuItem value="all">All Patients</MenuItem>
+            </Select>
+          </FormControl>
           {isLoading && searchTerm !== debouncedSearchTerm && (
             <CircularProgress size={20} />
           )}

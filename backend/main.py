@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.error_handlers import register_error_handlers
-from routers import auth, users, health, patients, doctors, password_reset, sessions, medical_staff
+from routers import auth, users, health, patients, doctors, password_reset, sessions, medical_staff, hospitalizations, prescriptions
 
 app = FastAPI(
     title=settings.API_TITLE,
@@ -35,5 +35,7 @@ app.include_router(users.router)
 app.include_router(medical_staff.router)
 app.include_router(patients.router)
 app.include_router(doctors.router)
+app.include_router(hospitalizations.router)
+app.include_router(prescriptions.router)
 app.include_router(password_reset.router)
 app.include_router(sessions.router)
