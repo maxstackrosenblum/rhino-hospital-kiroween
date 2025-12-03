@@ -1,15 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Hospitalization, HospitalizationCreate, HospitalizationUpdate } from '../types';
+import { Hospitalization, HospitalizationCreate, HospitalizationUpdate, PaginatedHospitalizationsResponse, HospitalizationFilters } from '../types';
 import { API_URL, authenticatedFetch } from './common';
 
-export const useHospitalizations = (patientId?: number) => {
-  return useQuery<Hospitalization[]>({
-    queryKey: ['hospitalizations', patientId],
+export const useHospitalizations = (filters?: HospitalizationFilters) => {
+  return useQuery<PaginatedHospitalizationsResponse>({
+    queryKey: ['hospitalizations', filters],
     queryFn: async () => {
-      const url = patientId
-        ? `${API_URL}/api/hospitalizations?patient_id=${patientId}`
-        : `${API_URL}/api/hospitalizations`;
-      return authenticatedFetch<Hospitalization[]>(url);
+      const params = new URLSearchParams();
+      
+      if (filters?.page) params.append('page', filters.page.toString());
+      if (filters?.page_size) params.append('page_size', filters.page_size.toString());
+      if (filters?.patient_id) params.append('patient_id', filters.patient_id.toString());
+      if (filters?.active_only) params.append('active_only', 'true');
+      if (filters?.search) params.append('search', filters.search);
+      
+      const url = `${API_URL}/api/hospitalizations?${params.toString()}`;
+      return authenticatedFetch<PaginatedHospitalizationsResponse>(url);
     },
   });
 };

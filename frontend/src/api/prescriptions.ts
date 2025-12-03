@@ -1,15 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Prescription, PrescriptionCreate, PrescriptionUpdate, PrescriptionBulkCreateResponse } from '../types';
+import { Prescription, PrescriptionCreate, PrescriptionUpdate, PrescriptionBulkCreateResponse, PaginatedPrescriptionsResponse, PrescriptionFilters } from '../types';
 import { API_URL, authenticatedFetch } from './common';
 
-export const usePrescriptions = (patientId?: number) => {
-  return useQuery<Prescription[]>({
-    queryKey: ['prescriptions', patientId],
+export const usePrescriptions = (filters?: PrescriptionFilters) => {
+  return useQuery<PaginatedPrescriptionsResponse>({
+    queryKey: ['prescriptions', filters],
     queryFn: async () => {
-      const url = patientId
-        ? `${API_URL}/api/prescriptions?patient_id=${patientId}`
-        : `${API_URL}/api/prescriptions`;
-      return authenticatedFetch<Prescription[]>(url);
+      const params = new URLSearchParams();
+      
+      if (filters?.page) params.append('page', filters.page.toString());
+      if (filters?.page_size) params.append('page_size', filters.page_size.toString());
+      if (filters?.patient_id) params.append('patient_id', filters.patient_id.toString());
+      if (filters?.start_date) params.append('start_date', filters.start_date);
+      if (filters?.end_date) params.append('end_date', filters.end_date);
+      if (filters?.search) params.append('search', filters.search);
+      
+      const url = `${API_URL}/api/prescriptions?${params.toString()}`;
+      return authenticatedFetch<PaginatedPrescriptionsResponse>(url);
     },
   });
 };

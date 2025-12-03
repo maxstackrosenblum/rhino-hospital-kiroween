@@ -16,6 +16,7 @@ import {
   InputAdornment,
   InputLabel,
   MenuItem,
+  Pagination,
   Paper,
   Select,
   Snackbar,
@@ -57,6 +58,8 @@ function Hospitalizations({ user }: HospitalizationsProps) {
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "my-patients">(
     user.role === "doctor" ? "my-patients" : "active"
   );
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [formData, setFormData] = useState({
     patient_id: "",
@@ -74,7 +77,21 @@ function Hospitalizations({ user }: HospitalizationsProps) {
     }
   }, [user, navigate]);
 
-  const { data: allHospitalizations = [], isLoading, error } = useHospitalizations();
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, filterStatus]);
+
+  const { data: hospitalizationsResponse, isLoading, error } = useHospitalizations({
+    page,
+    page_size: pageSize,
+    search: searchTerm,
+    active_only: filterStatus === "active",
+  });
+  
+  const allHospitalizations = hospitalizationsResponse?.hospitalizations || [];
+  const totalPages = hospitalizationsResponse?.total_pages || 0;
+  const totalRecords = hospitalizationsResponse?.total || 0;
   const { data: patientsResponse, isLoading: patientsLoading } = usePatients({ 
     search: patientSearch, 
     page_size: 50 
@@ -90,33 +107,14 @@ function Hospitalizations({ user }: HospitalizationsProps) {
   // Find current user's doctor ID if they're a doctor
   const currentDoctor = doctors.find(d => d.user_id === user.id);
 
-  // Filter hospitalizations
-  const filteredByStatus = 
-    filterStatus === "active"
-      ? allHospitalizations.filter(h => !h.discharge_date)
-      : filterStatus === "my-patients" && currentDoctor
+  // Client-side filtering for "my-patients" (server handles active_only and search)
+  const hospitalizations = 
+    filterStatus === "my-patients" && currentDoctor
       ? allHospitalizations.filter(h => 
           !h.discharge_date && 
           h.doctors?.some(d => d.id === currentDoctor.id)
         )
       : allHospitalizations;
-
-  // Search by patient name, username, or email
-  const searchedHospitalizations = searchTerm
-    ? filteredByStatus.filter(h => {
-        const searchLower = searchTerm.toLowerCase();
-        const firstName = h.patient_first_name?.toLowerCase() || "";
-        const lastName = h.patient_last_name?.toLowerCase() || "";
-        const fullName = `${firstName} ${lastName}`;
-        // Note: username and email not in response, searching by name only
-        return fullName.includes(searchLower);
-      })
-    : filteredByStatus;
-
-  // Sort by admission_date in reverse order (newest first)
-  const hospitalizations = [...searchedHospitalizations].sort((a, b) => 
-    new Date(b.admission_date).getTime() - new Date(a.admission_date).getTime()
-  );
 
   const createMutation = useCreateHospitalization();
   const updateMutation = useUpdateHospitalization();
@@ -344,6 +342,41 @@ function Hospitalizations({ user }: HospitalizationsProps) {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Showing {hospitalizations.length} of {totalRecords} hospitalizations
+              </Typography>
+              <FormControl size="small" sx={{ minWidth: 100 }}>
+                <InputLabel>Per page</InputLabel>
+                <Select
+                  value={pageSize}
+                  label="Per page"
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={25}>25</MenuItem>
+                  <MenuItem value={50}>50</MenuItem>
+                  <MenuItem value={100}>100</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <Pagination 
+              count={totalPages}
+              page={page}
+              onChange={(_, value) => setPage(value)}
+              color="primary"
+              showFirstButton
+              showLastButton
+            />
+          </Box>
+        )}
 
         {/* Create/Edit Dialog */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>

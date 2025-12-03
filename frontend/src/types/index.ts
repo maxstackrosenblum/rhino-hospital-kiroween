@@ -415,3 +415,38 @@ export interface PrescriptionBulkCreateResponse {
   created_count: number;
   prescriptions: Prescription[];
 }
+
+// Paginated response types
+export interface PaginatedHospitalizationsResponse {
+  hospitalizations: Hospitalization[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface PaginatedPrescriptionsResponse {
+  prescriptions: Prescription[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+// Filter params for API calls
+export interface HospitalizationFilters {
+  page?: number;
+  page_size?: number;
+  patient_id?: number;
+  active_only?: boolean;
+  search?: string;
+}
+
+export interface PrescriptionFilters {
+  page?: number;
+  page_size?: number;
+  patient_id?: number;
+  start_date?: string;
+  end_date?: string;
+  search?: string;
+}

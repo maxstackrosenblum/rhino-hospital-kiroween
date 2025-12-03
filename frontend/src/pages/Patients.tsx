@@ -70,7 +70,8 @@ function Patients({ user }: PatientsProps) {
     page_size: 100,
   });
 
-  const { data: hospitalizations = [] } = useHospitalizations();
+  const { data: hospitalizationsResponse } = useHospitalizations({ page_size: 100 });
+  const hospitalizations = hospitalizationsResponse?.hospitalizations || [];
   const { data: doctorsResponse } = useDoctors({ page_size: 100 });
   const doctors = doctorsResponse?.doctors || [];
 

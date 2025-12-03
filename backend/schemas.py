@@ -702,3 +702,19 @@ class PrescriptionResponse(BaseModel):
 class PrescriptionBulkCreateResponse(BaseModel):
     created_count: int
     prescriptions: list[PrescriptionResponse]
+
+
+# Paginated Response Schemas for Hospitalizations and Prescriptions
+class PaginatedHospitalizationsResponse(BaseModel):
+    hospitalizations: list[HospitalizationResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+class PaginatedPrescriptionsResponse(BaseModel):
+    prescriptions: list[PrescriptionResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

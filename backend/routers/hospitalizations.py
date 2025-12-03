@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from typing import Optional
 from datetime import datetime
 
 from database import get_db
 from models import Hospitalization, Patient, User, UserRole, Doctor
-from schemas import HospitalizationCreate, HospitalizationUpdate, HospitalizationResponse, DoctorInfo
+from schemas import HospitalizationCreate, HospitalizationUpdate, HospitalizationResponse, DoctorInfo, PaginatedHospitalizationsResponse
 import auth as auth_utils
 
 router = APIRouter(prefix="/api/hospitalizations", tags=["hospitalizations"])
@@ -125,14 +125,23 @@ async def create_hospitalization(
         )
 
 
-@router.get("", response_model=list[HospitalizationResponse])
+@router.get("", response_model=PaginatedHospitalizationsResponse)
 async def get_hospitalizations(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Number of records per page"),
     patient_id: Optional[int] = Query(None, description="Filter by patient ID"),
+    active_only: bool = Query(False, description="Show only active hospitalizations (not discharged)"),
+    search: Optional[str] = Query(None, description="Search by patient name or diagnosis"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_hospitalization_access)
 ):
     """
-    Get list of hospitalizations with optional patient filter.
+    Get paginated list of hospitalizations with filtering options.
+    
+    Filters:
+    - patient_id: Filter by specific patient
+    - active_only: Show only active hospitalizations (discharge_date is NULL)
+    - search: Search by patient name or diagnosis
     
     Requires: Admin, Doctor, Medical Staff, or Receptionist role
     """
@@ -151,10 +160,32 @@ async def get_hospitalizations(
             Hospitalization.deleted_at.is_(None)
         )
         
+        # Apply filters
         if patient_id:
             query = query.filter(Hospitalization.patient_id == patient_id)
         
-        results = query.order_by(Hospitalization.admission_date.desc()).all()
+        if active_only:
+            query = query.filter(Hospitalization.discharge_date.is_(None))
+        
+        if search:
+            search_term = f"%{search.strip()}%"
+            query = query.filter(
+                or_(
+                    User.first_name.ilike(search_term),
+                    User.last_name.ilike(search_term),
+                    Hospitalization.diagnosis.ilike(search_term)
+                )
+            )
+        
+        # Get total count
+        total = query.count()
+        
+        # Calculate pagination
+        total_pages = (total + page_size - 1) // page_size
+        offset = (page - 1) * page_size
+        
+        # Get paginated results
+        results = query.order_by(Hospitalization.admission_date.desc()).offset(offset).limit(page_size).all()
         
         # Build response with patient and doctor info
         hospitalizations = []
@@ -189,7 +220,13 @@ async def get_hospitalizations(
             }
             hospitalizations.append(hosp_dict)
         
-        return hospitalizations
+        return {
+            "hospitalizations": hospitalizations,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages
+        }
         
     except Exception as e:
         raise HTTPException(

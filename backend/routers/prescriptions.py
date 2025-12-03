@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
+import sqlalchemy as sa
 from typing import Optional
 from datetime import datetime, timedelta
 
 from database import get_db
 from models import Prescription, Patient, User, UserRole, Hospitalization
-from schemas import PrescriptionCreate, PrescriptionUpdate, PrescriptionResponse, PrescriptionBulkCreateResponse
+from schemas import PrescriptionCreate, PrescriptionUpdate, PrescriptionResponse, PrescriptionBulkCreateResponse, PaginatedPrescriptionsResponse
 import auth as auth_utils
 
 router = APIRouter(prefix="/api/prescriptions", tags=["prescriptions"])
@@ -168,14 +169,25 @@ async def create_prescription(
         )
 
 
-@router.get("", response_model=list[PrescriptionResponse])
+@router.get("", response_model=PaginatedPrescriptionsResponse)
 async def get_prescriptions(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Number of records per page"),
     patient_id: Optional[int] = Query(None, description="Filter by patient ID"),
+    start_date: Optional[str] = Query(None, description="Filter by start date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="Filter by end date (YYYY-MM-DD)"),
+    search: Optional[str] = Query(None, description="Search by patient name or medicine name"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_prescription_read_access)
 ):
     """
-    Get list of prescriptions with optional patient filter.
+    Get paginated list of prescriptions with filtering options.
+    
+    Filters:
+    - patient_id: Filter by specific patient
+    - start_date: Filter prescriptions from this date onwards
+    - end_date: Filter prescriptions up to this date
+    - search: Search by patient name or medicine name
     
     Requires: Admin, Doctor, or Medical Staff role (read-only for medical staff)
     """
@@ -194,10 +206,50 @@ async def get_prescriptions(
             Prescription.deleted_at.is_(None)
         )
         
+        # Apply filters
         if patient_id:
             query = query.filter(Prescription.patient_id == patient_id)
         
-        results = query.order_by(Prescription.date.desc()).all()
+        if start_date:
+            try:
+                start_dt = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+                query = query.filter(Prescription.date >= start_dt)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid start_date format. Use YYYY-MM-DD"
+                )
+        
+        if end_date:
+            try:
+                end_dt = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+                query = query.filter(Prescription.date <= end_dt)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid end_date format. Use YYYY-MM-DD"
+                )
+        
+        if search:
+            search_term = f"%{search.strip()}%"
+            # Search in patient name or medicine names (JSON field)
+            query = query.filter(
+                or_(
+                    User.first_name.ilike(search_term),
+                    User.last_name.ilike(search_term),
+                    Prescription.medicines.cast(sa.String).ilike(search_term)
+                )
+            )
+        
+        # Get total count
+        total = query.count()
+        
+        # Calculate pagination
+        total_pages = (total + page_size - 1) // page_size
+        offset = (page - 1) * page_size
+        
+        # Get paginated results
+        results = query.order_by(Prescription.date.desc()).offset(offset).limit(page_size).all()
         
         # Build response with patient info
         prescriptions = []
@@ -216,8 +268,16 @@ async def get_prescriptions(
             }
             prescriptions.append(prescription_dict)
         
-        return prescriptions
+        return {
+            "prescriptions": prescriptions,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
