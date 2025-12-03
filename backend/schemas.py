@@ -398,11 +398,11 @@ class PatientResponse(BaseModel):
     username: str
     first_name: str
     last_name: str
-    phone: str
-    city: str
-    age: int
-    address: str
-    gender: Gender
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    age: Optional[int] = None
+    address: Optional[str] = None
+    gender: Optional[Gender] = None
     role: UserRole
 
     # Status fields
@@ -560,11 +560,11 @@ class DoctorResponse(BaseModel):
     username: str
     first_name: str
     last_name: str
-    phone: str
-    city: str
-    age: int
-    address: str
-    gender: Gender
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    age: Optional[int] = None
+    address: Optional[str] = None
+    gender: Optional[Gender] = None
     role: UserRole
 
     # Status fields
