@@ -457,9 +457,9 @@ Soft delete a hospitalization record.
 
 ## Related Documentation
 
-- [USER_ROLE_MANAGEMENT.md](./USER_ROLE_MANAGEMENT.md) - Role-based access control
-- [PRESCRIPTIONS.md](./PRESCRIPTIONS.md) - Prescription management
-- [README.md](./README.md) - Project overview
+- [User Role Management](../architecture/USER_ROLE_MANAGEMENT.md) - Role-based access control
+- [Prescriptions](./PRESCRIPTIONS.md) - Prescription management
+- [README](../../README.md) - Project overview
 
 ## Database Queries
 
@@ -499,3 +499,4 @@ FROM hospitalizations
 WHERE discharge_date IS NULL
   AND deleted_at IS NULL;
 ```
+

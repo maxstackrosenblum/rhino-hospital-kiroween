@@ -266,9 +266,9 @@ docker exec fastapi_backend alembic upgrade head
 
 ## Related Documentation
 
-- [README.md](./README.md) - Project overview
-- [SESSION_MANAGEMENT.md](./SESSION_MANAGEMENT.md) - Authentication system
-- [FEATURES.md](./FEATURES.md) - Feature list
+- [README](../../README.md) - Project overview
+- [Session Management](../architecture/SESSION_MANAGEMENT.md) - Authentication system
+- [Features Overview](./FEATURES.md) - Feature list
 
 ## Future Enhancements
 
@@ -279,3 +279,4 @@ Potential improvements:
 - Profile completion reminders
 - Shift scheduling integration
 - Performance metrics tracking
+

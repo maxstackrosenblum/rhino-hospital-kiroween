@@ -272,3 +272,4 @@ curl http://localhost:8000/api/me \
 3. **Set Reasonable Expiration**: Balance security and UX
 4. **Log Security Events**: Track revocations and failed validations
 5. **User Education**: Inform users about session management features
+

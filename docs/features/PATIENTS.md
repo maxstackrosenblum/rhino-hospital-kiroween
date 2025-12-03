@@ -510,10 +510,10 @@ Soft delete a patient record (Admin only).
 
 ## Related Documentation
 
-- [USER_ROLE_MANAGEMENT.md](./USER_ROLE_MANAGEMENT.md) - Role-based access control
-- [HOSPITALIZATIONS.md](./HOSPITALIZATIONS.md) - Hospitalization management
-- [PRESCRIPTIONS.md](./PRESCRIPTIONS.md) - Prescription management
-- [README.md](./README.md) - Project overview
+- [User Role Management](../architecture/USER_ROLE_MANAGEMENT.md) - Role-based access control
+- [Hospitalizations](./HOSPITALIZATIONS.md) - Hospitalization management
+- [Prescriptions](./PRESCRIPTIONS.md) - Prescription management
+- [README](../../README.md) - Project overview
 
 ## Database Queries
 
@@ -568,3 +568,4 @@ FROM patients p
 LEFT JOIN hospitalizations h ON p.id = h.patient_id AND h.deleted_at IS NULL
 WHERE p.deleted_at IS NULL;
 ```
+
