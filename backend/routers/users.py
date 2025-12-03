@@ -181,6 +181,50 @@ async def update_user_by_admin(
         if existing_user:
             raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Check if role is being changed and if user has a profile
+    if user_update.role and user_update.role.value != user.role:
+        # Check if user has a patient profile
+        if user.role == models.UserRole.PATIENT:
+            patient = db.query(models.Patient).filter(
+                and_(
+                    models.Patient.user_id == user.id,
+                    models.Patient.deleted_at.is_(None)
+                )
+            ).first()
+            if patient:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot change role: User has an active patient profile. Delete the profile first."
+                )
+        
+        # Check if user has a doctor profile
+        if user.role == models.UserRole.DOCTOR:
+            doctor = db.query(models.Doctor).filter(
+                and_(
+                    models.Doctor.user_id == user.id,
+                    models.Doctor.deleted_at.is_(None)
+                )
+            ).first()
+            if doctor:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot change role: User has an active doctor profile. Delete the profile first."
+                )
+        
+        # Check if user has a medical staff profile
+        if user.role in [models.UserRole.MEDICAL_STAFF, models.UserRole.RECEPTIONIST]:
+            medical_staff = db.query(models.MedicalStaff).filter(
+                and_(
+                    models.MedicalStaff.user_id == user.id,
+                    models.MedicalStaff.deleted_at.is_(None)
+                )
+            ).first()
+            if medical_staff:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot change role: User has an active medical staff profile. Delete the profile first."
+                )
+    
     # Update fields if provided
     if user_update.email:
         user.email = user_update.email

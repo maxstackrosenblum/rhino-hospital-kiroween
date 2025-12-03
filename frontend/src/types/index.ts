@@ -3,7 +3,8 @@ export type UserRole =
   | "undefined"
   | "admin"
   | "doctor"
-  | "'medical_staff'"
+  | "medical_staff"
+  | "receptionist"
   | "patient";
 
 export interface User {
@@ -90,20 +91,26 @@ export interface TokenResponse {
   token_type: string;
 }
 
-// Staff types - Medical Staff
+// Staff types - Medical Staff (includes both medical_staff and receptionist roles)
 export interface MedicalStaff {
-  id: number;
-  user_id: number;
+  // Profile fields (nullable for incomplete profiles)
+  id: number | null; // MedicalStaff table ID - null if profile incomplete
   job_title: string | null;
   department: string | null;
   shift_schedule: string | null;
+  
+  // User fields (always present)
+  user_id: number; // User table ID
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  role: UserRole; // To distinguish between medical_staff and receptionist
+  
+  // Timestamps
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  first_name?: string | null;
-  last_name?: string | null;
-  email?: string | null;
-  phone?: string | null;
 }
 
 export interface MedicalStaffCreate {

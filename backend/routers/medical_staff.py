@@ -1,243 +1,307 @@
-"""
-Medical Staff API router.
-
-This module provides REST API endpoints for medical staff management,
-including CRUD operations with authentication and authorization.
-"""
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_, and_
 from typing import Optional
+from datetime import datetime
 
-import auth as auth_utils
-import models
-import schemas
 from database import get_db
-from services.medical_staff_service import MedicalStaffService
-from core.logging_config import get_logger
+from models import MedicalStaff, User, UserRole
+from schemas import MedicalStaffCreate, MedicalStaffUpdate, MedicalStaffResponse
+from core.dependencies import require_admin
+import auth as auth_utils
 
 router = APIRouter(prefix="/api/medical-staff", tags=["medical-staff"])
-logger = get_logger(__name__)
 
 
-def get_medical_staff_service(db: Session = Depends(get_db)) -> MedicalStaffService:
-    """Dependency to get medical staff service instance"""
-    return MedicalStaffService(db)
+def create_medical_staff_response(user: User, medical_staff: MedicalStaff) -> MedicalStaffResponse:
+    """Helper function to create consistent MedicalStaffResponse objects"""
+    return MedicalStaffResponse(
+        id=medical_staff.id,
+        user_id=user.id,
+        job_title=medical_staff.job_title,
+        department=medical_staff.department,
+        shift_schedule=medical_staff.shift_schedule,
+        created_at=medical_staff.created_at,
+        updated_at=medical_staff.updated_at,
+        deleted_at=medical_staff.deleted_at,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        email=user.email,
+        phone=user.phone
+    )
 
 
-def require_admin(current_user: models.User = Depends(auth_utils.get_current_user)) -> models.User:
-    """
-    Dependency to require admin role for staff management operations.
-    
-    Requirements:
-    - Verify JWT token
-    - Verify admin role
-    """
-    if current_user.role != models.UserRole.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required for staff management"
-        )
-    return current_user
-
-
-@router.post("", response_model=schemas.MedicalStaffResponse, status_code=status.HTTP_201_CREATED)
-def create_medical_staff(
-    medical_staff_data: schemas.MedicalStaffCreate,
-    service: MedicalStaffService = Depends(get_medical_staff_service),
-    current_user: models.User = Depends(require_admin)
+@router.post("", response_model=MedicalStaffResponse, status_code=status.HTTP_201_CREATED)
+async def create_medical_staff(
+    medical_staff_data: MedicalStaffCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
     """
-    Create a new medical staff member.
+    Create a new medical staff record for an existing user.
     
-    Args:
-        medical_staff_data: Medical staff creation data
-        service: Medical staff service instance
-        current_user: Authenticated admin user
-        
-    Returns:
-        Created medical staff member with all fields including timestamps
-        
-    Raises:
-        HTTPException: 400 if validation fails, 401 if unauthorized, 403 if not admin
+    Requires: Admin role
     """
-    logger.info(f"Creating medical staff for user_id: {medical_staff_data.user_id}")
     try:
-        medical_staff = service.register_staff(medical_staff_data)
-        logger.info(f"Successfully created medical staff with ID: {medical_staff.id}")
-        return medical_staff
-    except ValueError as e:
-        logger.error(f"Validation error creating medical staff: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        # Check if user exists and has medical_staff role
+        target_user = db.query(User).filter(
+            and_(User.id == medical_staff_data.user_id, User.deleted_at.is_(None))
+        ).first()
+        
+        if not target_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        if target_user.role not in [UserRole.MEDICAL_STAFF, UserRole.RECEPTIONIST]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User must have medical_staff or receptionist role"
+            )
+        
+        # Check if user already has a medical staff record (including soft-deleted)
+        existing_staff = db.query(MedicalStaff).filter(
+            MedicalStaff.user_id == medical_staff_data.user_id
+        ).first()
+        
+        if existing_staff:
+            if existing_staff.deleted_at is None:
+                # Active record exists
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Medical staff record already exists for this user"
+                )
+            else:
+                # Soft-deleted record exists - restore it with new data
+                existing_staff.job_title = medical_staff_data.job_title
+                existing_staff.department = medical_staff_data.department
+                existing_staff.shift_schedule = medical_staff_data.shift_schedule
+                existing_staff.deleted_at = None
+                existing_staff.updated_at = datetime.utcnow()
+                db.commit()
+                db.refresh(existing_staff)
+                db_medical_staff = existing_staff
+        else:
+            # Create new medical staff record
+            db_medical_staff = MedicalStaff(
+                user_id=medical_staff_data.user_id,
+                job_title=medical_staff_data.job_title,
+                department=medical_staff_data.department,
+                shift_schedule=medical_staff_data.shift_schedule
+            )
+            db.add(db_medical_staff)
+            db.commit()
+            db.refresh(db_medical_staff)
+        
+        return create_medical_staff_response(target_user, db_medical_staff)
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error creating medical staff: {str(e)}")
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create medical staff"
+            detail="Failed to create medical staff record"
         )
 
 
 @router.get("")
-def list_medical_staff(
-    search: Optional[str] = None,
-    service: MedicalStaffService = Depends(get_medical_staff_service),
-    current_user: models.User = Depends(require_admin)
+async def get_medical_staff_list(
+    search: Optional[str] = Query(None, description="Search by first name, last name, or email"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
     """
-    List all medical staff with optional search.
+    Get list of all users with medical_staff or receptionist role, regardless of profile completion status.
     
-    Args:
-        search: Optional search query for first name or last name
-        service: Medical staff service instance
-        current_user: Authenticated admin user
-        
-    Returns:
-        List of medical staff matching search criteria
-        
-    Raises:
-        HTTPException: 401 if unauthorized, 403 if not admin
+    Requires: Admin role
     """
-    logger.info(f"Listing medical staff with search: {search}")
     try:
-        result = service.get_staff_list(search=search)
-        logger.info(f"Retrieved {result['total']} medical staff")
-        return result
+        # Query User table with LEFT JOIN to MedicalStaff table to show all medical_staff and receptionist users
+        query = db.query(User).outerjoin(MedicalStaff, User.id == MedicalStaff.user_id).filter(
+            or_(
+                User.role == UserRole.MEDICAL_STAFF,
+                User.role == UserRole.RECEPTIONIST
+            )
+        )
+        
+        # Filter out soft-deleted users
+        query = query.filter(User.deleted_at.is_(None))
+        
+        # Apply search filter if provided
+        if search:
+            search_term = f"%{search.strip()}%"
+            query = query.filter(
+                or_(
+                    User.first_name.ilike(search_term),
+                    User.last_name.ilike(search_term),
+                    User.email.ilike(search_term)
+                )
+            )
+        
+        users_data = query.options(joinedload(User.medical_staff)).order_by(User.created_at.desc()).all()
+        
+        # Convert to response format
+        items = []
+        for user in users_data:
+            medical_staff = user.medical_staff
+            has_profile = medical_staff is not None and medical_staff.deleted_at is None
+            
+            items.append({
+                "id": medical_staff.id if has_profile else None,
+                "user_id": user.id,
+                "job_title": medical_staff.job_title if has_profile else None,
+                "department": medical_staff.department if has_profile else None,
+                "shift_schedule": medical_staff.shift_schedule if has_profile else None,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "phone": user.phone,
+                "role": user.role,
+                "created_at": medical_staff.created_at if has_profile else user.created_at,
+                "updated_at": medical_staff.updated_at if has_profile else user.updated_at,
+                "deleted_at": medical_staff.deleted_at if has_profile else None,
+            })
+        
+        return {
+            "items": items,
+            "total": len(items)
+        }
+        
     except Exception as e:
-        logger.error(f"Error listing medical staff: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve medical staff"
+            detail="Failed to retrieve medical staff records"
         )
 
 
-@router.get("/{medical_staff_id}", response_model=schemas.MedicalStaffResponse)
-def get_medical_staff(
+@router.get("/{medical_staff_id}", response_model=MedicalStaffResponse)
+async def get_medical_staff(
     medical_staff_id: int,
-    service: MedicalStaffService = Depends(get_medical_staff_service),
-    current_user: models.User = Depends(require_admin)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
     """
-    Get a medical staff member by ID.
+    Get a specific medical staff member by ID.
     
-    Args:
-        medical_staff_id: ID of the medical staff member to retrieve
-        service: Medical staff service instance
-        current_user: Authenticated admin user
-        
-    Returns:
-        Medical staff member with the specified ID
-        
-    Raises:
-        HTTPException: 404 if not found, 401 if unauthorized, 403 if not admin
+    Requires: Admin role
     """
-    logger.info(f"Retrieving medical staff with ID: {medical_staff_id}")
     try:
-        medical_staff = service.get_staff_by_id(medical_staff_id)
-        if medical_staff is None:
-            logger.warning(f"Medical staff not found with ID: {medical_staff_id}")
+        db_medical_staff = db.query(MedicalStaff).join(User, MedicalStaff.user_id == User.id).options(joinedload(MedicalStaff.user)).filter(
+            and_(
+                MedicalStaff.id == medical_staff_id,
+                MedicalStaff.deleted_at.is_(None),
+                User.deleted_at.is_(None)
+            )
+        ).first()
+        
+        if not db_medical_staff:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Medical staff with ID {medical_staff_id} not found"
+                detail="Medical staff not found"
             )
-        logger.info(f"Retrieved medical staff with ID: {medical_staff.id}")
-        return medical_staff
+        
+        return create_medical_staff_response(db_medical_staff.user, db_medical_staff)
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving medical staff: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve medical staff"
+            detail="Failed to retrieve medical staff record"
         )
 
 
-@router.put("/{medical_staff_id}", response_model=schemas.MedicalStaffResponse)
-def update_medical_staff(
+@router.put("/{medical_staff_id}", response_model=MedicalStaffResponse)
+async def update_medical_staff(
     medical_staff_id: int,
-    medical_staff_data: schemas.MedicalStaffUpdate,
-    service: MedicalStaffService = Depends(get_medical_staff_service),
-    current_user: models.User = Depends(require_admin)
+    medical_staff_update: MedicalStaffUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
     """
-    Update a medical staff member.
+    Update a medical staff record.
     
-    Args:
-        medical_staff_id: ID of the medical staff member to update
-        medical_staff_data: Updated medical staff data
-        service: Medical staff service instance
-        current_user: Authenticated admin user
-        
-    Returns:
-        Updated medical staff member
-        
-    Raises:
-        HTTPException: 404 if not found, 400 if validation fails, 401 if unauthorized, 403 if not admin
+    Requires: Admin role
     """
-    logger.info(f"Updating medical staff with ID: {medical_staff_id}")
     try:
-        medical_staff = service.update_staff(medical_staff_id, medical_staff_data)
-        if medical_staff is None:
-            logger.warning(f"Medical staff not found with ID: {medical_staff_id}")
+        db_medical_staff = db.query(MedicalStaff).join(User, MedicalStaff.user_id == User.id).options(joinedload(MedicalStaff.user)).filter(
+            and_(
+                MedicalStaff.id == medical_staff_id,
+                MedicalStaff.deleted_at.is_(None),
+                User.deleted_at.is_(None)
+            )
+        ).first()
+        
+        if not db_medical_staff:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Medical staff with ID {medical_staff_id} not found"
+                detail="Medical staff not found"
             )
-        logger.info(f"Successfully updated medical staff with ID: {medical_staff_id}")
-        return medical_staff
+        
+        # Update medical staff fields
+        update_data = medical_staff_update.dict(exclude_unset=True)
+        
+        if update_data:
+            for field, value in update_data.items():
+                setattr(db_medical_staff, field, value)
+            db_medical_staff.updated_at = datetime.utcnow()
+        
+        db.commit()
+        db.refresh(db_medical_staff)
+        
+        return create_medical_staff_response(db_medical_staff.user, db_medical_staff)
+        
     except HTTPException:
         raise
-    except ValueError as e:
-        logger.error(f"Validation error updating medical staff: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
     except Exception as e:
-        logger.error(f"Error updating medical staff: {str(e)}")
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update medical staff"
+            detail="Failed to update medical staff record"
         )
 
 
 @router.delete("/{medical_staff_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_medical_staff(
+async def delete_medical_staff(
     medical_staff_id: int,
-    service: MedicalStaffService = Depends(get_medical_staff_service),
-    current_user: models.User = Depends(require_admin)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
     """
-    Delete a medical staff member.
+    Soft delete a medical staff record.
     
-    Args:
-        medical_staff_id: ID of the medical staff member to delete
-        service: Medical staff service instance
-        current_user: Authenticated admin user
-        
-    Returns:
-        No content on success
-        
-    Raises:
-        HTTPException: 404 if not found, 401 if unauthorized, 403 if not admin
+    Requires: Admin role
     """
-    logger.info(f"Deleting medical staff with ID: {medical_staff_id}")
     try:
-        success = service.delete_staff(medical_staff_id)
-        if not success:
-            logger.warning(f"Medical staff not found with ID: {medical_staff_id}")
+        db_medical_staff = db.query(MedicalStaff).join(User, MedicalStaff.user_id == User.id).options(joinedload(MedicalStaff.user)).filter(
+            and_(
+                MedicalStaff.id == medical_staff_id,
+                MedicalStaff.deleted_at.is_(None),
+                User.deleted_at.is_(None)
+            )
+        ).first()
+        
+        if not db_medical_staff:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Medical staff with ID {medical_staff_id} not found"
+                detail="Medical staff not found"
             )
-        logger.info(f"Successfully deleted medical staff with ID: {medical_staff_id}")
+        
+        # Perform soft delete
+        delete_time = datetime.utcnow()
+        db_medical_staff.deleted_at = delete_time
+        
+        db.commit()
+        
         return None
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error deleting medical staff: {str(e)}")
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete medical staff"
+            detail="Failed to delete medical staff record"
         )

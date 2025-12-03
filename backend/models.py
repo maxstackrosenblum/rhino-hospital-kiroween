@@ -45,6 +45,7 @@ class User(Base):
     # Relationships
     patient = relationship("Patient", back_populates="user", uselist=False)
     doctor = relationship("Doctor", back_populates="user", uselist=False)
+    medical_staff = relationship("MedicalStaff", back_populates="user", uselist=False)
 
 
 class Patient(Base):
@@ -93,7 +94,7 @@ class MedicalStaff(Base):
     deleted_at = Column(DateTime, nullable=True, default=None)
 
     # Relationship to User
-    user = relationship("User", backref="medical_staff")
+    user = relationship("User", back_populates="medical_staff")
 
 
 class Session(Base):

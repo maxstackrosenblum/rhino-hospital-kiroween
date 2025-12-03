@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database import Base
-from models import MedicalStaff, User
+from models import MedicalStaff, User, UserRole
 
 
 # Use in-memory SQLite database for testing
@@ -34,15 +34,6 @@ def test_db():
 
 
 @pytest.fixture(scope="function")
-def medical_staff_repo(test_db):
-    """
-    Create a MedicalStaffRepository instance with test database.
-    """
-    from repositories.medical_staff_repository import MedicalStaffRepository
-    return MedicalStaffRepository(test_db)
-
-
-@pytest.fixture(scope="function")
 def test_user(test_db):
     """
     Create a test user for medical staff tests.
@@ -54,7 +45,7 @@ def test_user(test_db):
         last_name="User",
         phone="1234567890",
         hashed_password="hashed_password",
-        role="medical_staff"
+        role=UserRole.MEDICAL_STAFF
     )
     test_db.add(user)
     test_db.commit()

@@ -1,74 +1,135 @@
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  Search as SearchIcon,
-} from '@mui/icons-material';
+import { Search as SearchIcon } from "@mui/icons-material";
 import {
   Alert,
   Box,
-  Button,
+  CircularProgress,
   Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   InputAdornment,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Snackbar,
   TextField,
   Typography,
-} from '@mui/material';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import EmptyState from '../components/EmptyState';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { useDeleteMedicalStaff, useMedicalStaff } from '../api/staff';
-import { MedicalStaff } from '../types';
+} from "@mui/material";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  useCreateMedicalStaff,
+  useDeleteMedicalStaff,
+  useMedicalStaff,
+  useUpdateMedicalStaff,
+} from "../api/staff";
+import CompleteMedicalStaffProfileDialog from "../components/medical-staff/CompleteMedicalStaffProfileDialog";
+import DeleteMedicalStaffDialog from "../components/medical-staff/DeleteMedicalStaffDialog";
+import EditMedicalStaffDialog from "../components/medical-staff/EditMedicalStaffDialog";
+import MedicalStaffTable from "../components/medical-staff/MedicalStaffTable";
+import { useDebounce } from "../hooks/useDebounce";
+import { MedicalStaff, MedicalStaffCreate, MedicalStaffUpdate, User } from "../types";
 
-/**
- * MedicalStaffList page component
- * Displays a table of medical staff with search and delete functionality
- */
-function MedicalStaffList() {
+interface MedicalStaffListProps {
+  user: User;
+}
+
+function MedicalStaffList({ user }: MedicalStaffListProps) {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const { data, isLoading, error } = useMedicalStaff(searchQuery);
-  const deleteMutation = useDeleteMedicalStaff();
-
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [completeProfileDialogOpen, setCompleteProfileDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<MedicalStaff | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState<MedicalStaff | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [operationError, setOperationError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
+  // Check user permissions - only admins can access medical staff management
+  useEffect(() => {
+    if (user.role !== "admin") {
+      navigate("/");
+      return;
+    }
+  }, [user, navigate]);
+
+  // API hooks
+  const {
+    data: staffResponse,
+    isLoading,
+    error: queryError,
+  } = useMedicalStaff(debouncedSearchTerm);
+
+  const medicalStaff = staffResponse?.items || [];
+
+  const createMedicalStaffMutation = useCreateMedicalStaff();
+  const updateMedicalStaffMutation = useUpdateMedicalStaff();
+  const deleteMedicalStaffMutation = useDeleteMedicalStaff();
+
+  // Handle success messages
+  useEffect(() => {
+    if (createMedicalStaffMutation.isSuccess) {
+      setSuccessMessage("Medical staff profile completed successfully!");
+    }
+  }, [createMedicalStaffMutation.isSuccess]);
+
+  useEffect(() => {
+    if (updateMedicalStaffMutation.isSuccess) {
+      setSuccessMessage("Medical staff updated successfully!");
+    }
+  }, [updateMedicalStaffMutation.isSuccess]);
+
+  useEffect(() => {
+    if (deleteMedicalStaffMutation.isSuccess) {
+      setSuccessMessage("Medical staff deleted successfully!");
+    }
+  }, [deleteMedicalStaffMutation.isSuccess]);
+
+  // Handlers for editing
+  const handleEdit = (staff: MedicalStaff) => {
+    setEditingStaff(staff);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = (data: MedicalStaffUpdate) => {
+    if (!editingStaff || editingStaff.id === null) return;
+
+    updateMedicalStaffMutation.mutate(
+      { id: editingStaff.id, data },
+      {
+        onSuccess: () => {
+          setEditDialogOpen(false);
+          setEditingStaff(null);
+        },
+      }
+    );
+  };
+
+  const handleEditCancel = () => {
+    setEditDialogOpen(false);
+    setEditingStaff(null);
+  };
+
+  // Handlers for completing profile
+  const handleCompleteProfile = (staff: MedicalStaff) => {
+    setEditingStaff(staff);
+    setCompleteProfileDialogOpen(true);
+  };
+
+  const handleCompleteProfileSubmit = (data: MedicalStaffCreate) => {
+    if (!editingStaff) return;
+
+    createMedicalStaffMutation.mutate(data, {
+      onSuccess: () => {
+        setCompleteProfileDialogOpen(false);
+        setEditingStaff(null);
+      },
+    });
+  };
+
+  const handleCompleteProfileCancel = () => {
+    setCompleteProfileDialogOpen(false);
+    setEditingStaff(null);
+  };
+
+  // Handlers for deleting
   const handleDeleteClick = (staff: MedicalStaff) => {
     setStaffToDelete(staff);
     setDeleteDialogOpen(true);
-    setSuccessMessage(null);
-    setOperationError(null);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!staffToDelete) return;
-
-    try {
-      setOperationError(null);
-      await deleteMutation.mutateAsync(staffToDelete.id);
-      setDeleteDialogOpen(false);
-      setStaffToDelete(null);
-      setSuccessMessage('Medical staff deleted successfully!');
-      
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error) {
-      setOperationError('Failed to delete medical staff. Please try again.');
-      setDeleteDialogOpen(false);
-      setStaffToDelete(null);
-    }
   };
 
   const handleDeleteCancel = () => {
@@ -76,153 +137,127 @@ function MedicalStaffList() {
     setStaffToDelete(null);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+  const handleDeleteConfirm = () => {
+    if (!staffToDelete || staffToDelete.id === null) return;
+
+    deleteMedicalStaffMutation.mutate(staffToDelete.id, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false);
+        setStaffToDelete(null);
+      },
+    });
   };
 
-  const staff = data?.items || [];
-
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
           <Typography variant="h3" component="h1" fontWeight={700}>
             Medical Staff Management
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/medical-staff/add')}
-          >
-            Add Medical Staff
-          </Button>
         </Box>
 
+        {/* Search Bar */}
+        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
+          <TextField
+            fullWidth
+            placeholder="Search medical staff by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+          {isLoading && searchTerm !== debouncedSearchTerm && (
+            <CircularProgress size={20} />
+          )}
+        </Box>
+
+        {/* Success Message */}
         {successMessage && (
-          <Alert severity="success" sx={{ mb: 3 }}>
+          <Alert
+            severity="success"
+            sx={{ mb: 2 }}
+            onClose={() => setSuccessMessage("")}
+          >
             {successMessage}
           </Alert>
         )}
 
-        {(error || operationError) && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {operationError || 'Failed to load medical staff'}
+        {/* Query errors */}
+        {queryError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Failed to load medical staff: {queryError.message}
           </Alert>
         )}
 
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            fullWidth
-            placeholder="Search by first name or last name..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
+        {/* Medical Staff Table */}
+        <MedicalStaffTable
+          medicalStaff={medicalStaff}
+          searchTerm={debouncedSearchTerm}
+          isLoading={isLoading}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
+          onCompleteProfile={handleCompleteProfile}
+        />
 
-        {isLoading && (
-          <LoadingSpinner message="Loading medical staff..." />
-        )}
+        {/* Complete Profile Dialog */}
+        <CompleteMedicalStaffProfileDialog
+          open={completeProfileDialogOpen}
+          medicalStaff={editingStaff}
+          isCompleting={createMedicalStaffMutation.isPending}
+          onClose={handleCompleteProfileCancel}
+          onSubmit={handleCompleteProfileSubmit}
+          submitError={createMedicalStaffMutation.error?.message || null}
+        />
 
-        {!isLoading && (
-          <>
-            {staff.length === 0 ? (
-              <EmptyState
-                title={searchQuery ? 'No Results Found' : 'No Medical Staff Yet'}
-                description={
-                  searchQuery
-                    ? 'No medical staff match your search criteria. Try adjusting your search terms.'
-                    : 'Get started by adding your first medical staff member to the system.'
-                }
-                actionLabel={!searchQuery ? 'Add Medical Staff' : undefined}
-                onAction={!searchQuery ? () => navigate('/medical-staff/add') : undefined}
-              />
-            ) : (
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>First Name</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Last Name</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Job Title</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Department</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {staff.map((member) => (
-                      <TableRow key={member.id} hover>
-                        <TableCell>{member.first_name || '-'}</TableCell>
-                        <TableCell>{member.last_name || '-'}</TableCell>
-                        <TableCell>{member.email || '-'}</TableCell>
-                        <TableCell>{member.phone || '-'}</TableCell>
-                        <TableCell>{member.job_title || '-'}</TableCell>
-                        <TableCell>{member.department || '-'}</TableCell>
-                        <TableCell>
-                          <Button
-                            onClick={() => handleDeleteClick(member)}
-                            variant="outlined"
-                            color="error"
-                            size="small"
-                            startIcon={<DeleteIcon />}
-                          >
-                            Delete
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </>
-        )}
+        {/* Edit Dialog */}
+        <EditMedicalStaffDialog
+          open={editDialogOpen}
+          medicalStaff={editingStaff}
+          isUpdating={updateMedicalStaffMutation.isPending}
+          onClose={handleEditCancel}
+          onSubmit={handleEditSubmit}
+          submitError={updateMedicalStaffMutation.error?.message || null}
+        />
 
-        <Dialog
+        {/* Delete Confirmation Dialog */}
+        <DeleteMedicalStaffDialog
           open={deleteDialogOpen}
+          medicalStaff={staffToDelete}
+          isDeleting={deleteMedicalStaffMutation.isPending}
           onClose={handleDeleteCancel}
-          aria-labelledby="delete-staff-dialog-title"
+          onConfirm={handleDeleteConfirm}
+        />
+
+        {/* Auto-dismissing Snackbar */}
+        <Snackbar
+          open={!!successMessage}
+          autoHideDuration={4000}
+          onClose={() => setSuccessMessage("")}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         >
-          <DialogTitle id="delete-staff-dialog-title">
-            Delete Medical Staff?
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Are you sure you want to delete{' '}
-              <Box component="strong" sx={{ color: 'text.primary' }}>
-                {staffToDelete?.first_name} {staffToDelete?.last_name}
-              </Box>
-              ? This action cannot be undone.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleDeleteCancel} color="primary">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDeleteConfirm}
-              color="error"
-              variant="contained"
-              sx={{
-                color: '#ffffff',
-                '&:hover': {
-                  color: '#ffffff',
-                },
-              }}
-            >
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+          <Alert
+            onClose={() => setSuccessMessage("")}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            {successMessage}
+          </Alert>
+        </Snackbar>
       </Box>
     </Container>
   );

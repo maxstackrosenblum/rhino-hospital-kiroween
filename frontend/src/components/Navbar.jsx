@@ -125,26 +125,24 @@ function Navbar({ user, onLogout }) {
               </Button>
             )}
             {user.role === 'admin' && (
-              <Button
-                color="primary"
-                onClick={() => navigate('/doctors')}
-              >
-                Doctors
-              </Button>
-            )}
-            {user.role === 'admin' && (
               <>
                 <Button
                   color="primary"
-                  onClick={() => navigate('/users')}
+                  onClick={() => navigate('/doctors')}
                 >
-                  Users
+                  Doctors
                 </Button>
                 <Button
                   color="primary"
                   onClick={() => navigate('/medical-staff')}
                 >
                   Medical Staff
+                </Button>
+                <Button
+                  color="primary"
+                  onClick={() => navigate('/users')}
+                >
+                  Users
                 </Button>
               </>
             )}
@@ -221,16 +219,28 @@ function Navbar({ user, onLogout }) {
                   <ListItemText primary="Home" />
                 </ListItemButton>
               </ListItem>
+              {['admin', 'doctor', 'receptionist'].includes(user.role) && (
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleNavigation('/patients')}>
+                    <ListItemText primary="Patients" />
+                  </ListItemButton>
+                </ListItem>
+              )}
               {user.role === 'admin' && (
                 <>
                   <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleNavigation('/users')}>
-                      <ListItemText primary="Users" />
+                    <ListItemButton onClick={() => handleNavigation('/doctors')}>
+                      <ListItemText primary="Doctors" />
                     </ListItemButton>
                   </ListItem>
                   <ListItem disablePadding>
                     <ListItemButton onClick={() => handleNavigation('/medical-staff')}>
                       <ListItemText primary="Medical Staff" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/users')}>
+                      <ListItemText primary="Users" />
                     </ListItemButton>
                   </ListItem>
                 </>

@@ -15,18 +15,17 @@ import Navbar from "./components/Navbar";
 import NetworkErrorHandler from "./components/NetworkErrorHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AppThemeProvider } from "./hooks/useTheme";
-import AddMedicalStaff from "./pages/AddMedicalStaff";
 import Dashboard from "./pages/Dashboard";
 import Doctors from "./pages/Doctors";
 import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
+import MedicalStaffList from "./pages/MedicalStaffList";
 import Patients from "./pages/Patients";
 import Profile from "./pages/Profile";
 import ResetPassword from "./pages/ResetPassword";
 import Sessions from "./pages/Sessions";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
-import MedicalStaffList from "./pages/MedicalStaffList";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -226,22 +225,10 @@ function AppContent() {
                   }
                 />
                 <Route
-                  path="/medical-staff/add"
-                  element={
-                    <ProtectedRoute user={user}>
-                      <Container maxWidth="md" sx={{ py: 4 }}>
-                        <AddMedicalStaff />
-                      </Container>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
                   path="/medical-staff"
                   element={
                     <ProtectedRoute user={user}>
-                      <Container maxWidth="xl" sx={{ py: 4 }}>
-                        <MedicalStaffList />
-                      </Container>
+                      <MedicalStaffList user={user} />
                     </ProtectedRoute>
                   }
                 />
