@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Index, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Index, Enum, ForeignKey, Text, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
@@ -10,6 +10,13 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
     DOCTOR = "doctor"
     MEDICAL_STAFF = "medical_staff"
+    RECEPTIONIST = "receptionist"
+    PATIENT = "patient"
+
+class Gender(str, enum.Enum):
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
 
 class User(Base):
     __tablename__ = "users"
@@ -17,17 +24,60 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=False)
-    first_name = Column(String, nullable=True)
-    last_name = Column(String, nullable=True)
-    phone = Column(String, nullable=True)
-    city = Column(String, nullable=True)
-    age = Column(Integer, nullable=True)
-    address = Column(String, nullable=True)
-    gender = Column(String, nullable=True)
+    first_name = Column(String, nullable=False, index=True)
+    last_name = Column(String, nullable=False, index=True)
+    phone = Column(String, nullable=True)  # Optional for registration
+    city = Column(String, nullable=True)   # Optional for registration
+    age = Column(Integer, nullable=True)   # Optional for registration
+    address = Column(Text, nullable=True)  # Optional for registration
+    gender = Column(String, nullable=True) # Optional for registration - Gender enum
     hashed_password = Column(String, nullable=False)
-    role = Column(Enum(UserRole, name='userrole', values_callable=lambda obj: [e.value for e in obj]), default=UserRole.UNDEFINED, nullable=False)
+    role = Column(String, nullable=False, index=True)  # UserRole enum
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True, default=None)
+    reset_token = Column(String, nullable=True, index=True)
+    reset_token_expires = Column(DateTime, nullable=True)
+
+    # Relationship
+    sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
+
+    # Relationships
+    patient = relationship("Patient", back_populates="user", uselist=False)
+    doctor = relationship("Doctor", back_populates="user", uselist=False)
+
+
+class Patient(Base):
+    __tablename__ = "patients"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    medical_record_number = Column(String, unique=True, nullable=True)
+    emergency_contact = Column(String, nullable=True)
+    insurance_info = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted_at = Column(DateTime, nullable=True, default=None)
+
+    # Relationships
+    user = relationship("User", back_populates="patient")
+
+
+class Doctor(Base):
+    __tablename__ = "doctors"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    doctor_id = Column(String, unique=True, nullable=False, index=True)
+    qualifications = Column(JSON, nullable=False)  # List of qualifications
+    department = Column(String, nullable=True)
+    specialization = Column(String, nullable=True)
+    license_number = Column(String, unique=True, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted_at = Column(DateTime, nullable=True, default=None)
+    # Relationships
+    user = relationship("User", back_populates="doctor")
 
 
 class MedicalStaff(Base):
@@ -44,3 +94,23 @@ class MedicalStaff(Base):
 
     # Relationship to User
     user = relationship("User", backref="medical_staff")
+
+
+class Session(Base):
+    __tablename__ = "sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    jti = Column(String, unique=True, index=True, nullable=False)  # JWT ID (access token)
+    refresh_jti = Column(String, unique=True, index=True, nullable=True)  # Refresh token JTI
+    device_info = Column(String, nullable=True)
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    refresh_expires_at = Column(DateTime, nullable=True)
+    last_activity = Column(DateTime, default=datetime.utcnow, nullable=False)
+    revoked_at = Column(DateTime, nullable=True)
+    
+    # Relationship
+    user = relationship("User", back_populates="sessions")

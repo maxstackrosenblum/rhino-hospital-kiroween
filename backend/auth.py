@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from datetime import datetime
 import models
 from database import get_db
 from core.security import verify_password, get_password_hash, create_access_token, decode_token
@@ -11,7 +12,7 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security), 
     db: Session = Depends(get_db)
 ) -> models.User:
-    """Get current authenticated user"""
+    """Get current authenticated user and validate session"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -36,10 +37,12 @@ def get_current_user(
         )
     
     username: str = payload.get("sub")
-    if username is None:
+    jti: str = payload.get("jti")
+    
+    if username is None or jti is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token missing username claim",
+            detail="Token missing required claims",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -56,5 +59,36 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account has been deleted",
         )
+    
+    # Validate session
+    session = db.query(models.Session).filter(
+        models.Session.jti == jti,
+        models.Session.user_id == user.id
+    ).first()
+    
+    if session is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if session.revoked_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session has been revoked",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if session.expires_at < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Update last activity
+    session.last_activity = datetime.utcnow()
+    db.commit()
     
     return user

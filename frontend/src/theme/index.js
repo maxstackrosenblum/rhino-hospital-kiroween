@@ -156,6 +156,13 @@ export const createAppTheme = (mode) => {
           },
         },
       },
+      MuiDialogContent: {
+        styleOverrides: {
+          root: {
+            paddingTop: "12px !important",
+          },
+        },
+      },
     },
   });
 };

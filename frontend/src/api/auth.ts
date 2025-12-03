@@ -36,3 +36,17 @@ export const useRegister = () => {
     },
   });
 };
+
+export const refreshAccessToken = async (refreshToken: string): Promise<TokenResponse> => {
+  const response = await fetch(`${API_URL}/api/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to refresh token');
+  }
+  
+  return response.json();
+};

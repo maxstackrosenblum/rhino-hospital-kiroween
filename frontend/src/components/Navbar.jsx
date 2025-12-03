@@ -1,3 +1,4 @@
+import { Menu as MenuIcon } from '@mui/icons-material';
 import {
   AppBar,
   Avatar,
@@ -21,7 +22,6 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { Menu as MenuIcon } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -116,6 +116,22 @@ function Navbar({ user, onLogout }) {
         {/* Desktop Navigation Menu */}
         {!isMobile && (
           <Box sx={{ flexGrow: 1, ml: 3 }}>
+            {['admin', 'doctor', 'receptionist'].includes(user.role) && (
+              <Button
+                color="primary"
+                onClick={() => navigate('/patients')}
+              >
+                Patients
+              </Button>
+            )}
+            {user.role === 'admin' && (
+              <Button
+                color="primary"
+                onClick={() => navigate('/doctors')}
+              >
+                Doctors
+              </Button>
+            )}
             {user.role === 'admin' && (
               <>
                 <Button
@@ -169,13 +185,16 @@ function Navbar({ user, onLogout }) {
           <MenuItem onClick={() => handleNavigation('/profile')}>
             Profile
           </MenuItem>
+          <MenuItem onClick={() => handleNavigation('/sessions')}>
+            Sessions
+          </MenuItem>
           <MenuItem onClick={() => handleNavigation('/settings')}>
             Settings
           </MenuItem>
           <Divider />
-          <MenuItem 
-            onClick={handleDeleteClick} 
-            sx={{ 
+          <MenuItem
+            onClick={handleDeleteClick}
+            sx={{
               color: 'error.main',
               '&:hover': {
                 backgroundColor: (theme) => `${theme.palette.error.main}14`,
@@ -222,13 +241,18 @@ function Navbar({ user, onLogout }) {
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
+                <ListItemButton onClick={() => handleNavigation('/sessions')}>
+                  <ListItemText primary="Sessions" />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
                 <ListItemButton onClick={() => handleNavigation('/settings')}>
                   <ListItemText primary="Settings" />
                 </ListItemButton>
               </ListItem>
               <Divider sx={{ my: 1 }} />
               <ListItem disablePadding>
-                <ListItemButton 
+                <ListItemButton
                   onClick={() => {
                     setMobileMenuOpen(false);
                     handleDeleteClick();
