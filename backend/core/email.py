@@ -3,42 +3,128 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from core.config import settings
 import logging
+from abc import ABC, abstractmethod
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+class EmailProvider(ABC):
+    """Abstract base class for email providers"""
+    
+    @abstractmethod
+    def send_email(self, to_email: str, subject: str, html_content: str) -> bool:
+        """Send an email using the provider"""
+        pass
+
+class MailerSendProvider(EmailProvider):
+    """MailerSend email provider implementation"""
+    
+    def __init__(self, api_key: str, from_email: str, from_name: str):
+        self.api_key = api_key
+        self.from_email = from_email
+        self.from_name = from_name
+    
+    def send_email(self, to_email: str, subject: str, html_content: str) -> bool:
+        """Send email using MailerSend API"""
+        try:
+            from mailersend import MailerSendClient, EmailBuilder
+            
+            # Create MailerSend client
+            ms = MailerSendClient()
+            ms.mailersend_api_key = self.api_key
+            
+            # Build email using EmailBuilder
+            email = (EmailBuilder()
+                    .from_email(self.from_email, self.from_name)
+                    .to_many([{"email": to_email}])
+                    .subject(subject)
+                    .html(html_content)
+                    .build())
+            
+            # Send email
+            ms.emails.send(email)
+            
+            # MailerSend 2.0.0 - if no exception was raised, assume success
+            # The fact that we got here means the API call completed without error
+            logger.info(f"Email sent successfully via MailerSend to {to_email}")
+            return True
+                
+        except Exception as e:
+            logger.error(f"Failed to send email via MailerSend to {to_email}: {e}")
+            return False
+
+class SMTPProvider(EmailProvider):
+    """SMTP email provider implementation"""
+    
+    def __init__(self, host: str, port: int, user: str, password: str, from_email: str, from_name: str):
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.from_email = from_email
+        self.from_name = from_name
+    
+    def send_email(self, to_email: str, subject: str, html_content: str) -> bool:
+        """Send email using SMTP"""
+        # Skip if SMTP not configured
+        if not self.user or not self.password:
+            logger.warning(f"SMTP not configured. Email would be sent to {to_email}")
+            logger.info(f"Subject: {subject}")
+            logger.info(f"Content: {html_content}")
+            return False
+        
+        try:
+            # Create message
+            message = MIMEMultipart("alternative")
+            message["Subject"] = subject
+            message["From"] = f"{self.from_name} <{self.from_email}>"
+            message["To"] = to_email
+            
+            # Add HTML content
+            html_part = MIMEText(html_content, "html")
+            message.attach(html_part)
+            
+            # Send email
+            with smtplib.SMTP(self.host, self.port) as server:
+                server.starttls()
+                server.login(self.user, self.password)
+                server.send_message(message)
+            
+            logger.info(f"Email sent successfully via SMTP to {to_email}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to send email via SMTP to {to_email}: {str(e)}")
+            return False
+
+def get_email_provider() -> EmailProvider:
+    """Factory function to get the appropriate email provider based on configuration"""
+    if settings.MAILERSEND_API_KEY:
+        # Use MailerSend provider
+        from_email = settings.MAILERSEND_FROM_EMAIL or settings.SMTP_FROM_EMAIL
+        from_name = settings.MAILERSEND_FROM_NAME or settings.SMTP_FROM_NAME
+        logger.info("Using MailerSend email provider")
+        return MailerSendProvider(
+            api_key=settings.MAILERSEND_API_KEY,
+            from_email=from_email,
+            from_name=from_name
+        )
+    else:
+        # Use SMTP provider
+        logger.info("Using SMTP email provider")
+        return SMTPProvider(
+            host=settings.SMTP_HOST,
+            port=settings.SMTP_PORT,
+            user=settings.SMTP_USER,
+            password=settings.SMTP_PASSWORD,
+            from_email=settings.SMTP_FROM_EMAIL,
+            from_name=settings.SMTP_FROM_NAME
+        )
+
 def send_email(to_email: str, subject: str, html_content: str) -> bool:
-    """Send an email using SMTP"""
-    
-    # Skip if SMTP not configured
-    if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
-        logger.warning(f"SMTP not configured. Email would be sent to {to_email}")
-        logger.info(f"Subject: {subject}")
-        logger.info(f"Content: {html_content}")
-        return False
-    
-    try:
-        # Create message
-        message = MIMEMultipart("alternative")
-        message["Subject"] = subject
-        message["From"] = f"{settings.SMTP_FROM_NAME} <{settings.SMTP_FROM_EMAIL}>"
-        message["To"] = to_email
-        
-        # Add HTML content
-        html_part = MIMEText(html_content, "html")
-        message.attach(html_part)
-        
-        # Send email
-        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-            server.starttls()
-            server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-            server.send_message(message)
-        
-        logger.info(f"Email sent successfully to {to_email}")
-        return True
-        
-    except Exception as e:
-        logger.error(f"Failed to send email to {to_email}: {str(e)}")
-        return False
+    """Send an email using the configured provider (MailerSend or SMTP)"""
+    provider = get_email_provider()
+    return provider.send_email(to_email, subject, html_content)
 
 def send_password_reset_email(to_email: str, reset_token: str, username: str) -> bool:
     """Send password reset email"""

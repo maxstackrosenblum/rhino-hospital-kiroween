@@ -30,4 +30,9 @@ class Settings:
     SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "Hospital Management System")
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
     
+    # MailerSend Settings
+    MAILERSEND_API_KEY: str = os.getenv("MAILERSEND_API_KEY", "")
+    MAILERSEND_FROM_EMAIL: str = os.getenv("MAILERSEND_FROM_EMAIL", "")
+    MAILERSEND_FROM_NAME: str = os.getenv("MAILERSEND_FROM_NAME", "")
+    
 settings = Settings()
