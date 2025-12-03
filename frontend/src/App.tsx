@@ -18,9 +18,11 @@ import { AppThemeProvider } from "./hooks/useTheme";
 import Dashboard from "./pages/Dashboard";
 import Doctors from "./pages/Doctors";
 import ForgotPassword from "./pages/ForgotPassword";
+import Hospitalizations from "./pages/Hospitalizations";
 import Login from "./pages/Login";
 import MedicalStaffList from "./pages/MedicalStaffList";
 import Patients from "./pages/Patients";
+import Prescriptions from "./pages/Prescriptions";
 import Profile from "./pages/Profile";
 import ResetPassword from "./pages/ResetPassword";
 import Sessions from "./pages/Sessions";
@@ -229,6 +231,22 @@ function AppContent() {
                   element={
                     <ProtectedRoute user={user}>
                       <MedicalStaffList user={user} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/hospitalizations"
+                  element={
+                    <ProtectedRoute user={user}>
+                      <Hospitalizations user={user} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/prescriptions"
+                  element={
+                    <ProtectedRoute user={user}>
+                      <Prescriptions user={user} />
                     </ProtectedRoute>
                   }
                 />
