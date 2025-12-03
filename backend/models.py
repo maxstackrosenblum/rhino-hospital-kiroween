@@ -1,9 +1,18 @@
-from sqlalchemy import Column, Integer, String, DateTime, Index, Enum, ForeignKey, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Index, Enum, ForeignKey, Text, ForeignKey, JSON, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
 from database import Base
 import enum
+
+# Junction table for hospitalization-doctor many-to-many relationship
+hospitalization_doctors = Table(
+    'hospitalization_doctors',
+    Base.metadata,
+    Column('hospitalization_id', Integer, ForeignKey('hospitalizations.id', ondelete='CASCADE'), primary_key=True),
+    Column('doctor_id', Integer, ForeignKey('doctors.id', ondelete='CASCADE'), primary_key=True),
+    Column('created_at', DateTime, server_default=func.now(), nullable=False)
+)
 
 class UserRole(str, enum.Enum):
     UNDEFINED = "undefined"
@@ -95,6 +104,41 @@ class MedicalStaff(Base):
 
     # Relationship to User
     user = relationship("User", back_populates="medical_staff")
+
+
+class Hospitalization(Base):
+    __tablename__ = "hospitalizations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey('patients.id'), nullable=False, index=True)
+    admission_date = Column(DateTime, nullable=False)
+    discharge_date = Column(DateTime, nullable=True)
+    diagnosis = Column(Text, nullable=False)
+    summary = Column(Text, nullable=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime, nullable=True, default=None)
+
+    # Relationship to Patient
+    patient = relationship("Patient", backref="hospitalizations")
+    
+    # Many-to-many relationship with doctors
+    doctors = relationship("Doctor", secondary=hospitalization_doctors, backref="hospitalizations")
+
+
+class Prescription(Base):
+    __tablename__ = "prescriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey('patients.id'), nullable=False, index=True)
+    date = Column(DateTime, nullable=False)
+    medicines = Column(JSON, nullable=False)  # Array of medicine objects
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime, nullable=True, default=None)
+
+    # Relationship to Patient
+    patient = relationship("Patient", backref="prescriptions")
 
 
 class Session(Base):

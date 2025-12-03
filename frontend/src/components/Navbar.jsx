@@ -124,6 +124,22 @@ function Navbar({ user, onLogout }) {
                 Patients
               </Button>
             )}
+            {['admin', 'doctor', 'medical_staff', 'receptionist'].includes(user.role) && (
+              <>
+                <Button
+                  color="primary"
+                  onClick={() => navigate('/hospitalizations')}
+                >
+                  Hospitalizations
+                </Button>
+                <Button
+                  color="primary"
+                  onClick={() => navigate('/prescriptions')}
+                >
+                  Prescriptions
+                </Button>
+              </>
+            )}
             {user.role === 'admin' && (
               <>
                 <Button
@@ -225,6 +241,20 @@ function Navbar({ user, onLogout }) {
                     <ListItemText primary="Patients" />
                   </ListItemButton>
                 </ListItem>
+              )}
+              {['admin', 'doctor', 'medical_staff', 'receptionist'].includes(user.role) && (
+                <>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/hospitalizations')}>
+                      <ListItemText primary="Hospitalizations" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleNavigation('/prescriptions')}>
+                      <ListItemText primary="Prescriptions" />
+                    </ListItemButton>
+                  </ListItem>
+                </>
               )}
               {user.role === 'admin' && (
                 <>

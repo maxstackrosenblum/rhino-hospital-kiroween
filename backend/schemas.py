@@ -614,3 +614,91 @@ class SessionResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+
+# Hospitalization Schemas
+class HospitalizationCreate(BaseModel):
+    patient_id: int
+    admission_date: str  # ISO format datetime string
+    discharge_date: str | None = None
+    diagnosis: str
+    summary: str | None = None
+    doctor_ids: list[int] = []  # List of doctor IDs to assign
+
+class HospitalizationUpdate(BaseModel):
+    admission_date: str | None = None
+    discharge_date: str | None = None
+    diagnosis: str | None = None
+    summary: str | None = None
+    doctor_ids: list[int] | None = None  # List of doctor IDs to assign
+
+class DoctorInfo(BaseModel):
+    id: int
+    doctor_id: str
+    first_name: str
+    last_name: str
+    specialization: str | None = None
+
+class HospitalizationResponse(BaseModel):
+    id: int
+    patient_id: int
+    admission_date: datetime
+    discharge_date: datetime | None
+    diagnosis: str
+    summary: str | None
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: datetime | None = None
+    # Patient info (computed fields)
+    patient_first_name: str | None = None
+    patient_last_name: str | None = None
+    patient_age: int | None = None
+    # Doctors assigned to this hospitalization
+    doctors: list[DoctorInfo] = []
+    
+    class Config:
+        from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
+# Prescription Schemas
+class MedicineItem(BaseModel):
+    name: str
+    dosage: str | None = None
+    frequency: str | None = None
+    duration: str | None = None
+
+class PrescriptionCreate(BaseModel):
+    patient_id: int
+    start_date: str  # ISO format datetime string
+    end_date: str  # ISO format datetime string
+    medicines: list[MedicineItem]
+
+class PrescriptionUpdate(BaseModel):
+    start_date: str | None = None
+    end_date: str | None = None
+    medicines: list[MedicineItem] | None = None
+
+class PrescriptionResponse(BaseModel):
+    id: int
+    patient_id: int
+    date: datetime
+    medicines: list[dict]  # JSON field
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: datetime | None = None
+    # Patient info (computed fields)
+    patient_first_name: str | None = None
+    patient_last_name: str | None = None
+    patient_age: int | None = None
+    
+    class Config:
+        from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
+class PrescriptionBulkCreateResponse(BaseModel):
+    created_count: int
+    prescriptions: list[PrescriptionResponse]

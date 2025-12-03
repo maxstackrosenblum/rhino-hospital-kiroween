@@ -333,3 +333,85 @@ export interface DoctorCreate {
   specialization?: string;
   license_number?: string;
 }
+
+
+// Hospitalization types
+export interface DoctorInfo {
+  id: number;
+  doctor_id: string;
+  first_name: string;
+  last_name: string;
+  specialization?: string;
+}
+
+export interface Hospitalization {
+  id: number;
+  patient_id: number;
+  admission_date: string;
+  discharge_date: string | null;
+  diagnosis: string;
+  summary: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  patient_first_name?: string;
+  patient_last_name?: string;
+  patient_age?: number;
+  doctors?: DoctorInfo[];
+}
+
+export interface HospitalizationCreate {
+  patient_id: number;
+  admission_date: string;
+  discharge_date?: string;
+  diagnosis: string;
+  summary?: string;
+  doctor_ids?: number[];
+}
+
+export interface HospitalizationUpdate {
+  admission_date?: string;
+  discharge_date?: string;
+  diagnosis?: string;
+  summary?: string;
+  doctor_ids?: number[];
+}
+
+// Prescription types
+export interface MedicineItem {
+  name: string;
+  dosage?: string;
+  frequency?: string;
+  duration?: string;
+}
+
+export interface Prescription {
+  id: number;
+  patient_id: number;
+  date: string;
+  medicines: MedicineItem[];
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  patient_first_name?: string;
+  patient_last_name?: string;
+  patient_age?: number;
+}
+
+export interface PrescriptionCreate {
+  patient_id: number;
+  start_date: string;
+  end_date: string;
+  medicines: MedicineItem[];
+}
+
+export interface PrescriptionUpdate {
+  start_date?: string;
+  end_date?: string;
+  medicines?: MedicineItem[];
+}
+
+export interface PrescriptionBulkCreateResponse {
+  created_count: number;
+  prescriptions: Prescription[];
+}
