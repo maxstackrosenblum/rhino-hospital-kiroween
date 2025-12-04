@@ -1,7 +1,8 @@
-import { Search as SearchIcon } from "@mui/icons-material";
+import { Search as SearchIcon, PersonAdd as PersonAddIcon } from "@mui/icons-material";
 import {
   Alert,
   Box,
+  Button,
   CircularProgress,
   Container,
   FormControl,
@@ -17,8 +18,6 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDoctors } from "../api/doctors";
-import { useHospitalizations } from "../api/hospitalizations";
 import {
   useCompletePatientProfile,
   useDeletePatient,
@@ -26,6 +25,7 @@ import {
   useUpdatePatient,
 } from "../api/patients";
 import {
+  AddNonPatientDialog,
   CompletePatientProfileDialog,
   DeletePatientDialog,
   EditPatientDialog,
@@ -57,6 +57,7 @@ function Patients({ user }: PatientsProps) {
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
+  const [addNonPatientDialogOpen, setAddNonPatientDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
 
   // Check user permissions
@@ -84,56 +85,13 @@ function Patients({ user }: PatientsProps) {
     search: debouncedSearchTerm,
     page: page,
     page_size: pageSize,
+    hospitalizationStatus: filterStatus === "all" ? undefined : filterStatus,
   });
 
-  const { data: hospitalizationsResponse } = useHospitalizations({
-    page_size: 100,
-  });
-  const hospitalizations = hospitalizationsResponse?.hospitalizations || [];
-  const { data: doctorsResponse } = useDoctors({ page_size: 100 });
-  const doctors = doctorsResponse?.doctors || [];
-
-  // Find current user's doctor ID if they're a doctor
-  const currentDoctor = doctors.find((d) => d.user_id === user.id);
-
-  // Get currently hospitalized patient IDs
-  const hospitalizedPatientIds = new Set(
-    hospitalizations
-      .filter((h) => !h.discharge_date) // Only active hospitalizations
-      .map((h) => h.patient_id)
-  );
-
-  // Get patient IDs for current doctor's hospitalizations
-  const myPatientIds = new Set(
-    currentDoctor
-      ? hospitalizations
-          .filter(
-            (h) =>
-              !h.discharge_date && // Only active hospitalizations
-              h.doctors?.some((d) => d.id === currentDoctor.id) // Doctor is assigned
-          )
-          .map((h) => h.patient_id)
-      : []
-  );
-
-  // Get pagination info
-  const allPatients = patientsResponse?.patients || [];
+  // Get pagination info and patients (filtered on backend)
+  const patients = patientsResponse?.patients || [];
   const totalPages = patientsResponse?.total_pages || 0;
   const totalRecords = patientsResponse?.total || 0;
-
-  // Filter patients based on status (client-side filtering for now)
-  const filteredPatients =
-    filterStatus === "hospitalized"
-      ? allPatients.filter((p) => p.id && hospitalizedPatientIds.has(p.id))
-      : filterStatus === "my-patients"
-      ? allPatients.filter((p) => p.id && myPatientIds.has(p.id))
-      : allPatients;
-
-  // Sort by created_at in reverse order (newest first)
-  const patients = [...filteredPatients].sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
 
   const createPatientProfileMutation = useCompletePatientProfile();
   const updatePatientMutation = useUpdatePatient();
@@ -250,6 +208,15 @@ function Patients({ user }: PatientsProps) {
           <Typography variant="h3" component="h1" fontWeight={700}>
             Patient Management
           </Typography>
+          {canModify && (
+            <Button
+              variant="contained"
+              startIcon={<PersonAddIcon />}
+              onClick={() => setAddNonPatientDialogOpen(true)}
+            >
+              Add User as Patient
+            </Button>
+          )}
         </Box>
 
         {/* Search Bar and Filter */}
@@ -365,6 +332,13 @@ function Patients({ user }: PatientsProps) {
           isDeleting={deletePatientMutation.isPending}
           onClose={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
+        />
+
+        {/* Add Non-Patient User Dialog */}
+        <AddNonPatientDialog
+          open={addNonPatientDialogOpen}
+          onClose={() => setAddNonPatientDialogOpen(false)}
+          onSuccess={() => setSuccessMessage("User converted to patient successfully!")}
         />
 
         {/* Auto-dismissing Snackbar for success messages */}
