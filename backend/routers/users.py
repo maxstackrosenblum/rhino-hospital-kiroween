@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from typing import List, Optional
 from datetime import datetime
+import logging
 import auth as auth_utils
 import models
 import schemas
@@ -10,9 +11,11 @@ from database import get_db
 from core.dependencies import require_admin
 from core.password_policy import PasswordPolicy
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api", tags=["users"])
 
-@router.post("/users", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/users", response_model=schemas.UserCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user: schemas.UserCreate,
     db: Session = Depends(get_db),
@@ -21,8 +24,9 @@ async def create_user(
     """
     Create a new basic user account (admin only).
     
-    This creates only the user record. Users with patient/doctor roles
-    will need to complete their profiles separately.
+    This creates only the user record with password_change_required=True and sends
+    a welcome email with credentials. Users with patient/doctor roles will need 
+    to complete their profiles separately.
     
     Requires: Admin role only
     """
@@ -55,7 +59,7 @@ async def create_user(
                 detail={"message": "Password does not meet requirements", "errors": errors}
             )
         
-        # Create user record
+        # Create user record with password change required
         hashed_password = auth_utils.get_password_hash(user.password)
         db_user = models.User(
             email=user.email,
@@ -68,13 +72,38 @@ async def create_user(
             address=user.address,
             gender=user.gender.value if user.gender and hasattr(user.gender, 'value') else user.gender,
             hashed_password=hashed_password,
+            password_change_required=True,  # Require password change on first login
             role=user.role.value if hasattr(user.role, 'value') else user.role
         )
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
         
-        return db_user
+        # Send welcome email with credentials (non-blocking)
+        email_sent = False
+        email_error = None
+        try:
+            from core.email import send_welcome_email_with_credentials
+            email_sent = send_welcome_email_with_credentials(
+                to_email=user.email,
+                username=user.username,
+                temporary_password=user.password,
+                first_name=user.first_name
+            )
+            if email_sent:
+                logger.info(f"Welcome email sent successfully to {user.email}")
+            else:
+                logger.warning(f"Failed to send welcome email to {user.email}")
+                email_error = "Email delivery failed"
+        except Exception as e:
+            logger.error(f"Email sending error for {user.email}: {str(e)}")
+            email_error = "Email delivery failed"
+        
+        return schemas.UserCreateResponse(
+            user=db_user,
+            email_sent=email_sent,
+            email_error=email_error
+        )
         
     except HTTPException:
         raise

@@ -622,6 +622,22 @@ class SessionResponse(BaseModel):
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+    
+    @validator('new_password')
+    def validate_new_password(cls, v):
+        if not v or len(v) < 12:
+            raise ValueError('Password must be at least 12 characters long')
+        return v
+
+class UserCreateResponse(BaseModel):
+    """Enhanced response for user creation including email status"""
+    user: UserResponse
+    email_sent: bool
+    email_error: Optional[str] = None
+
 
 # Hospitalization Schemas
 class HospitalizationCreate(BaseModel):
