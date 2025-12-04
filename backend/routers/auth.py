@@ -7,6 +7,7 @@ import models
 import schemas
 from database import get_db
 from core.security import create_access_token, create_refresh_token, decode_token
+from core.password_policy import PasswordPolicy
 
 router = APIRouter(prefix="/api", tags=["authentication"])
 
@@ -21,6 +22,14 @@ def register(user: schemas.UserRegister, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=400, 
             detail="Email or username already registered"
+        )
+    
+    # Validate password against policy
+    is_valid, errors = PasswordPolicy.validate(user.password, user.username)
+    if not is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail={"message": "Password does not meet requirements", "errors": errors}
         )
     
     # Create new user with provided role or default 'undefined'

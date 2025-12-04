@@ -29,7 +29,7 @@ export const createAppTheme = (mode: any) => {
         secondary: isDark ? "#d1d7db" : "#495057",
       },
       success: {
-        main: isDark ? "#a8d5c5" : "#00d4aa",
+        main: isDark ? "#a8d5c5" : "#2e7d32",
       },
       error: {
         main: isDark ? "#ff8a80" : "#d32f2f",

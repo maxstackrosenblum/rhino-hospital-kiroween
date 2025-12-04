@@ -11,9 +11,11 @@ import {
 import "./App.css";
 import { useCurrentUser } from "./api";
 import ErrorBoundary from "./components/ErrorBoundary";
+import IdleWarningDialog from "./components/IdleWarningDialog";
 import Navbar from "./components/Navbar";
 import NetworkErrorHandler from "./components/NetworkErrorHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useIdleTimeout } from "./hooks/useIdleTimeout";
 import { AppThemeProvider } from "./hooks/useTheme";
 import Dashboard from "./pages/Dashboard";
 import Doctors from "./pages/Doctors";
@@ -81,6 +83,13 @@ function AppContent() {
     setToken(null);
     queryClient.clear();
   };
+
+  // Idle timeout - 30 minutes with 2 minute warning
+  const { showWarning, remainingTime, resetTimer } = useIdleTimeout({
+    onIdle: handleLogout,
+    idleTime: 30 * 60 * 1000, // 30 minutes
+    warningTime: 2 * 60 * 1000, // 2 minutes warning
+  });
 
   // Proactive token refresh - check every 5 minutes
   useEffect(() => {
@@ -284,6 +293,16 @@ function AppContent() {
             </ErrorBoundary>
           </Box>
         </Box>
+
+        {/* Idle timeout warning dialog */}
+        {user && (
+          <IdleWarningDialog
+            open={showWarning}
+            remainingTime={remainingTime}
+            onStayLoggedIn={resetTimer}
+            onLogout={handleLogout}
+          />
+        )}
       </NetworkErrorHandler>
     </Router>
   );

@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import PasswordStrengthIndicator from "../components/users/PasswordStrengthIndicator";
 
 function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -20,6 +21,7 @@ function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [tokenValid, setTokenValid] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,8 +41,9 @@ function ResetPassword() {
         if (!res.ok) throw new Error("Invalid or expired token");
         return res.json();
       })
-      .then(() => {
+      .then((data) => {
         setTokenValid(true);
+        setUserEmail(data.email || "");
         setVerifying(false);
       })
       .catch((err) => {
@@ -57,8 +60,8 @@ function ResetPassword() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (password.length < 12) {
+      setError("Password must be at least 12 characters");
       return;
     }
 
@@ -77,6 +80,10 @@ function ResetPassword() {
 
       if (!response.ok) {
         const data = await response.json();
+        // Handle detailed error response from password policy
+        if (data.detail && typeof data.detail === "object" && data.detail.errors) {
+          throw new Error(data.detail.errors.join(". "));
+        }
         throw new Error(data.detail || "Failed to reset password");
       }
 
@@ -161,7 +168,12 @@ function ResetPassword() {
             onChange={(e) => setPassword(e.target.value)}
             fullWidth
             required
-            sx={{ mb: 2 }}
+            sx={{ mb: 1 }}
+          />
+
+          <PasswordStrengthIndicator
+            password={password}
+            username={userEmail.split("@")[0]}
           />
 
           <TextField
@@ -171,7 +183,7 @@ function ResetPassword() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             fullWidth
             required
-            sx={{ mb: 3 }}
+            sx={{ mb: 3, mt: 2 }}
           />
 
           <Button

@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PasswordStrengthIndicator from "../components/users/PasswordStrengthIndicator";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -24,6 +25,7 @@ function Login({ onLogin }: any) {
     last_name: "",
   });
   const [error, setError] = useState("");
+  const [errorList, setErrorList] = useState<string[]>([]);
   const [success, setSuccess] = useState("");
 
   const handleChange = (e: any) => {
@@ -33,6 +35,7 @@ function Login({ onLogin }: any) {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setError("");
+    setErrorList([]);
     setSuccess("");
 
     const endpoint = isLogin ? "/api/login" : "/api/register";
@@ -55,12 +58,34 @@ function Login({ onLogin }: any) {
         } else {
           setIsLogin(true);
           setSuccess("Registration successful! Please login.");
+          setFormData({
+            username: "",
+            password: "",
+            email: "",
+            first_name: "",
+            last_name: "",
+          });
         }
       } else {
-        setError(data.detail || "An error occurred");
+        // Handle structured error response from password policy
+        if (data.detail && typeof data.detail === "object") {
+          if (data.detail.errors && Array.isArray(data.detail.errors)) {
+            setError(data.detail.message || "Validation error");
+            setErrorList(data.detail.errors);
+          } else if (data.detail.message) {
+            setError(data.detail.message);
+          } else {
+            setError(JSON.stringify(data.detail));
+          }
+        } else if (typeof data.detail === "string") {
+          setError(data.detail);
+        } else {
+          setError("An error occurred");
+        }
       }
     } catch (err) {
       setError("Connection error");
+      setErrorList([]);
     }
   };
 
@@ -157,6 +182,15 @@ function Login({ onLogin }: any) {
               required
             />
 
+            {!isLogin && formData.password && (
+              <Box sx={{ mt: 1 }}>
+                <PasswordStrengthIndicator
+                  password={formData.password}
+                  username={formData.username}
+                />
+              </Box>
+            )}
+
             <Button
               type="submit"
               fullWidth
@@ -170,6 +204,13 @@ function Login({ onLogin }: any) {
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {error}
+              {errorList.length > 0 && (
+                <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+                  {errorList.map((err, index) => (
+                    <li key={index}>{err}</li>
+                  ))}
+                </Box>
+              )}
             </Alert>
           )}
           {success && (
