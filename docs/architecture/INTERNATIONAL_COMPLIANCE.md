@@ -34,8 +34,8 @@
 
 | Requirement | Status | Implementation |
 |------------|--------|----------------|
-| **Encryption in transit** | ✅ Complete | HTTPS/TLS 1.2+ enforced |
-| **Encryption at rest** | ✅ Complete | Render.com PostgreSQL encrypted storage |
+| **Encryption in transit** | ✅ Complete | HTTPS/TLS enforced, database TLS, email SSL/TLS |
+| **Encryption at rest** | ✅ Complete | AES-256 (database, backups, email) |
 | **Access controls** | ✅ Complete | Role-based access control |
 | **Authentication** | ✅ Complete | Strong password policy, JWT tokens |
 | **Session management** | ✅ Complete | 30-min timeout, idle detection |
@@ -170,9 +170,11 @@ The UK DPA is based on GDPR with minor differences. Compliance requirements are 
    - Idle detection and auto-logout
 
 2. **Encryption**
-   - HTTPS/TLS 1.2+ in production
-   - Encryption at rest (Render.com PostgreSQL)
-   - Encrypted automated backups
+   - HTTPS/TLS enforced (Render auto-redirects HTTP to HTTPS)
+   - Database encryption: AES-256 at rest (Render PostgreSQL)
+   - Database connections: TLS with Render-managed certificates
+   - Encrypted backups: AES-256 (primary, replica, backups)
+   - Email encryption: SSL/TLS and AES256 (MailerSend)
    - Bcrypt password hashing
    - Secure token generation
 
