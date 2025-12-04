@@ -309,6 +309,208 @@ def send_password_reset_email(to_email: str, reset_token: str, username: str) ->
         html_content=html_content
     )
 
+def send_appointment_confirmation_email(
+    to_email: str,
+    patient_name: str,
+    doctor_name: str,
+    appointment_date: str,
+    department: str,
+    disease: str
+) -> bool:
+    """Send appointment confirmation email"""
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {{
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                line-height: 1.6;
+                color: #1a1d23;
+                margin: 0;
+                padding: 0;
+                background-color: #f2f4f8;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 40px auto;
+                background: white;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .header {{
+                background: linear-gradient(135deg, #16a249 0%, #14903f 100%);
+                color: white;
+                padding: 40px 30px;
+                text-align: center;
+            }}
+            .header h1 {{
+                margin: 0;
+                font-size: 28px;
+                font-weight: 700;
+            }}
+            .content {{
+                padding: 40px 30px;
+                background: white;
+            }}
+            .content p {{
+                margin: 0 0 16px 0;
+                color: #495057;
+            }}
+            .appointment-details {{
+                background: #f2f4f8;
+                padding: 24px;
+                border-radius: 8px;
+                margin: 24px 0;
+                border-left: 4px solid #16a249;
+            }}
+            .detail-row {{
+                display: flex;
+                padding: 12px 0;
+                border-bottom: 1px solid #e0e0e0;
+            }}
+            .detail-row:last-child {{
+                border-bottom: none;
+            }}
+            .detail-label {{
+                font-weight: 600;
+                color: #1a1d23;
+                min-width: 140px;
+            }}
+            .detail-value {{
+                color: #495057;
+                flex: 1;
+            }}
+            .status-badge {{
+                display: inline-block;
+                padding: 6px 12px;
+                background: #fff8e1;
+                color: #f57c00;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: 600;
+            }}
+            .info-box {{
+                background: #e3f2fd;
+                border-left: 4px solid #2196f3;
+                padding: 16px;
+                margin: 24px 0;
+                border-radius: 4px;
+            }}
+            .info-box strong {{
+                color: #1565c0;
+                display: block;
+                margin-bottom: 8px;
+            }}
+            .footer {{
+                text-align: center;
+                padding: 24px 30px;
+                background: #f2f4f8;
+                color: #6c757d;
+                font-size: 13px;
+            }}
+            .footer p {{
+                margin: 4px 0;
+            }}
+            .logo {{
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 8px;
+            }}
+            @media only screen and (max-width: 600px) {{
+                .container {{
+                    margin: 20px;
+                    border-radius: 8px;
+                }}
+                .header {{
+                    padding: 30px 20px;
+                }}
+                .header h1 {{
+                    font-size: 24px;
+                }}
+                .content {{
+                    padding: 30px 20px;
+                }}
+                .detail-row {{
+                    flex-direction: column;
+                }}
+                .detail-label {{
+                    margin-bottom: 4px;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🏥 Hospital Management System</div>
+                <h1>Appointment Confirmed</h1>
+            </div>
+            <div class="content">
+                <p>Dear <strong>{patient_name}</strong>,</p>
+                
+                <p>Your appointment has been successfully scheduled. Please find the details below:</p>
+                
+                <div class="appointment-details">
+                    <div class="detail-row">
+                        <div class="detail-label">📅 Date & Time:</div>
+                        <div class="detail-value"><strong>{appointment_date}</strong></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">👨‍⚕️ Doctor:</div>
+                        <div class="detail-value">{doctor_name}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">🏥 Department:</div>
+                        <div class="detail-value">{department}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">📋 Reason:</div>
+                        <div class="detail-value">{disease}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value"><span class="status-badge">⏳ Pending</span></div>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <strong>📌 Important Reminders</strong>
+                    <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #495057;">
+                        <li>Please arrive 15 minutes before your appointment time</li>
+                        <li>Bring your medical records and insurance information</li>
+                        <li>If you need to cancel or reschedule, please do so at least 24 hours in advance</li>
+                    </ul>
+                </div>
+                
+                <p>You can view and manage your appointments by logging into your account.</p>
+                
+                <p style="margin-top: 32px;">If you have any questions, please contact our reception desk.</p>
+                
+                <p style="margin-top: 32px;">
+                    Best regards,<br>
+                    <strong>Hospital Management System Team</strong>
+                </p>
+            </div>
+            <div class="footer">
+                <p>This is an automated email. Please do not reply to this message.</p>
+                <p>&copy; 2024 Hospital Management System. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return send_email(
+        to_email=to_email,
+        subject="Appointment Confirmation - Hospital Management System",
+        html_content=html_content
+    )
+
 def send_welcome_email(to_email: str, username: str, first_name: str) -> bool:
     """Send welcome email to new users"""
     

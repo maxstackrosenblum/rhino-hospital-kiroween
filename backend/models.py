@@ -28,6 +28,12 @@ class Gender(str, enum.Enum):
     FEMALE = "female"
     OTHER = "other"
 
+class AppointmentStatus(str, enum.Enum):
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -203,4 +209,30 @@ class Shift(Base):
     __table_args__ = (
         Index('ix_shifts_user_date', 'user_id', 'date', 'deleted_at'),
         Index('ix_shifts_date_deleted', 'date', 'deleted_at'),
+    )
+
+
+class Appointment(Base):
+    __tablename__ = "appointments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey('patients.id'), nullable=False, index=True)
+    doctor_id = Column(Integer, ForeignKey('doctors.id'), nullable=False, index=True)
+    appointment_date = Column(DateTime, nullable=False, index=True)
+    disease = Column(Text, nullable=False)
+    status = Column(String, nullable=False, default=AppointmentStatus.PENDING.value, index=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime, nullable=True, default=None, index=True)
+
+    # Relationships
+    patient = relationship("Patient", backref="appointments")
+    doctor = relationship("Doctor", backref="appointments")
+
+    __table_args__ = (
+        Index('ix_appointments_patient_deleted', 'patient_id', 'deleted_at'),
+        Index('ix_appointments_doctor_deleted', 'doctor_id', 'deleted_at'),
+        Index('ix_appointments_date_deleted', 'appointment_date', 'deleted_at'),
+        Index('ix_appointments_status_deleted', 'status', 'deleted_at'),
+        Index('ix_appointments_doctor_date', 'doctor_id', 'appointment_date', 'deleted_at'),
     )

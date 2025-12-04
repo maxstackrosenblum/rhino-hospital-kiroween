@@ -14,22 +14,25 @@ export const usePatients = (params?: {
   page?: number;
   page_size?: number;
   includeDeleted?: boolean;
+  hospitalizationStatus?: string;
 }) => {
   const {
     search,
     page = 1,
     page_size = 10,
     includeDeleted = false,
+    hospitalizationStatus,
   } = params || {};
 
   return useQuery<PaginatedPatientsResponse>({
-    queryKey: ["patients", { search, page, page_size, includeDeleted }],
+    queryKey: ["patients", { search, page, page_size, includeDeleted, hospitalizationStatus }],
     queryFn: async () => {
       const searchParams = new URLSearchParams();
       if (search) searchParams.append("search", search);
       searchParams.append("page", page.toString());
       searchParams.append("page_size", page_size.toString());
       if (includeDeleted) searchParams.append("include_deleted", "true");
+      if (hospitalizationStatus) searchParams.append("hospitalization_status", hospitalizationStatus);
 
       const response = await fetch(`${API_URL}/api/patients?${searchParams}`, {
         headers: getAuthHeaders(),
@@ -164,6 +167,69 @@ export const useDeletePatient = () => {
     },
     onError: (error: Error) => {
       console.error("Failed to delete patient:", error.message);
+    },
+  });
+};
+
+// Get non-patient users
+export const useNonPatientUsers = (params?: {
+  search?: string;
+  page?: number;
+  page_size?: number;
+}) => {
+  const {
+    search,
+    page = 1,
+    page_size = 10,
+  } = params || {};
+
+  return useQuery({
+    queryKey: ["nonPatientUsers", { search, page, page_size }],
+    queryFn: async () => {
+      const searchParams = new URLSearchParams();
+      if (search) searchParams.append("search", search);
+      searchParams.append("page", page.toString());
+      searchParams.append("page_size", page_size.toString());
+
+      const response = await fetch(
+        `${API_URL}/api/patients/non-patients/list?${searchParams}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+      return handleApiError(response);
+    },
+  });
+};
+
+// Convert user to patient
+export const useConvertToPatient = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      profileData,
+    }: {
+      userId: number;
+      profileData: PatientProfileCreate;
+    }): Promise<Patient> => {
+      const response = await fetch(
+        `${API_URL}/api/patients/${userId}/convert-to-patient`,
+        {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(profileData),
+        }
+      );
+      return handleApiError<Patient>(response);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["nonPatientUsers"] });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to convert user to patient:", error.message);
     },
   });
 };
