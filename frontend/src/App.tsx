@@ -32,6 +32,7 @@ import Sessions from "./pages/Sessions";
 import Settings from "./pages/Settings";
 import Shifts from "./pages/Shifts";
 import ShiftsReport from "./pages/ShiftsReport";
+import BloodPressure from "./pages/BloodPressure";
 import Users from "./pages/Users";
 
 const queryClient = new QueryClient({
@@ -274,6 +275,14 @@ function AppContent() {
                   element={
                     <ProtectedRoute user={user}>
                       <ShiftsReport user={user as any} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/blood-pressure"
+                  element={
+                    <ProtectedRoute user={user}>
+                      <BloodPressure user={user as any} />
                     </ProtectedRoute>
                   }
                 />

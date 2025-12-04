@@ -137,21 +137,39 @@ function Navbar({ user, onLogout }: any) {
 
         {/* Desktop Navigation Menu */}
         {!isMobile && (
-          <Box sx={{ flexGrow: 1, ml: 3 }}>
+          <Box sx={{ flexGrow: 1, ml: 3, display: 'flex', alignItems: 'center' }}>
             {["admin", "doctor", "receptionist"].includes(user.role) && (
-              <Button color="primary" onClick={() => navigate("/patients")}>
-                Patients
-              </Button>
+              <>
+                <Button color="primary" onClick={() => navigate("/patients")}>
+                  Patients
+                </Button>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
+              </>
             )}
             {["admin", "doctor", "medical_staff", "receptionist", "patient", "undefined"].includes(
               user.role
             ) && (
-              <Button
-                color="primary"
-                onClick={() => navigate("/appointments")}
-              >
-                Appointments
-              </Button>
+              <>
+                <Button
+                  color="primary"
+                  onClick={() => navigate("/appointments")}
+                >
+                  Appointments
+                </Button>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
+              </>
+            )}
+            {/* Blood Pressure Link */}
+            {["admin", "doctor", "nurse", "medical_staff"].includes(user.role) && (
+              <>
+                <Button
+                  color="primary"
+                  onClick={() => navigate("/blood-pressure")}
+                >
+                  Blood Pressure Checks
+                </Button>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
+              </>
             )}
             {["admin", "doctor", "medical_staff", "receptionist"].includes(
               user.role
@@ -163,42 +181,52 @@ function Navbar({ user, onLogout }: any) {
                 >
                   Hospitalizations
                 </Button>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
                 <Button
                   color="primary"
                   onClick={() => navigate("/prescriptions")}
                 >
                   Prescriptions
                 </Button>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
               </>
             )}
             {/* My Shifts Link */}
             {["doctor", "medical_staff", "receptionist"].includes(
               user.role
             ) && (
-              <Button color="primary" onClick={() => navigate("/shifts")}>
-                My Shifts
-              </Button>
+              <>
+                <Button color="primary" onClick={() => navigate("/shifts")}>
+                  My Shifts
+                </Button>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
+              </>
             )}
-            {/* Reports Link */}
+            {/* Shifts Link */}
             {["admin", "accountant"].includes(user.role) && (
-              <Button
-                color="primary"
-                onClick={() => navigate("/shifts-report")}
-              >
-                Reports
-              </Button>
+              <>
+                <Button
+                  color="primary"
+                  onClick={() => navigate("/shifts-report")}
+                >
+                  Shifts
+                </Button>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
+              </>
             )}
             {user.role === "admin" && (
               <>
                 <Button color="primary" onClick={() => navigate("/doctors")}>
                   Doctors
                 </Button>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
                 <Button
                   color="primary"
                   onClick={() => navigate("/medical-staff")}
                 >
                   Medical Staff
                 </Button>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
                 <Button color="primary" onClick={() => navigate("/users")}>
                   Users
                 </Button>
@@ -324,17 +352,6 @@ function Navbar({ user, onLogout }: any) {
                 "accountant",
               ].includes(user.role) && (
                 <>
-                  <Divider sx={{ my: 1 }} />
-                  <ListItem>
-                    <ListItemText
-                      primary="Shifts"
-                      primaryTypographyProps={{
-                        variant: "caption",
-                        color: "text.secondary",
-                        fontWeight: 600,
-                      }}
-                    />
-                  </ListItem>
                   {["doctor", "medical_staff", "receptionist"].includes(
                     user.role
                   ) && (
@@ -351,37 +368,25 @@ function Navbar({ user, onLogout }: any) {
                       <ListItemButton
                         onClick={() => handleNavigation("/shifts-report")}
                       >
-                        <ListItemText primary="Shifts Report" />
+                        <ListItemText primary="Shifts" />
                       </ListItemButton>
                     </ListItem>
                   )}
                 </>
               )}
-              {/* Reports Section */}
-              {["admin", "accountant"].includes(user.role) && (
-                <>
-                  <Divider sx={{ my: 1 }} />
-                  <ListItem>
-                    <ListItemText
-                      primary="Reports"
-                      primaryTypographyProps={{
-                        variant: "caption",
-                        color: "text.secondary",
-                        fontWeight: 600,
-                      }}
-                    />
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      onClick={() => handleNavigation("/shifts-report")}
-                    >
-                      <ListItemText primary="Shifts Report" />
-                    </ListItemButton>
-                  </ListItem>
-                </>
+              {/* Blood Pressure Checks */}
+              {["admin", "doctor", "nurse", "medical_staff"].includes(user.role) && (
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => handleNavigation("/blood-pressure")}
+                  >
+                    <ListItemText primary="Blood Pressure Checks" />
+                  </ListItemButton>
+                </ListItem>
               )}
               {user.role === "admin" && (
                 <>
+                  <Divider sx={{ my: 1 }} />
                   <ListItem disablePadding>
                     <ListItemButton
                       onClick={() => handleNavigation("/doctors")}
@@ -403,6 +408,7 @@ function Navbar({ user, onLogout }: any) {
                   </ListItem>
                 </>
               )}
+              <Divider sx={{ my: 1 }} />
               <ListItem disablePadding>
                 <ListItemButton onClick={() => handleNavigation("/profile")}>
                   <ListItemText primary="Profile" />
