@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Index, Enum, ForeignKey, Text, ForeignKey, JSON, Table
+from sqlalchemy import Column, Integer, String, DateTime, Index, Enum, ForeignKey, Text, ForeignKey, JSON, Table, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
@@ -48,6 +48,7 @@ class User(Base):
     address = Column(Text, nullable=True)  # Optional for registration
     gender = Column(String, nullable=True) # Optional for registration - Gender enum
     hashed_password = Column(String, nullable=False)
+    password_change_required = Column(Boolean, default=False, nullable=False, index=True)
     role = Column(String, nullable=False, index=True)  # UserRole enum
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

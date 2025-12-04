@@ -698,3 +698,229 @@ def send_welcome_email(to_email: str, username: str, first_name: str) -> bool:
         subject="Welcome to Hospital Management System",
         html_content=html_content
     )
+
+def send_welcome_email_with_credentials(
+    to_email: str, 
+    username: str, 
+    temporary_password: str, 
+    first_name: str
+) -> bool:
+    """Send welcome email with login credentials to new users"""
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {{
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                line-height: 1.6;
+                color: #1a1d23;
+                margin: 0;
+                padding: 0;
+                background-color: #f2f4f8;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 40px auto;
+                background: white;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .header {{
+                background: linear-gradient(135deg, #16a249 0%, #14903f 100%);
+                color: white;
+                padding: 40px 30px;
+                text-align: center;
+            }}
+            .header h1 {{
+                margin: 0;
+                font-size: 28px;
+                font-weight: 700;
+            }}
+            .content {{
+                padding: 40px 30px;
+                background: white;
+            }}
+            .content p {{
+                margin: 0 0 16px 0;
+                color: #495057;
+            }}
+            .credentials-box {{
+                background: #f2f4f8;
+                padding: 24px;
+                border-radius: 8px;
+                margin: 24px 0;
+                border-left: 4px solid #16a249;
+            }}
+            .credential {{
+                display: flex;
+                padding: 12px 0;
+                border-bottom: 1px solid #e0e0e0;
+            }}
+            .credential:last-child {{
+                border-bottom: none;
+            }}
+            .credential strong {{
+                color: #1a1d23;
+                min-width: 140px;
+                font-weight: 600;
+            }}
+            .credential-value {{
+                color: #16a249;
+                font-weight: 600;
+                font-family: 'Courier New', monospace;
+                word-break: break-all;
+            }}
+            .credential a {{
+                color: #16a249;
+                text-decoration: none;
+            }}
+            .credential a:hover {{
+                text-decoration: underline;
+            }}
+            .button {{
+                display: inline-block;
+                padding: 14px 32px;
+                background: #16a249;
+                color: white !important;
+                text-decoration: none;
+                border-radius: 8px;
+                margin: 24px 0;
+                font-weight: 600;
+                font-size: 16px;
+                transition: background 0.3s ease;
+            }}
+            .button:hover {{
+                background: #14903f;
+            }}
+            .security-notice {{
+                background: #fff8e1;
+                border-left: 4px solid #ffc107;
+                padding: 16px;
+                margin: 24px 0;
+                border-radius: 4px;
+            }}
+            .security-notice strong {{
+                color: #f57c00;
+                display: block;
+                margin-bottom: 8px;
+            }}
+            .security-notice ul {{
+                margin: 8px 0 0 0;
+                padding-left: 20px;
+                color: #495057;
+            }}
+            .security-notice li {{
+                margin: 4px 0;
+            }}
+            .footer {{
+                text-align: center;
+                padding: 24px 30px;
+                background: #f2f4f8;
+                color: #6c757d;
+                font-size: 13px;
+            }}
+            .footer p {{
+                margin: 4px 0;
+            }}
+            .logo {{
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 8px;
+            }}
+            @media only screen and (max-width: 600px) {{
+                .container {{
+                    margin: 20px;
+                    border-radius: 8px;
+                }}
+                .header {{
+                    padding: 30px 20px;
+                }}
+                .header h1 {{
+                    font-size: 24px;
+                }}
+                .content {{
+                    padding: 30px 20px;
+                }}
+                .button {{
+                    display: block;
+                    text-align: center;
+                }}
+                .credential {{
+                    flex-direction: column;
+                }}
+                .credential strong {{
+                    margin-bottom: 4px;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🏥 Hospital Management System</div>
+                <h1>Welcome to the Team!</h1>
+            </div>
+            <div class="content">
+                <p>Hello <strong>{first_name}</strong>,</p>
+                
+                <p>Your account has been created successfully in the Hospital Management System. Here are your login credentials:</p>
+                
+                <div class="credentials-box">
+                    <div class="credential">
+                        <strong>Username:</strong>
+                        <div class="credential-value">{username}</div>
+                    </div>
+                    <div class="credential">
+                        <strong>Temporary Password:</strong>
+                        <div class="credential-value">{temporary_password}</div>
+                    </div>
+                    <div class="credential">
+                        <strong>Login URL:</strong>
+                        <div class="credential-value">
+                            <a href="{settings.FRONTEND_URL}/login">{settings.FRONTEND_URL}/login</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <center>
+                    <a href="{settings.FRONTEND_URL}/login" class="button">Login Now</a>
+                </center>
+                
+                <div class="security-notice">
+                    <strong>🔒 Important Security Notice</strong>
+                    <ul>
+                        <li><strong>You will be required to change your password on first login</strong></li>
+                        <li>Keep these credentials secure and do not share them with anyone</li>
+                        <li>Your new password must meet our security requirements (12+ characters, mixed case, numbers, special characters)</li>
+                        <li>Contact support if you have any issues accessing your account</li>
+                    </ul>
+                </div>
+                
+                <p>Once you log in and change your password, you'll have access to all the features appropriate for your role in the system.</p>
+                
+                <p style="margin-top: 32px;">If you have any questions or need assistance, please contact our support team.</p>
+                
+                <p style="margin-top: 32px;">
+                    Best regards,<br>
+                    <strong>Hospital Management System Team</strong>
+                </p>
+            </div>
+            <div class="footer">
+                <p>This is an automated email. Please do not reply to this message.</p>
+                <p>&copy; 2024 Hospital Management System. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return send_email(
+        to_email=to_email,
+        subject="Welcome to Hospital Management System - Your Account Credentials",
+        html_content=html_content
+    )

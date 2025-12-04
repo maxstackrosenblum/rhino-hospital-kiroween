@@ -10,9 +10,13 @@ import {
   TextField,
   useMediaQuery,
   useTheme,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
+import { AutoFixHigh as GenerateIcon } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { AdminUserUpdate, User, UserCreate, UserRole } from "../../types";
+import { generatePassword } from "../../utils/passwordGenerator";
 
 interface UserFormProps<T extends "create" | "update"> {
   mode: T;
@@ -21,6 +25,10 @@ interface UserFormProps<T extends "create" | "update"> {
   onCancel: () => void;
   isSubmitting?: boolean;
   submitError?: string | null;
+  emailStatus?: {
+    email_sent: boolean;
+    email_error: string | null;
+  } | null;
 }
 
 interface FormData {
@@ -72,12 +80,15 @@ function UserForm<T extends "create" | "update">({
   onCancel,
   isSubmitting = false,
   submitError = null,
+  emailStatus = null,
 }: UserFormProps<T>) {
   const theme = useTheme();
 
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [isGeneratingPassword, setIsGeneratingPassword] = useState(false);
+  const [isPasswordGenerated, setIsPasswordGenerated] = useState(false);
 
   // Initialize form data when component mounts or initialData changes
   useEffect(() => {
@@ -100,6 +111,7 @@ function UserForm<T extends "create" | "update">({
     }
     setErrors({});
     setTouched({});
+    setIsPasswordGenerated(false);
   }, [mode, initialData]);
 
   // Parse API validation errors and map them to form fields
@@ -375,6 +387,28 @@ function UserForm<T extends "create" | "update">({
     }
   };
 
+  // Handle password generation
+  const handleGeneratePassword = async () => {
+    setIsGeneratingPassword(true);
+    try {
+      const generated = generatePassword();
+      setFormData((prev) => ({ ...prev, password: generated.password }));
+      setIsPasswordGenerated(true);
+      
+      // Clear password error if it exists
+      if (errors.password) {
+        setErrors((prev) => ({ ...prev, password: undefined }));
+      }
+    } catch (error) {
+      console.error("Failed to generate password:", error);
+      // Could show an error message here
+    } finally {
+      setIsGeneratingPassword(false);
+    }
+  };
+
+  // Password field is read-only - users can only generate passwords
+
   // Check if form is valid
   const isFormValid = Object.keys(validateForm()).length === 0;
 
@@ -384,6 +418,28 @@ function UserForm<T extends "create" | "update">({
         <Alert severity="error" sx={{ mb: 2 }}>
           {submitError}
         </Alert>
+      )}
+      
+      {/* Email Status Messages */}
+      {emailStatus && (
+        <>
+          {emailStatus.email_sent ? (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              Welcome email sent successfully to the user's email address with login credentials.
+            </Alert>
+          ) : (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              User created successfully, but welcome email could not be sent. 
+              {emailStatus.email_error && ` Error: ${emailStatus.email_error}`}
+              <br />
+              Please provide the login credentials to the user manually:
+              <br />
+              <strong>Username:</strong> {formData.username}
+              <br />
+              <strong>Password:</strong> {formData.password}
+            </Alert>
+          )}
+        </>
       )}
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -598,24 +654,48 @@ function UserForm<T extends "create" | "update">({
 
         {/* Password (only for create mode) */}
         {mode === "create" && (
-          <TextField
-            name="password"
-            label="Password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            onBlur={() => handleBlur("password")}
-            error={touched.password && !!errors.password}
-            helperText={
-              touched.password && errors.password
-                ? errors.password
-                : "Temporary password for the user (they can change it later)"
-            }
-            size="small"
-            fullWidth
-            required
-            disabled={isSubmitting}
-          />
+          <Box>
+            <TextField
+              name="password"
+              label="Password"
+              type={isPasswordGenerated ? "text" : "password"}
+              value={formData.password}
+              onChange={handleChange}
+              onBlur={() => handleBlur("password")}
+              error={touched.password && !!errors.password}
+              helperText={
+                touched.password && errors.password
+                  ? errors.password
+                  : isPasswordGenerated
+                  ? "Secure password generated. Click 'Generate New' to create a different one."
+                  : "Use the Generate Password button to create a secure password"
+              }
+              size="small"
+              fullWidth
+              required
+              disabled={true}
+              InputProps={{
+                readOnly: true,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={handleGeneratePassword}
+                      disabled={isSubmitting || isGeneratingPassword}
+                      edge="end"
+                      title="Generate secure password"
+                    >
+                      <GenerateIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiInputBase-input': {
+                  cursor: 'default',
+                },
+              }}
+            />
+          </Box>
         )}
 
         {/* Action Buttons */}
