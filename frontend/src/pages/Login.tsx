@@ -110,7 +110,7 @@ function Login({ onLogin }: any) {
           {/* Logo */}
           <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
             <img
-              src="/logo_big.png"
+              src="/logo-full.png"
               alt="Hospital Logo"
               style={{
                 height: "120px",

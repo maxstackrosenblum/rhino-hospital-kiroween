@@ -27,7 +27,18 @@ function Dashboard({ user }: any) {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom fontWeight={700}>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+        <img
+          src="/logo-full.png"
+          alt="Hospital Logo"
+          style={{
+            height: "150px",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
+      </Box>
+      <Typography variant="h3" component="h1" gutterBottom fontWeight={700} textAlign="center">
         Welcome, {user.first_name} {user.last_name}!
       </Typography>
 
