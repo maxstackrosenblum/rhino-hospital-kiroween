@@ -12,6 +12,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUpdateCurrentUser } from "../api";
+import PasswordStrengthIndicator from "../components/users/PasswordStrengthIndicator";
 
 function Profile({ user }: any) {
   const navigate = useNavigate();
@@ -109,6 +110,15 @@ function Profile({ user }: any) {
               size="small"
             />
 
+            {profileData.password && (
+              <Box sx={{ mt: 1 }}>
+                <PasswordStrengthIndicator
+                  password={profileData.password}
+                  username={user.username}
+                />
+              </Box>
+            )}
+
             <TextField
               fullWidth
               margin="normal"
@@ -131,7 +141,27 @@ function Profile({ user }: any) {
 
             {updateProfileMutation.error && (
               <Alert severity="error" sx={{ mt: 2 }}>
-                {updateProfileMutation.error.message}
+                {typeof updateProfileMutation.error === 'object' && 
+                 (updateProfileMutation.error as any).response?.data?.detail ? (
+                  <>
+                    {typeof (updateProfileMutation.error as any).response.data.detail === 'object' ? (
+                      <>
+                        {(updateProfileMutation.error as any).response.data.detail.message}
+                        {(updateProfileMutation.error as any).response.data.detail.errors && (
+                          <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+                            {(updateProfileMutation.error as any).response.data.detail.errors.map((err: string, index: number) => (
+                              <li key={index}>{err}</li>
+                            ))}
+                          </Box>
+                        )}
+                      </>
+                    ) : (
+                      (updateProfileMutation.error as any).response.data.detail
+                    )}
+                  </>
+                ) : (
+                  (updateProfileMutation.error as any).message || 'An error occurred'
+                )}
               </Alert>
             )}
             {updateProfileMutation.isSuccess && (

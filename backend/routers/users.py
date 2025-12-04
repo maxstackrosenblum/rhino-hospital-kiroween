@@ -8,6 +8,7 @@ import models
 import schemas
 from database import get_db
 from core.dependencies import require_admin
+from core.password_policy import PasswordPolicy
 
 router = APIRouter(prefix="/api", tags=["users"])
 
@@ -45,6 +46,14 @@ async def create_user(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="A user with this username already exists"
                 )
+        
+        # Validate password against policy
+        is_valid, errors = PasswordPolicy.validate(user.password, user.username)
+        if not is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail={"message": "Password does not meet requirements", "errors": errors}
+            )
         
         # Create user record
         hashed_password = auth_utils.get_password_hash(user.password)
@@ -290,6 +299,14 @@ async def update_current_user(
     if user_update.last_name:
         current_user.last_name = user_update.last_name
     if user_update.password:
+        # Validate password against policy
+        is_valid, errors = PasswordPolicy.validate(user_update.password, current_user.username)
+        if not is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail={"message": "Password does not meet requirements", "errors": errors}
+            )
+        
         current_user.hashed_password = auth_utils.get_password_hash(user_update.password)
         # Revoke all sessions on password change for security
         db.query(models.Session).filter(

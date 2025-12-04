@@ -6,6 +6,7 @@ import schemas
 from database import get_db
 from core.security import create_reset_token, create_reset_token_expiry, get_password_hash
 from core.email import send_password_reset_email
+from core.password_policy import PasswordPolicy
 import logging
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,14 @@ async def reset_password(
     if user.reset_token_expires < datetime.utcnow():
         logger.warning(f"Token expired for user: {user.username}")
         raise HTTPException(status_code=400, detail="Reset token has expired")
+    
+    # Validate new password against policy
+    is_valid, errors = PasswordPolicy.validate(reset_data.new_password, user.username)
+    if not is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail={"message": "Password does not meet requirements", "errors": errors}
+        )
     
     # Update password
     user.hashed_password = get_password_hash(reset_data.new_password)
