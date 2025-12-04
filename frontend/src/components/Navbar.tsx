@@ -110,7 +110,7 @@ function Navbar({ user, onLogout }: any) {
           }}
         >
           <img
-            src="/logo.png"
+            src="/logo-icon.png"
             alt="Hospital Logo"
             style={{
               height: isMobile ? "45px" : "60px",
