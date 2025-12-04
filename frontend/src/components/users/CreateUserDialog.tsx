@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogTitle } from "@mui/material";
-import { UserCreate } from "../../types";
+import { UserCreate, UserCreateResponse } from "../../types";
 import UserForm from "./UserForm";
 
 interface CreateUserDialogProps {
@@ -8,6 +8,7 @@ interface CreateUserDialogProps {
   onClose: () => void;
   onSubmit: (data: UserCreate) => void;
   submitError?: string | null;
+  createResponse?: UserCreateResponse | null;
 }
 
 function CreateUserDialog({
@@ -16,6 +17,7 @@ function CreateUserDialog({
   onClose,
   onSubmit,
   submitError,
+  createResponse,
 }: CreateUserDialogProps) {
   const handleClose = () => {
     // Prevent closing dialog while creating
@@ -40,6 +42,10 @@ function CreateUserDialog({
           onCancel={handleClose}
           isSubmitting={isCreating}
           submitError={submitError}
+          emailStatus={createResponse ? {
+            email_sent: createResponse.email_sent,
+            email_error: createResponse.email_error
+          } : null}
         />
       </DialogContent>
     </Dialog>

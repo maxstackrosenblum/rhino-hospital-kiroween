@@ -88,6 +88,12 @@ export interface UserCreate {
   role?: UserRole;
 }
 
+export interface UserCreateResponse {
+  user: User;
+  email_sent: boolean;
+  email_error: string | null;
+}
+
 export interface TokenResponse {
   access_token: string;
   token_type: string;

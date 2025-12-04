@@ -32,7 +32,7 @@ import {
 } from "../components/users";
 import { PaginationControls } from "../components/common";
 import { useDebounce } from "../hooks/useDebounce";
-import { AdminUserUpdate, User, UserCreate } from "../types";
+import { AdminUserUpdate, User, UserCreate, UserCreateResponse } from "../types";
 
 interface UsersProps {
   user: User;
@@ -53,6 +53,7 @@ function Users({ user }: UsersProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>("");
+  const [createResponse, setCreateResponse] = useState<UserCreateResponse | null>(null);
 
   // Check user permissions - only admins can access user management
   useEffect(() => {
@@ -84,10 +85,14 @@ function Users({ user }: UsersProps) {
 
   // Handle success messages only - errors are handled in forms
   useEffect(() => {
-    if (createUserMutation.isSuccess) {
-      setSuccessMessage("User created successfully!");
+    if (createUserMutation.isSuccess && createUserMutation.data) {
+      setCreateResponse(createUserMutation.data);
+      const emailMessage = createUserMutation.data.email_sent 
+        ? " Welcome email sent successfully."
+        : " Welcome email could not be sent.";
+      setSuccessMessage("User created successfully!" + emailMessage);
     }
-  }, [createUserMutation.isSuccess]);
+  }, [createUserMutation.isSuccess, createUserMutation.data]);
 
   useEffect(() => {
     if (updateUserMutation.isSuccess) {
@@ -137,6 +142,7 @@ function Users({ user }: UsersProps) {
 
   const handleCreateCancel = () => {
     setCreateDialogOpen(false);
+    setCreateResponse(null);
   };
 
   // Handlers for deleting
@@ -269,6 +275,7 @@ function Users({ user }: UsersProps) {
           onClose={handleCreateCancel}
           onSubmit={handleCreateSubmit}
           submitError={createUserMutation.error?.message || null}
+          createResponse={createResponse}
         />
 
         {/* Edit User Dialog */}
