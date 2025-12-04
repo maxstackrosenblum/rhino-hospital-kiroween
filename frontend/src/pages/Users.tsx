@@ -7,7 +7,6 @@ import {
   Container,
   FormControl,
   InputAdornment,
-  InputLabel,
   MenuItem,
   Select,
   Snackbar,

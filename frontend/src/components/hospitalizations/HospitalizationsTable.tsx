@@ -35,7 +35,9 @@ function HospitalizationsTable({
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: 600 }}>Patient</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Patient Name</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Age</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Admission Date</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Discharge Date</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Diagnosis</TableCell>
@@ -47,13 +49,13 @@ function HospitalizationsTable({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+              <TableCell colSpan={9} align="center" sx={{ py: 6 }}>
                 <CircularProgress />
               </TableCell>
             </TableRow>
           ) : hospitalizations.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+              <TableCell colSpan={9} align="center" sx={{ py: 6 }}>
                 <Typography variant="h6" color="text.secondary">
                   {searchTerm ? "No hospitalizations found" : "No hospitalizations recorded"}
                 </Typography>
@@ -68,16 +70,20 @@ function HospitalizationsTable({
             hospitalizations.map((hospitalization) => (
               <TableRow key={hospitalization.id} hover>
                 <TableCell>
-                  <Box>
-                    <Typography variant="body2" fontWeight={500}>
-                      {hospitalization.patient_first_name}{" "}
-                      {hospitalization.patient_last_name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Age: {hospitalization.patient_age} • ID:{" "}
-                      {hospitalization.patient_id}
-                    </Typography>
-                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    {hospitalization.patient_id}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" fontWeight={500}>
+                    {hospitalization.patient_first_name}{" "}
+                    {hospitalization.patient_last_name}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">
+                    {hospitalization.patient_age}
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   {new Date(hospitalization.admission_date).toLocaleDateString()}

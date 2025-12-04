@@ -36,7 +36,9 @@ function PrescriptionsTable({
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: 600 }}>Patient</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Patient Name</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Age</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Medicines</TableCell>
             {canWrite && (
@@ -48,7 +50,7 @@ function PrescriptionsTable({
           {isLoading ? (
             <TableRow>
               <TableCell
-                colSpan={canWrite ? 4 : 3}
+                colSpan={canWrite ? 6 : 5}
                 align="center"
                 sx={{ py: 6 }}
               >
@@ -58,7 +60,7 @@ function PrescriptionsTable({
           ) : prescriptions.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={canWrite ? 4 : 3}
+                colSpan={canWrite ? 6 : 5}
                 align="center"
                 sx={{ py: 6 }}
               >
@@ -76,16 +78,20 @@ function PrescriptionsTable({
             prescriptions.map((prescription) => (
               <TableRow key={prescription.id} hover>
                 <TableCell>
-                  <Box>
-                    <Typography variant="body2" fontWeight={500}>
-                      {prescription.patient_first_name}{" "}
-                      {prescription.patient_last_name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Age: {prescription.patient_age} • ID:{" "}
-                      {prescription.patient_id}
-                    </Typography>
-                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    {prescription.patient_id}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" fontWeight={500}>
+                    {prescription.patient_first_name}{" "}
+                    {prescription.patient_last_name}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">
+                    {prescription.patient_age}
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   {new Date(prescription.date).toLocaleDateString()}

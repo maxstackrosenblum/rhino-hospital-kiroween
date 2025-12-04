@@ -68,7 +68,7 @@ function Hospitalizations({ user }: HospitalizationsProps) {
     "all" | "active" | "my-patients"
   >(user.role === "doctor" ? "my-patients" : "active");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(2);
+  const [pageSize, setPageSize] = useState(10);
 
   const [formData, setFormData] = useState({
     patient_id: "",
