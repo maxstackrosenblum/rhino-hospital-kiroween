@@ -1,3 +1,4 @@
+export { AddNonPatientDialog } from "./AddNonPatientDialog";
 export { default as CompletePatientProfileDialog } from "./CompletePatientProfileDialog";
 // export { default as CreatePatientDialog } from "./CreatePatientDialog";
 export { default as DeletePatientDialog } from "./DeletePatientDialog";

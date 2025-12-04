@@ -6,7 +6,7 @@ from datetime import datetime
 
 from database import get_db
 from models import Patient, User, UserRole
-from schemas import PatientProfileCreate, PatientUpdate, PatientResponse, PaginatedPatientsResponse, PatientProfileStatus
+from schemas import PatientProfileCreate, PatientUpdate, PatientResponse, PaginatedPatientsResponse, PatientProfileStatus, UserResponse, PaginatedUsersResponse
 from core.dependencies import require_patient_access, require_receptionist_or_admin, require_admin, require_patient_role
 import auth as auth_utils
 
@@ -197,6 +197,7 @@ async def get_patients(
     page_size: int = Query(10, ge=1, le=100, description="Number of records per page"),
     search: Optional[str] = Query(None, description="Search by first name, last name, email, or phone"),
     include_deleted: bool = Query(False, description="Include soft-deleted records (Admin only)"),
+    hospitalization_status: Optional[str] = Query(None, description="Filter by hospitalization status: 'hospitalized', 'my-patients'"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_patient_access)
 ):
@@ -204,12 +205,79 @@ async def get_patients(
     Get list of all users with patient role, regardless of profile completion status.
     
     Requires: Doctor, Receptionist, or Admin role
+    
+    Filters:
+    - hospitalization_status='hospitalized': Only currently hospitalized patients
+    - hospitalization_status='my-patients': Only current doctor's hospitalized patients
     """
     try:
-        # Query User table with LEFT JOIN to Patient table to show all patient users
-        query = db.query(User).outerjoin(Patient, User.id == Patient.user_id).filter(
-            User.role == UserRole.PATIENT
-        )
+        from models import Hospitalization, Doctor
+        from sqlalchemy import func
+        
+        # Build base query differently based on hospitalization filter
+        if hospitalization_status in ["hospitalized", "my-patients"]:
+            # For hospitalization filters, use inner join (only patients with profiles)
+            query = db.query(User).join(
+                Patient,
+                and_(
+                    User.id == Patient.user_id,
+                    Patient.deleted_at.is_(None)
+                )
+            ).filter(User.role == UserRole.PATIENT)
+            
+            current_date = datetime.utcnow().date()
+            
+            if hospitalization_status == "hospitalized":
+                # Join with Hospitalization to filter only currently hospitalized patients
+                # Compare dates only (not time) to handle timezone issues
+                query = query.join(
+                    Hospitalization,
+                    and_(
+                        Patient.id == Hospitalization.patient_id,
+                        func.date(Hospitalization.admission_date) <= current_date,
+                        or_(
+                            Hospitalization.discharge_date.is_(None),
+                            func.date(Hospitalization.discharge_date) >= current_date
+                        ),
+                        Hospitalization.deleted_at.is_(None)
+                    )
+                ).distinct()
+            
+            elif hospitalization_status == "my-patients" and current_user.role == UserRole.DOCTOR:
+                # Get current doctor's ID
+                doctor = db.query(Doctor).filter(
+                    and_(
+                        Doctor.user_id == current_user.id,
+                        Doctor.deleted_at.is_(None)
+                    )
+                ).first()
+                
+                if doctor:
+                    # Join with Hospitalization and filter by doctor assignment
+                    from models import hospitalization_doctors
+                    query = query.join(
+                        Hospitalization,
+                        and_(
+                            Patient.id == Hospitalization.patient_id,
+                            func.date(Hospitalization.admission_date) <= current_date,
+                            or_(
+                                Hospitalization.discharge_date.is_(None),
+                                func.date(Hospitalization.discharge_date) >= current_date
+                            ),
+                            Hospitalization.deleted_at.is_(None)
+                        )
+                    ).join(
+                        hospitalization_doctors,
+                        Hospitalization.id == hospitalization_doctors.c.hospitalization_id
+                    ).filter(
+                        hospitalization_doctors.c.doctor_id == doctor.id
+                    ).distinct()
+        else:
+            # For no filter or "all", use left outer join to show all patients
+            query = db.query(User).outerjoin(
+                Patient,
+                User.id == Patient.user_id
+            ).filter(User.role == UserRole.PATIENT)
         
         # Filter out soft-deleted records unless specifically requested by admin
         if not include_deleted or current_user.role != UserRole.ADMIN:
@@ -417,4 +485,170 @@ async def delete_patient(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete patient record"
+        )
+
+
+@router.get("/non-patients/list", response_model=PaginatedUsersResponse)
+async def get_non_patient_users(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Number of records per page"),
+    search: Optional[str] = Query(None, description="Search by first name, last name, email, or phone"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_receptionist_or_admin)
+):
+    """
+    Get list of users who are not patients (undefined role or no patient profile).
+    
+    Requires: Receptionist or Admin role
+    """
+    try:
+        # Query users who either have undefined role OR are patients without a profile
+        query = db.query(User).outerjoin(
+            Patient, and_(
+                User.id == Patient.user_id,
+                Patient.deleted_at.is_(None)
+            )
+        ).filter(
+            and_(
+                User.deleted_at.is_(None),
+                or_(
+                    User.role == UserRole.UNDEFINED,
+                    and_(
+                        User.role == UserRole.PATIENT,
+                        Patient.id.is_(None)  # No patient profile
+                    )
+                )
+            )
+        )
+        
+        # Apply search filter if provided
+        if search:
+            search_term = f"%{search.strip()}%"
+            query = query.filter(
+                or_(
+                    User.first_name.ilike(search_term),
+                    User.last_name.ilike(search_term),
+                    User.email.ilike(search_term),
+                    User.phone.ilike(search_term)
+                )
+            )
+        
+        # Get total count
+        total = query.count()
+        
+        # Calculate pagination
+        total_pages = (total + page_size - 1) // page_size
+        offset = (page - 1) * page_size
+        
+        # Get paginated results
+        users = query.order_by(User.created_at.desc()).offset(offset).limit(page_size).all()
+        
+        # Convert to response format
+        users_list = [
+            UserResponse(
+                id=user.id,
+                email=user.email,
+                username=user.username,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                phone=user.phone,
+                city=user.city,
+                age=user.age,
+                address=user.address,
+                gender=user.gender,
+                role=user.role,
+                created_at=user.created_at,
+                updated_at=user.updated_at,
+                deleted_at=user.deleted_at
+            )
+            for user in users
+        ]
+        
+        return {
+            "users": users_list,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve non-patient users: {str(e)}"
+        )
+
+
+@router.post("/{user_id}/convert-to-patient", response_model=PatientResponse, status_code=status.HTTP_201_CREATED)
+async def convert_user_to_patient(
+    user_id: int,
+    patient_profile: PatientProfileCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_receptionist_or_admin)
+):
+    """
+    Convert a non-patient user to a patient by creating their patient profile.
+    
+    Requires: Receptionist or Admin role
+    """
+    try:
+        # Get the user
+        user = db.query(User).filter(
+            and_(
+                User.id == user_id,
+                User.deleted_at.is_(None)
+            )
+        ).first()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # Check if patient profile already exists
+        existing_patient = db.query(Patient).filter(
+            and_(
+                Patient.user_id == user_id,
+                Patient.deleted_at.is_(None)
+            )
+        ).first()
+        
+        if existing_patient:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Patient profile already exists for this user"
+            )
+        
+        # Generate medical record number
+        from routers.appointments import generate_medical_record_number
+        mrn = generate_medical_record_number(user_id)
+        
+        # Create patient profile
+        db_patient = Patient(
+            user_id=user_id,
+            medical_record_number=mrn,
+            emergency_contact=patient_profile.emergency_contact,
+            insurance_info=patient_profile.insurance_info
+        )
+        
+        db.add(db_patient)
+        
+        # Update user role to patient if undefined
+        if user.role == UserRole.UNDEFINED:
+            user.role = UserRole.PATIENT
+        
+        db.commit()
+        db.refresh(db_patient)
+        db.refresh(user)
+        
+        return create_patient_response(user, db_patient)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to convert user to patient: {str(e)}"
         )

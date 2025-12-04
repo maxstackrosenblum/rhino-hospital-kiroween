@@ -478,8 +478,8 @@ async def get_appointments(
         )
         
         # Role-based filtering
-        if current_user.role == UserRole.PATIENT:
-            # Patients see only their own appointments
+        if current_user.role == UserRole.PATIENT or current_user.role == UserRole.UNDEFINED:
+            # Patients and undefined users see only their own appointments
             patient = db.query(Patient).filter(
                 and_(
                     Patient.user_id == current_user.id,
@@ -783,7 +783,7 @@ async def get_appointment(
             )
         
         # Check access permissions
-        if current_user.role == UserRole.PATIENT:
+        if current_user.role == UserRole.PATIENT or current_user.role == UserRole.UNDEFINED:
             patient = db.query(Patient).filter(
                 and_(
                     Patient.user_id == current_user.id,
@@ -1121,7 +1121,7 @@ async def delete_appointment(
             )
         
         # Check access permissions
-        if current_user.role == UserRole.PATIENT:
+        if current_user.role == UserRole.PATIENT or current_user.role == UserRole.UNDEFINED:
             patient = db.query(Patient).filter(
                 and_(
                     Patient.user_id == current_user.id,

@@ -85,15 +85,14 @@ function PatientForm({
   useEffect(() => {
     if (mode === "update" && initialData) {
       setFormData({
-        first_name: initialData.first_name,
-        last_name: initialData.last_name,
-        gender: initialData.gender,
-        phone: initialData.phone,
-        city: initialData.city,
-        email: initialData.email,
-        age: initialData.age.toString(),
-        address: initialData.address,
-        medical_record_number: initialData.medical_record_number || "",
+        first_name: initialData.first_name || "",
+        last_name: initialData.last_name || "",
+        gender: initialData.gender || "",
+        phone: initialData.phone || "",
+        city: initialData.city || "",
+        email: initialData.email || "",
+        age: initialData.age ? initialData.age.toString() : "",
+        address: initialData.address || "",
         emergency_contact: initialData.emergency_contact || "",
         insurance_info: initialData.insurance_info || "",
       });
@@ -332,18 +331,18 @@ function PatientForm({
     } else {
       // Update mode - all fields
       const submitData: PatientUpdate = {
-        first_name: formData.first_name.trim(),
-        last_name: formData.last_name.trim(),
-        gender: formData.gender,
-        phone: formData.phone.trim(),
-        city: formData.city.trim(),
-        email: formData.email.trim(),
-        age: parseInt(formData.age),
-        address: formData.address.trim(),
+        first_name: formData.first_name?.trim() || "",
+        last_name: formData.last_name?.trim() || "",
+        gender: formData.gender || undefined,
+        phone: formData.phone?.trim() || undefined,
+        city: formData.city?.trim() || undefined,
+        email: formData.email?.trim() || "",
+        age: formData.age?.trim() ? parseInt(formData.age) : undefined,
+        address: formData.address?.trim() || undefined,
         medical_record_number:
-          formData.medical_record_number.trim() || undefined,
-        emergency_contact: formData.emergency_contact.trim() || undefined,
-        insurance_info: formData.insurance_info.trim() || undefined,
+          formData.medical_record_number?.trim() || undefined,
+        emergency_contact: formData.emergency_contact?.trim() || undefined,
+        insurance_info: formData.insurance_info?.trim() || undefined,
       };
       onSubmit(submitData);
     }
@@ -515,26 +514,17 @@ function PatientForm({
         )}
 
         {/* Patient-Specific Fields */}
-        <TextField
-          name="medical_record_number"
-          label="Medical Record Notes"
-          value={formData.medical_record_number}
-          onChange={handleChange}
-          onBlur={() => handleBlur("medical_record_number")}
-          error={
-            touched.medical_record_number && !!errors.medical_record_number
-          }
-          helperText={
-            touched.medical_record_number && errors.medical_record_number
-              ? errors.medical_record_number
-              : "Optional: Medical record notes and information"
-          }
-          fullWidth
-          multiline
-          rows={4}
-          disabled={isSubmitting}
-          size="small"
-        />
+        {/* Medical Record Number - Auto-generated, display only */}
+        {initialData?.medical_record_number && (
+          <TextField
+            label="Medical Record Number"
+            value={initialData.medical_record_number}
+            fullWidth
+            disabled
+            helperText="Auto-generated medical record number (cannot be edited)"
+            size="small"
+          />
+        )}
 
         <TextField
           name="emergency_contact"
@@ -549,7 +539,6 @@ function PatientForm({
               : "Emergency contact information (name and phone number)"
           }
           fullWidth
-          required
           disabled={isSubmitting}
           size="small"
         />
