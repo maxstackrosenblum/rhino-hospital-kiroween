@@ -1,4 +1,4 @@
-import { Box, Container } from "@mui/material";
+import { Box } from "@mui/material";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useEffect, useState } from "react";
@@ -175,9 +175,7 @@ function AppContent() {
                   path="/"
                   element={
                     <ProtectedRoute user={user}>
-                      <Container maxWidth="xl" sx={{ py: 4 }}>
-                        <Dashboard user={user} />
-                      </Container>
+                      <Dashboard user={user} />
                     </ProtectedRoute>
                   }
                 />
@@ -185,9 +183,7 @@ function AppContent() {
                   path="/profile"
                   element={
                     <ProtectedRoute user={user}>
-                      <Container maxWidth="md" sx={{ py: 4 }}>
-                        <Profile user={user} />
-                      </Container>
+                      <Profile user={user} />
                     </ProtectedRoute>
                   }
                 />
@@ -195,9 +191,7 @@ function AppContent() {
                   path="/settings"
                   element={
                     <ProtectedRoute user={user}>
-                      <Container maxWidth="md" sx={{ py: 4 }}>
-                        <Settings />
-                      </Container>
+                      <Settings />
                     </ProtectedRoute>
                   }
                 />
@@ -205,9 +199,7 @@ function AppContent() {
                   path="/users"
                   element={
                     <ProtectedRoute user={user}>
-                      <Container maxWidth="xl" sx={{ py: 4 }}>
-                        <Users user={user as any} />
-                      </Container>
+                      <Users user={user as any} />
                     </ProtectedRoute>
                   }
                 />
@@ -215,9 +207,7 @@ function AppContent() {
                   path="/patients"
                   element={
                     <ProtectedRoute user={user}>
-                      <Container maxWidth="xl" sx={{ py: 4 }}>
-                        <Patients user={user as any} />
-                      </Container>
+                      <Patients user={user as any} />
                     </ProtectedRoute>
                   }
                 />
@@ -225,9 +215,7 @@ function AppContent() {
                   path="/doctors"
                   element={
                     <ProtectedRoute user={user}>
-                      <Container maxWidth="xl" sx={{ py: 4 }}>
-                        <Doctors user={user as any} />
-                      </Container>
+                      <Doctors user={user as any} />
                     </ProtectedRoute>
                   }
                 />

@@ -8,6 +8,8 @@ import {
   MenuItem,
   Select,
   TextField,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { AdminUserUpdate, User, UserCreate, UserRole } from "../../types";
@@ -71,6 +73,9 @@ function UserForm<T extends "create" | "update">({
   isSubmitting = false,
   submitError = null,
 }: UserFormProps<T>) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -184,7 +189,10 @@ function UserForm<T extends "create" | "update">({
   const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
 
+    // Always required fields
     newErrors.email = validateEmail(formData.email);
+    newErrors.first_name = validateRequired(formData.first_name, "First name");
+    newErrors.last_name = validateRequired(formData.last_name, "Last name");
 
     // Only validate username and password for create mode
     if (mode === "create") {
@@ -192,14 +200,25 @@ function UserForm<T extends "create" | "update">({
       newErrors.password = validatePassword(formData.password);
     }
 
-    newErrors.first_name = validateRequired(formData.first_name, "First name");
-    newErrors.last_name = validateRequired(formData.last_name, "Last name");
-    newErrors.phone = validatePhone(formData.phone);
-    newErrors.city = validateRequired(formData.city, "City");
-    newErrors.age = validateAge(formData.age);
-    newErrors.address = validateRequired(formData.address, "Address");
-    newErrors.gender = validateRequired(formData.gender, "Gender");
-    newErrors.role = validateRole(formData.role);
+    // Optional fields - only validate if they have values
+    if (formData.phone.trim()) {
+      newErrors.phone = validatePhone(formData.phone);
+    }
+    if (formData.city.trim()) {
+      newErrors.city = validateRequired(formData.city, "City");
+    }
+    if (formData.age.trim()) {
+      newErrors.age = validateAge(formData.age);
+    }
+    if (formData.address.trim()) {
+      newErrors.address = validateRequired(formData.address, "Address");
+    }
+    if (formData.gender) {
+      newErrors.gender = validateRequired(formData.gender, "Gender");
+    }
+    if (formData.role !== "undefined") {
+      newErrors.role = validateRole(formData.role);
+    }
 
     // Remove undefined errors
     Object.keys(newErrors).forEach((key) => {
@@ -259,19 +278,34 @@ function UserForm<T extends "create" | "update">({
         newErrors.last_name = validateRequired(formData.last_name, "Last name");
         break;
       case "phone":
-        newErrors.phone = validatePhone(formData.phone);
+        // Only validate if field has content
+        if (formData.phone.trim()) {
+          newErrors.phone = validatePhone(formData.phone);
+        }
         break;
       case "city":
-        newErrors.city = validateRequired(formData.city, "City");
+        // Only validate if field has content
+        if (formData.city.trim()) {
+          newErrors.city = validateRequired(formData.city, "City");
+        }
         break;
       case "age":
-        newErrors.age = validateAge(formData.age);
+        // Only validate if field has content
+        if (formData.age.trim()) {
+          newErrors.age = validateAge(formData.age);
+        }
         break;
       case "address":
-        newErrors.address = validateRequired(formData.address, "Address");
+        // Only validate if field has content
+        if (formData.address.trim()) {
+          newErrors.address = validateRequired(formData.address, "Address");
+        }
         break;
       case "gender":
-        newErrors.gender = validateRequired(formData.gender, "Gender");
+        // Only validate if field has content
+        if (formData.gender) {
+          newErrors.gender = validateRequired(formData.gender, "Gender");
+        }
         break;
       case "password":
         if (mode === "create") {
@@ -279,7 +313,10 @@ function UserForm<T extends "create" | "update">({
         }
         break;
       case "role":
-        newErrors.role = validateRole(formData.role);
+        // Only validate if role is not undefined
+        if (formData.role !== "undefined") {
+          newErrors.role = validateRole(formData.role);
+        }
         break;
     }
     setErrors(newErrors);
@@ -312,13 +349,14 @@ function UserForm<T extends "create" | "update">({
         username: formData.username.trim(),
         first_name: formData.first_name.trim(),
         last_name: formData.last_name.trim(),
-        phone: formData.phone.trim(),
-        city: formData.city.trim(),
-        age: parseInt(formData.age),
-        address: formData.address.trim(),
-        gender: formData.gender,
         password: formData.password,
-        role: formData.role,
+        // Optional fields - only include if they have values
+        phone: formData.phone.trim() || undefined,
+        city: formData.city.trim() || undefined,
+        age: formData.age.trim() ? parseInt(formData.age) : undefined,
+        address: formData.address.trim() || undefined,
+        gender: formData.gender || undefined,
+        role: formData.role !== "undefined" ? formData.role : undefined,
       };
       onSubmit(submitData as T extends "create" ? UserCreate : AdminUserUpdate);
     } else {
@@ -326,12 +364,13 @@ function UserForm<T extends "create" | "update">({
         email: formData.email.trim(),
         first_name: formData.first_name.trim(),
         last_name: formData.last_name.trim(),
-        phone: formData.phone.trim(),
-        city: formData.city.trim(),
-        age: parseInt(formData.age),
-        address: formData.address.trim(),
-        gender: formData.gender,
-        role: formData.role,
+        // Optional fields - only include if they have values
+        phone: formData.phone.trim() || undefined,
+        city: formData.city.trim() || undefined,
+        age: formData.age.trim() ? parseInt(formData.age) : undefined,
+        address: formData.address.trim() || undefined,
+        gender: formData.gender || undefined,
+        role: formData.role !== "undefined" ? formData.role : undefined,
       };
       onSubmit(submitData as T extends "create" ? UserCreate : AdminUserUpdate);
     }
@@ -350,7 +389,13 @@ function UserForm<T extends "create" | "update">({
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {/* Email and Username (username only for create mode) */}
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+          }}
+        >
           <TextField
             name="email"
             label="Email"
@@ -387,7 +432,13 @@ function UserForm<T extends "create" | "update">({
         </Box>
 
         {/* Name Fields */}
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+          }}
+        >
           <TextField
             name="first_name"
             label="First Name"
@@ -417,11 +468,16 @@ function UserForm<T extends "create" | "update">({
         </Box>
 
         {/* Gender, Age, and Role */}
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+          }}
+        >
           <FormControl
             size="small"
             fullWidth
-            required
             error={touched.gender && !!errors.gender}
             disabled={isSubmitting}
           >
@@ -433,6 +489,9 @@ function UserForm<T extends "create" | "update">({
               onChange={(e) => handleSelectChange("gender", e.target.value)}
               onBlur={() => handleBlur("gender")}
             >
+              <MenuItem value="">
+                <em>Not specified</em>
+              </MenuItem>
               <MenuItem value="male">Male</MenuItem>
               <MenuItem value="female">Female</MenuItem>
               <MenuItem value="other">Other</MenuItem>
@@ -453,7 +512,6 @@ function UserForm<T extends "create" | "update">({
             helperText={touched.age && errors.age}
             size="small"
             fullWidth
-            required
             disabled={isSubmitting}
             slotProps={{
               htmlInput: { min: 0, max: 150 },
@@ -463,7 +521,6 @@ function UserForm<T extends "create" | "update">({
           <FormControl
             size="small"
             fullWidth
-            required
             error={touched.role && !!errors.role}
             disabled={isSubmitting}
           >
@@ -475,6 +532,9 @@ function UserForm<T extends "create" | "update">({
               onChange={(e) => handleSelectChange("role", e.target.value)}
               onBlur={() => handleBlur("role")}
             >
+              <MenuItem value="undefined">
+                <em>Not assigned</em>
+              </MenuItem>
               <MenuItem value="admin">Admin</MenuItem>
               <MenuItem value="doctor">Doctor</MenuItem>
               <MenuItem value="medical_staff">Medical Staff</MenuItem>
@@ -488,7 +548,13 @@ function UserForm<T extends "create" | "update">({
         </Box>
 
         {/* Contact Information */}
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+          }}
+        >
           <TextField
             name="phone"
             label="Phone"
@@ -499,7 +565,6 @@ function UserForm<T extends "create" | "update">({
             helperText={touched.phone && errors.phone}
             size="small"
             fullWidth
-            required
             disabled={isSubmitting}
           />
           <TextField
@@ -512,7 +577,6 @@ function UserForm<T extends "create" | "update">({
             helperText={touched.city && errors.city}
             size="small"
             fullWidth
-            required
             disabled={isSubmitting}
           />
         </Box>
@@ -530,7 +594,6 @@ function UserForm<T extends "create" | "update">({
           fullWidth
           multiline
           rows={3}
-          required
           disabled={isSubmitting}
         />
 
@@ -558,7 +621,13 @@ function UserForm<T extends "create" | "update">({
 
         {/* Action Buttons */}
         <Box
-          sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+            justifyContent: "flex-end",
+            mt: 2,
+          }}
         >
           <Button onClick={onCancel} disabled={isSubmitting} variant="outlined">
             Cancel

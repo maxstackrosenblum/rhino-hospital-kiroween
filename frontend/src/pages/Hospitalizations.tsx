@@ -21,7 +21,6 @@ import {
   InputAdornment,
   InputLabel,
   MenuItem,
-  Pagination,
   Paper,
   Select,
   Snackbar,
@@ -51,6 +50,7 @@ import {
   Patient,
   User,
 } from "../types";
+import { PaginationControls } from "../components/common";
 
 interface HospitalizationsProps {
   user: User;
@@ -406,47 +406,19 @@ function Hospitalizations({ user }: HospitalizationsProps) {
         </TableContainer>
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 3,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Showing {hospitalizations.length} of {totalRecords}{" "}
-                hospitalizations
-              </Typography>
-              <FormControl size="small" sx={{ minWidth: 100 }}>
-                <InputLabel>Per page</InputLabel>
-                <Select
-                  value={pageSize}
-                  label="Per page"
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value={10}>10</MenuItem>
-                  <MenuItem value={25}>25</MenuItem>
-                  <MenuItem value={50}>50</MenuItem>
-                  <MenuItem value={100}>100</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, value) => setPage(value)}
-              color="primary"
-              showFirstButton
-              showLastButton
-            />
-          </Box>
-        )}
+        <PaginationControls
+          totalPages={totalPages}
+          currentPage={page}
+          pageSize={pageSize}
+          totalRecords={totalRecords}
+          currentRecords={hospitalizations.length}
+          itemName="hospitalizations"
+          onPageChange={setPage}
+          onPageSizeChange={(newPageSize) => {
+            setPageSize(newPageSize);
+            setPage(1);
+          }}
+        />
 
         {/* Create/Edit Dialog */}
         <Dialog

@@ -12,21 +12,27 @@ import {
   Snackbar,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDoctors } from "../api/doctors";
+import { useHospitalizations } from "../api/hospitalizations";
 import {
   useCompletePatientProfile,
   useDeletePatient,
   usePatients,
   useUpdatePatient,
 } from "../api/patients";
-import { useHospitalizations } from "../api/hospitalizations";
-import { useDoctors } from "../api/doctors";
-import CompletePatientProfileDialog from "../components/patients/CompletePatientProfileDialog";
-import DeletePatientDialog from "../components/patients/DeletePatientDialog";
-import EditPatientDialog from "../components/patients/EditPatientDialog";
-import PatientsTable from "../components/patients/PatientsTable";
+import {
+  CompletePatientProfileDialog,
+  DeletePatientDialog,
+  EditPatientDialog,
+  PatientsStack,
+  PatientsTable,
+} from "../components/patients";
+import { PaginationControls } from "../components/common";
 import { useDebounce } from "../hooks/useDebounce";
 import { Patient, PatientProfileCreate, PatientUpdate, User } from "../types";
 
@@ -36,11 +42,15 @@ interface PatientsProps {
 
 function Patients({ user }: PatientsProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "hospitalized" | "my-patients">(
-    user.role === "doctor" ? "my-patients" : "hospitalized"
-  );
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "hospitalized" | "my-patients"
+  >(user.role === "doctor" ? "my-patients" : "hospitalized");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms debounce
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [completeProfileDialogOpen, setCompleteProfileDialogOpen] =
     useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -60,6 +70,11 @@ function Patients({ user }: PatientsProps) {
     }
   }, [user, navigate]);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm, filterStatus]);
+
   // API hooks
   const {
     data: patientsResponse,
@@ -67,48 +82,57 @@ function Patients({ user }: PatientsProps) {
     error: queryError,
   } = usePatients({
     search: debouncedSearchTerm,
-    page_size: 100,
+    page: page,
+    page_size: pageSize,
   });
 
-  const { data: hospitalizationsResponse } = useHospitalizations({ page_size: 100 });
+  const { data: hospitalizationsResponse } = useHospitalizations({
+    page_size: 100,
+  });
   const hospitalizations = hospitalizationsResponse?.hospitalizations || [];
   const { data: doctorsResponse } = useDoctors({ page_size: 100 });
   const doctors = doctorsResponse?.doctors || [];
 
   // Find current user's doctor ID if they're a doctor
-  const currentDoctor = doctors.find(d => d.user_id === user.id);
+  const currentDoctor = doctors.find((d) => d.user_id === user.id);
 
   // Get currently hospitalized patient IDs
   const hospitalizedPatientIds = new Set(
     hospitalizations
-      .filter(h => !h.discharge_date) // Only active hospitalizations
-      .map(h => h.patient_id)
+      .filter((h) => !h.discharge_date) // Only active hospitalizations
+      .map((h) => h.patient_id)
   );
 
   // Get patient IDs for current doctor's hospitalizations
   const myPatientIds = new Set(
     currentDoctor
       ? hospitalizations
-          .filter(h => 
-            !h.discharge_date && // Only active hospitalizations
-            h.doctors?.some(d => d.id === currentDoctor.id) // Doctor is assigned
+          .filter(
+            (h) =>
+              !h.discharge_date && // Only active hospitalizations
+              h.doctors?.some((d) => d.id === currentDoctor.id) // Doctor is assigned
           )
-          .map(h => h.patient_id)
+          .map((h) => h.patient_id)
       : []
   );
 
-  // Filter and sort patients
+  // Get pagination info
   const allPatients = patientsResponse?.patients || [];
-  const filteredPatients = 
+  const totalPages = patientsResponse?.total_pages || 0;
+  const totalRecords = patientsResponse?.total || 0;
+
+  // Filter patients based on status (client-side filtering for now)
+  const filteredPatients =
     filterStatus === "hospitalized"
-      ? allPatients.filter(p => p.id && hospitalizedPatientIds.has(p.id))
+      ? allPatients.filter((p) => p.id && hospitalizedPatientIds.has(p.id))
       : filterStatus === "my-patients"
-      ? allPatients.filter(p => p.id && myPatientIds.has(p.id))
+      ? allPatients.filter((p) => p.id && myPatientIds.has(p.id))
       : allPatients;
-  
+
   // Sort by created_at in reverse order (newest first)
-  const patients = [...filteredPatients].sort((a, b) => 
-    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  const patients = [...filteredPatients].sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 
   const createPatientProfileMutation = useCompletePatientProfile();
@@ -250,7 +274,11 @@ function Patients({ user }: PatientsProps) {
             <Select
               value={filterStatus}
               label="Filter"
-              onChange={(e) => setFilterStatus(e.target.value as "all" | "hospitalized" | "my-patients")}
+              onChange={(e) =>
+                setFilterStatus(
+                  e.target.value as "all" | "hospitalized" | "my-patients"
+                )
+              }
             >
               {user.role === "doctor" && (
                 <MenuItem value="my-patients">My Patients</MenuItem>
@@ -271,16 +299,44 @@ function Patients({ user }: PatientsProps) {
           </Alert>
         )}
 
-        {/* Patients Table */}
-        <PatientsTable
-          patients={patients}
-          searchTerm={debouncedSearchTerm}
-          canModify={canModify}
-          canDelete={canDelete}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDeleteClick}
-          onCompleteProfile={handleCompleteProfile}
+        {/* Patients Display - Table for desktop, Stack for mobile */}
+        {isMobile ? (
+          <PatientsStack
+            patients={patients}
+            searchTerm={debouncedSearchTerm}
+            canModify={canModify}
+            canDelete={canDelete}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            onCompleteProfile={handleCompleteProfile}
+          />
+        ) : (
+          <PatientsTable
+            patients={patients}
+            searchTerm={debouncedSearchTerm}
+            canModify={canModify}
+            canDelete={canDelete}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            onCompleteProfile={handleCompleteProfile}
+          />
+        )}
+
+        {/* Pagination Controls */}
+        <PaginationControls
+          totalPages={totalPages}
+          currentPage={page}
+          pageSize={pageSize}
+          totalRecords={totalRecords}
+          currentRecords={patients.length}
+          itemName="patients"
+          onPageChange={setPage}
+          onPageSizeChange={(newPageSize) => {
+            setPageSize(newPageSize);
+            setPage(1);
+          }}
         />
 
         {/* Complete Patient Profile Dialog */}

@@ -8,7 +8,9 @@ import {
   Snackbar,
   TextField,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -17,10 +19,14 @@ import {
   useDoctors,
   useUpdateDoctor,
 } from "../api/doctors";
-import CompleteDoctorProfileDialog from "../components/doctors/CompleteDoctorProfileDialog";
-import DeleteDoctorDialog from "../components/doctors/DeleteDoctorDialog";
-import DoctorsTable from "../components/doctors/DoctorsTable";
-import EditDoctorDialog from "../components/doctors/EditDoctorDialog";
+import {
+  CompleteDoctorProfileDialog,
+  DeleteDoctorDialog,
+  DoctorsStack,
+  DoctorsTable,
+  EditDoctorDialog,
+} from "../components/doctors";
+import { PaginationControls } from "../components/common";
 import { useDebounce } from "../hooks/useDebounce";
 import { Doctor, DoctorProfileCreate, DoctorUpdate, User } from "../types";
 
@@ -30,8 +36,12 @@ interface DoctorsProps {
 
 function Doctors({ user }: DoctorsProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms debounce
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [completeProfileDialogOpen, setCompleteProfileDialogOpen] =
     useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -48,6 +58,11 @@ function Doctors({ user }: DoctorsProps) {
     }
   }, [user, navigate]);
 
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm]);
+
   // API hooks
   const {
     data: doctorsResponse,
@@ -55,10 +70,13 @@ function Doctors({ user }: DoctorsProps) {
     error: queryError,
   } = useDoctors({
     search: debouncedSearchTerm,
-    page_size: 100,
+    page: page,
+    page_size: pageSize,
   });
 
   const doctors = doctorsResponse?.doctors || [];
+  const totalPages = doctorsResponse?.total_pages || 0;
+  const totalRecords = doctorsResponse?.total || 0;
 
   const completeDoctorProfileMutation = useCompleteDoctorProfile();
   const updateDoctorMutation = useUpdateDoctor();
@@ -172,9 +190,18 @@ function Doctors({ user }: DoctorsProps) {
         </Box>
 
         {/* Search Bar */}
-        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
+        <Box
+          sx={{
+            mb: 3,
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
           <TextField
             fullWidth
+            size="small"
             placeholder="Search doctors by name, email, or doctor ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -200,14 +227,40 @@ function Doctors({ user }: DoctorsProps) {
           </Alert>
         )}
 
-        {/* Doctors Table */}
-        <DoctorsTable
-          doctors={doctors}
-          searchTerm={debouncedSearchTerm}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDeleteClick}
-          onCompleteProfile={handleCompleteProfile}
+        {/* Doctors Display - Table for desktop, Stack for mobile */}
+        {isMobile ? (
+          <DoctorsStack
+            doctors={doctors}
+            searchTerm={debouncedSearchTerm}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            onCompleteProfile={handleCompleteProfile}
+          />
+        ) : (
+          <DoctorsTable
+            doctors={doctors}
+            searchTerm={debouncedSearchTerm}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            onCompleteProfile={handleCompleteProfile}
+          />
+        )}
+
+        {/* Pagination Controls */}
+        <PaginationControls
+          totalPages={totalPages}
+          currentPage={page}
+          pageSize={pageSize}
+          totalRecords={totalRecords}
+          currentRecords={doctors.length}
+          itemName="doctors"
+          onPageChange={setPage}
+          onPageSizeChange={(newPageSize) => {
+            setPageSize(newPageSize);
+            setPage(1);
+          }}
         />
 
         {/* Complete Doctor Profile Dialog */}

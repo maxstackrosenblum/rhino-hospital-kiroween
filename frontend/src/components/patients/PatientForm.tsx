@@ -1,13 +1,15 @@
 import {
-  Alert,
-  Box,
-  Button,
-  FormControl,
-  FormHelperText,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
+    Alert,
+    Box,
+    Button,
+    FormControl,
+    FormHelperText,
+    InputLabel,
+    MenuItem,
+    Select,
+    TextField,
+    useMediaQuery,
+    useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Patient, PatientProfileCreate, PatientUpdate } from "../../types";
@@ -73,6 +75,8 @@ function PatientForm({
   isSubmitting = false,
   submitError = null,
 }: PatientFormProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -137,20 +141,22 @@ function PatientForm({
   };
 
   const validatePhone = (phone: string): string | undefined => {
-    if (!phone.trim()) return "Phone number is required";
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    if (!phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ""))) {
-      return "Please enter a valid phone number";
+    if (phone.trim()) {
+      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+      if (!phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ""))) {
+        return "Please enter a valid phone number";
+      }
     }
     return undefined;
   };
 
   const validateAge = (age: string): string | undefined => {
-    if (!age.trim()) return "Age is required";
-    const ageNum = parseInt(age);
-    if (isNaN(ageNum)) return "Age must be a number";
-    if (ageNum < 0) return "Age cannot be negative";
-    if (ageNum > 150) return "Age cannot be greater than 150";
+    if (age.trim()) {
+      const ageNum = parseInt(age);
+      if (isNaN(ageNum)) return "Age must be a number";
+      if (ageNum < 0) return "Age cannot be negative";
+      if (ageNum > 150) return "Age cannot be greater than 150";
+    }
     return undefined;
   };
 
@@ -162,28 +168,47 @@ function PatientForm({
     return undefined;
   };
 
+  const validateOptional = (
+    value: string,
+    fieldName: string
+  ): string | undefined => {
+    if (value.trim() && value.trim().length < 2) {
+      return `${fieldName} must be at least 2 characters long`;
+    }
+    return undefined;
+  };
+
   // Validate all fields
   const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
 
-    // For profile mode, only validate patient-specific fields
-    // For update mode, validate all fields
+    // For profile mode, validate emergency_contact as required
+    // For update mode, validate user fields (only required: first_name, last_name, email) + emergency_contact
     if (mode === "update") {
+      // Required fields
       newErrors.first_name = validateRequired(
         formData.first_name,
         "First name"
       );
       newErrors.last_name = validateRequired(formData.last_name, "Last name");
-      newErrors.gender = validateRequired(formData.gender, "Gender");
-      newErrors.phone = validatePhone(formData.phone);
-      newErrors.city = validateRequired(formData.city, "City");
       newErrors.email = validateEmail(formData.email);
+      
+      // Optional fields - only validate if provided
+      newErrors.phone = validatePhone(formData.phone);
       newErrors.age = validateAge(formData.age);
-      newErrors.address = validateRequired(formData.address, "Address");
+      newErrors.city = validateOptional(formData.city, "City");
+      newErrors.address = validateOptional(formData.address, "Address");
+      // Gender is optional, no validation needed
     }
 
-    // Patient-specific fields are optional for both modes
-    // No required validation for patient-specific fields
+    // Emergency contact is now required for both modes
+    newErrors.emergency_contact = validateRequired(
+      formData.emergency_contact,
+      "Emergency contact"
+    );
+
+    // Other patient-specific fields remain optional
+    // No validation needed for medical_record_number, insurance_info
 
     // Remove undefined errors
     Object.keys(newErrors).forEach((key) => {
@@ -226,37 +251,46 @@ function PatientForm({
     const newErrors = { ...errors };
     switch (fieldName) {
       case "first_name":
-        newErrors.first_name = validateRequired(
-          formData.first_name,
-          "First name"
-        );
+        if (mode === "update") {
+          newErrors.first_name = validateRequired(
+            formData.first_name,
+            "First name"
+          );
+        }
         break;
       case "last_name":
-        newErrors.last_name = validateRequired(formData.last_name, "Last name");
+        if (mode === "update") {
+          newErrors.last_name = validateRequired(formData.last_name, "Last name");
+        }
         break;
       case "gender":
-        newErrors.gender = validateRequired(formData.gender, "Gender");
+        // Gender is optional, no validation needed
         break;
       case "phone":
         newErrors.phone = validatePhone(formData.phone);
         break;
       case "city":
-        newErrors.city = validateRequired(formData.city, "City");
+        newErrors.city = validateOptional(formData.city, "City");
         break;
       case "email":
-        newErrors.email = validateEmail(formData.email);
+        if (mode === "update") {
+          newErrors.email = validateEmail(formData.email);
+        }
         break;
       case "age":
         newErrors.age = validateAge(formData.age);
         break;
       case "address":
-        newErrors.address = validateRequired(formData.address, "Address");
+        newErrors.address = validateOptional(formData.address, "Address");
         break;
       case "medical_record_number":
         // Optional field, no validation needed
         break;
       case "emergency_contact":
-        // Optional field, no validation needed
+        newErrors.emergency_contact = validateRequired(
+          formData.emergency_contact,
+          "Emergency contact"
+        );
         break;
       case "insurance_info":
         // Optional field, no validation needed
@@ -331,7 +365,11 @@ function PatientForm({
         {mode === "update" && (
           <>
             {/* Name Fields */}
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2 
+            }}>
               <TextField
                 name="first_name"
                 label="First Name"
@@ -361,10 +399,13 @@ function PatientForm({
             </Box>
 
             {/* Gender and Age */}
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2 
+            }}>
               <FormControl
                 fullWidth
-                required
                 error={touched.gender && !!errors.gender}
                 disabled={isSubmitting}
                 size="small"
@@ -377,6 +418,9 @@ function PatientForm({
                   onChange={(e) => handleSelectChange("gender", e.target.value)}
                   onBlur={() => handleBlur("gender")}
                 >
+                  <MenuItem value="">
+                    <em>Not specified</em>
+                  </MenuItem>
                   <MenuItem value="male">Male</MenuItem>
                   <MenuItem value="female">Female</MenuItem>
                   <MenuItem value="other">Other</MenuItem>
@@ -396,7 +440,6 @@ function PatientForm({
                 error={touched.age && !!errors.age}
                 helperText={touched.age && errors.age}
                 fullWidth
-                required
                 disabled={isSubmitting}
                 size="small"
                 slotProps={{
@@ -406,7 +449,11 @@ function PatientForm({
             </Box>
 
             {/* Contact Information */}
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2 
+            }}>
               <TextField
                 name="phone"
                 label="Phone"
@@ -416,7 +463,6 @@ function PatientForm({
                 error={touched.phone && !!errors.phone}
                 helperText={touched.phone && errors.phone}
                 fullWidth
-                required
                 disabled={isSubmitting}
                 size="small"
               />
@@ -446,7 +492,6 @@ function PatientForm({
               error={touched.city && !!errors.city}
               helperText={touched.city && errors.city}
               fullWidth
-              required
               disabled={isSubmitting}
               size="small"
             />
@@ -463,7 +508,6 @@ function PatientForm({
               fullWidth
               multiline
               rows={3}
-              required
               disabled={isSubmitting}
               size="small"
             />
@@ -502,9 +546,10 @@ function PatientForm({
           helperText={
             touched.emergency_contact && errors.emergency_contact
               ? errors.emergency_contact
-              : "Optional: Emergency contact information"
+              : "Emergency contact information (name and phone number)"
           }
           fullWidth
+          required
           disabled={isSubmitting}
           size="small"
         />
@@ -530,15 +575,27 @@ function PatientForm({
 
         {/* Action Buttons */}
         <Box
-          sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}
+          sx={{ 
+            display: "flex", 
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2, 
+            justifyContent: "flex-end", 
+            mt: 2 
+          }}
         >
-          <Button onClick={onCancel} disabled={isSubmitting} variant="outlined">
+          <Button 
+            onClick={onCancel} 
+            disabled={isSubmitting} 
+            variant="outlined"
+            fullWidth={isMobile}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             variant="contained"
             disabled={isSubmitting || !isFormValid}
+            fullWidth={isMobile}
           >
             {isSubmitting
               ? mode === "profile"

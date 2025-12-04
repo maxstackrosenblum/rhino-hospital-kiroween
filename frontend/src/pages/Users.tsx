@@ -9,11 +9,12 @@ import {
   InputAdornment,
   InputLabel,
   MenuItem,
-  Pagination,
   Select,
   Snackbar,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -27,8 +28,10 @@ import {
   CreateUserDialog,
   DeleteUserDialog,
   EditUserDialog,
+  UsersStack,
   UsersTable,
 } from "../components/users";
+import { PaginationControls } from "../components/common";
 import { useDebounce } from "../hooks/useDebounce";
 import { AdminUserUpdate, User, UserCreate } from "../types";
 
@@ -38,6 +41,8 @@ interface UsersProps {
 
 function Users({ user }: UsersProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms debounce
   const [roleFilter, setRoleFilter] = useState("");
@@ -233,49 +238,39 @@ function Users({ user }: UsersProps) {
           </Alert>
         )}
 
-        {/* Users Table */}
-        <UsersTable
-          users={users}
-          searchTerm={debouncedSearchTerm}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDeleteClick}
-        />
+        {/* Users Display - Table for desktop, Stack for mobile */}
+        {isMobile ? (
+          <UsersStack
+            users={users}
+            searchTerm={debouncedSearchTerm}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+          />
+        ) : (
+          <UsersTable
+            users={users}
+            searchTerm={debouncedSearchTerm}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+          />
+        )}
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Showing {users.length} of {totalRecords} users
-              </Typography>
-              <FormControl size="small" sx={{ minWidth: 100 }}>
-                <InputLabel>Per page</InputLabel>
-                <Select
-                  value={pageSize}
-                  label="Per page"
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value={10}>10</MenuItem>
-                  <MenuItem value={25}>25</MenuItem>
-                  <MenuItem value={50}>50</MenuItem>
-                  <MenuItem value={100}>100</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Pagination 
-              count={totalPages}
-              page={page}
-              onChange={(_, value) => setPage(value)}
-              color="primary"
-              showFirstButton
-              showLastButton
-            />
-          </Box>
-        )}
+        <PaginationControls
+          totalPages={totalPages}
+          currentPage={page}
+          pageSize={pageSize}
+          totalRecords={totalRecords}
+          currentRecords={users.length}
+          itemName="users"
+          onPageChange={setPage}
+          onPageSizeChange={(newPageSize) => {
+            setPageSize(newPageSize);
+            setPage(1);
+          }}
+        />
 
         {/* Create User Dialog */}
         <CreateUserDialog

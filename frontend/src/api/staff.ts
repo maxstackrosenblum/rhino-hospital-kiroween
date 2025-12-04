@@ -1,14 +1,40 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { 
-  StaffListResponse,
-  MedicalStaff, MedicalStaffCreate, MedicalStaffUpdate
+import {
+    MedicalStaff, MedicalStaffCreate, MedicalStaffUpdate,
+    PaginatedMedicalStaffResponse,
+    StaffListResponse
 } from '../types';
 import { API_URL, authenticatedFetch } from './common';
 
 // Medical Staff queries
-export const useMedicalStaff = (search?: string) => {
+export const useMedicalStaff = (
+  page: number = 1,
+  pageSize: number = 10,
+  search?: string
+) => {
+  return useQuery<PaginatedMedicalStaffResponse>({
+    queryKey: ['medical-staff', page, pageSize, search],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        page_size: pageSize.toString(),
+      });
+      
+      if (search) {
+        params.append('search', search);
+      }
+      
+      return authenticatedFetch<PaginatedMedicalStaffResponse>(
+        `${API_URL}/api/medical-staff?${params.toString()}`
+      );
+    },
+  });
+};
+
+// Legacy function for backward compatibility (non-paginated)
+export const useMedicalStaffLegacy = (search?: string) => {
   return useQuery<StaffListResponse>({
-    queryKey: ['medical-staff', search],
+    queryKey: ['medical-staff-legacy', search],
     queryFn: async () => {
       const url = search
         ? `${API_URL}/api/medical-staff?search=${encodeURIComponent(search)}`
@@ -41,6 +67,7 @@ export const useCreateMedicalStaff = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medical-staff'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-staff-legacy'] });
     },
   });
 };
@@ -63,6 +90,7 @@ export const useUpdateMedicalStaff = () => {
     },
     onSuccess: (_data: MedicalStaff, variables: { id: number; data: MedicalStaffUpdate }) => {
       queryClient.invalidateQueries({ queryKey: ['medical-staff'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-staff-legacy'] });
       queryClient.invalidateQueries({ queryKey: ['medical-staff', variables.id] });
     },
   });
@@ -82,6 +110,7 @@ export const useDeleteMedicalStaff = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medical-staff'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-staff-legacy'] });
     },
   });
 };
