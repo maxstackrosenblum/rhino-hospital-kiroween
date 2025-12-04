@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.error_handlers import register_error_handlers
+from middleware.profanity import ProfanityFilterMiddleware
 from routers import auth, users, health, patients, doctors, password_reset, sessions, medical_staff, hospitalizations, prescriptions, shifts, password_policy
 
 app = FastAPI(
@@ -15,7 +16,8 @@ app = FastAPI(
     }
 )
 
-# CORS configuration
+app.add_middleware(ProfanityFilterMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
