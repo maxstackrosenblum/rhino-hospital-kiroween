@@ -1,4 +1,10 @@
+<div align="center">
+
+![Hospital Management System](frontend/public/logo-full.png)
+
 # Hospital Management System: A Frankenstein Story
+
+</div>
 
 ## 🎃 Try It Yourself!
 
