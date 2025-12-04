@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.error_handlers import register_error_handlers
 from middleware.profanity import ProfanityFilterMiddleware
+from routers import auth, users, health, patients, doctors, password_reset, sessions, medical_staff, hospitalizations, prescriptions, shifts, password_policy, appointments, blood_pressure
 
-from routers import auth, users, health, patients, doctors, password_reset, sessions, medical_staff, hospitalizations, prescriptions, shifts, password_policy, appointments
 
 
 app = FastAPI(
@@ -43,6 +43,7 @@ app.include_router(appointments.router)
 app.include_router(hospitalizations.router)
 app.include_router(prescriptions.router)
 app.include_router(shifts.router)
+app.include_router(blood_pressure.router)
 app.include_router(password_reset.router)
 app.include_router(password_policy.router)
 app.include_router(sessions.router)
