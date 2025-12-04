@@ -1,6 +1,6 @@
 <div align="center">
 
-![Hospital Management System](frontend/public/logo-full.png)
+<img src="frontend/public/logo-full.png" alt="Hospital Management System" width="400"/>
 
 # Hospital Management System: A Frankenstein Story
 
