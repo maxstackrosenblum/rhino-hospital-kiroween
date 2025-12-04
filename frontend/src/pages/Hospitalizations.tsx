@@ -443,23 +443,25 @@ function Hospitalizations({ user }: HospitalizationsProps) {
               />
               <Autocomplete
                 multiple
-                options={doctors}
+                options={doctors.filter((d) => d.id !== null)} // Only show doctors with completed profiles
                 getOptionLabel={(option) =>
                   `Dr. ${option.first_name} ${option.last_name}${
                     option.specialization ? ` - ${option.specialization}` : ""
                   }`
                 }
                 value={doctors.filter(
-                  (d) => d.id && formData.doctor_ids.includes(d.id)
+                  (d) => d.id !== null && formData.doctor_ids.includes(d.id)
                 )}
                 onChange={(_, newValue) => {
+                  const newDoctorIds = newValue
+                    .map((d) => d.id!)
+                    .filter((id) => id !== null);
                   setFormData({
                     ...formData,
-                    doctor_ids: newValue
-                      .map((d) => d.id!)
-                      .filter((id) => id !== null),
+                    doctor_ids: newDoctorIds,
                   });
                 }}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
                 renderInput={(params) => (
                   <TextField
                     {...params}
