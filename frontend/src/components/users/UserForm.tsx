@@ -74,7 +74,6 @@ function UserForm<T extends "create" | "update">({
   submitError = null,
 }: UserFormProps<T>) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});

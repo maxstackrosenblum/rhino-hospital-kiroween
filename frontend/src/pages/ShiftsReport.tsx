@@ -2,8 +2,6 @@ import { Search as SearchIcon } from "@mui/icons-material";
 import {
   Alert,
   Box,
-  Chip,
-  CircularProgress,
   Container,
   FormControl,
   InputAdornment,
@@ -12,18 +10,18 @@ import {
   Pagination,
   Paper,
   Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShifts } from "../api/shifts";
+import {
+  ShiftsReportStack,
+  ShiftsReportTable,
+} from "../components/shifts-report";
 import { User } from "../types";
 
 interface ShiftsReportProps {
@@ -32,6 +30,8 @@ interface ShiftsReportProps {
 
 function ShiftsReport({ user }: ShiftsReportProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [roleFilter, setRoleFilter] = useState<string>("");
@@ -69,13 +69,14 @@ function ShiftsReport({ user }: ShiftsReportProps) {
   const totalPages = shiftsResponse?.total_pages || 0;
   const totalRecords = shiftsResponse?.total || 0;
 
+  // Helper functions
   const formatHours = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
   };
 
-  const getRoleColor = (role: string) => {
+  const getRoleColor = (role: string): "success" | "info" | "default" => {
     switch (role) {
       case "doctor":
         return "success";
@@ -121,62 +122,77 @@ function ShiftsReport({ user }: ShiftsReportProps) {
         </Typography>
 
         {/* Filters */}
-        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
-          <TextField
-            placeholder="Search by name, email, or username..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ flex: 1, minWidth: 250 }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-          <TextField
-            label="From Date"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{ width: 180 }}
-          />
-          <TextField
-            label="To Date"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{ width: 180 }}
-          />
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Filter by Role</InputLabel>
-            <Select
-              value={roleFilter}
-              label="Filter by Role"
-              onChange={(e) => setRoleFilter(e.target.value)}
-            >
-              <MenuItem value="">All Roles</MenuItem>
-              <MenuItem value="doctor">Doctor</MenuItem>
-              <MenuItem value="medical_staff">Medical Staff</MenuItem>
-              <MenuItem value="receptionist">Receptionist</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl sx={{ minWidth: 180 }}>
-            <InputLabel>View Mode</InputLabel>
-            <Select
-              value={viewMode}
-              label="View Mode"
-              onChange={(e) => setViewMode(e.target.value as "detailed" | "summary")}
-            >
-              <MenuItem value="summary">Summary View</MenuItem>
-              <MenuItem value="detailed">Detailed View</MenuItem>
-            </Select>
-          </FormControl>
+        <Box sx={{ mb: 3 }}>
+          {/* Search Bar - Full width row */}
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              fullWidth
+              placeholder="Search by name, email, or username..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+          </Box>
+
+          {/* Date Range - One row */}
+          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+            <TextField
+              label="From Date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+              sx={{ flex: 1 }}
+            />
+            <TextField
+              label="To Date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+              sx={{ flex: 1 }}
+            />
+          </Box>
+
+          {/* Filters - One row */}
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <FormControl sx={{ flex: 1 }}>
+              <InputLabel>Filter by Role</InputLabel>
+              <Select
+                value={roleFilter}
+                label="Filter by Role"
+                onChange={(e) => setRoleFilter(e.target.value)}
+              >
+                <MenuItem value="">All Roles</MenuItem>
+                <MenuItem value="doctor">Doctor</MenuItem>
+                <MenuItem value="medical_staff">Medical Staff</MenuItem>
+                <MenuItem value="receptionist">Receptionist</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl sx={{ flex: 1 }}>
+              <InputLabel>View Mode</InputLabel>
+              <Select
+                value={viewMode}
+                label="View Mode"
+                onChange={(e) => setViewMode(e.target.value as "detailed" | "summary")}
+              >
+                <MenuItem value="summary">Summary View</MenuItem>
+                <MenuItem value="detailed">Detailed View</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
 
         {/* Summary */}
@@ -197,105 +213,41 @@ function ShiftsReport({ user }: ShiftsReportProps) {
           </Alert>
         )}
 
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 600 }}>Staff Member</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Role</TableCell>
-                {viewMode === "detailed" && (
-                  <>
-                    <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Start Time</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>End Time</TableCell>
-                  </>
-                )}
-                <TableCell sx={{ fontWeight: 600 }}>Total Hours</TableCell>
-                {viewMode === "detailed" && <TableCell sx={{ fontWeight: 600 }}>Notes</TableCell>}
-                {viewMode === "summary" && <TableCell sx={{ fontWeight: 600 }}>Shifts Count</TableCell>}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={viewMode === "detailed" ? 7 : 5} align="center" sx={{ py: 6 }}>
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : viewMode === "summary" ? (
-                summaryArray.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
-                      <Typography variant="h6" color="text.secondary">
-                        No shifts found for the selected period
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  summaryArray.map((summary) => (
-                    <TableRow key={summary.user_id} hover>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight={500}>
-                          {summary.user_first_name} {summary.user_last_name}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={summary.user_role?.replace('_', ' ').toUpperCase()} 
-                          color={getRoleColor(summary.user_role || '')}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body1" fontWeight={600}>
-                          {formatHours(summary.total_minutes)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>{summary.shift_count}</TableCell>
-                    </TableRow>
-                  ))
-                )
-              ) : (
-                shifts.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                      <Typography variant="h6" color="text.secondary">
-                        No shifts found for the selected period
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  shifts.map((shift) => (
-                    <TableRow key={shift.id} hover>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight={500}>
-                          {shift.user_first_name} {shift.user_last_name}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={shift.user_role?.replace('_', ' ').toUpperCase()} 
-                          color={getRoleColor(shift.user_role || '')}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>{new Date(shift.date).toLocaleDateString()}</TableCell>
-                      <TableCell>{new Date(shift.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                      <TableCell>{new Date(shift.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                      <TableCell>{formatHours(shift.total_hours)}</TableCell>
-                      <TableCell>{shift.notes || "-"}</TableCell>
-                    </TableRow>
-                  ))
-                )
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {/* Shifts Report Display - Table for desktop, Stack for mobile */}
+        {isMobile ? (
+          <ShiftsReportStack
+            shifts={shifts}
+            summaryData={summaryArray}
+            viewMode={viewMode}
+            searchTerm={searchTerm}
+            isLoading={isLoading}
+            formatHours={formatHours}
+            getRoleColor={getRoleColor}
+          />
+        ) : (
+          <ShiftsReportTable
+            shifts={shifts}
+            summaryData={summaryArray}
+            viewMode={viewMode}
+            searchTerm={searchTerm}
+            isLoading={isLoading}
+            formatHours={formatHours}
+            getRoleColor={getRoleColor}
+          />
+        )}
 
         {/* Pagination Controls - Only show in detailed view */}
         {viewMode === "detailed" && totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ mt: 3 }}>
+            {/* Info and Per Page Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: { xs: 2, md: 0 },
+              }}
+            >
               <Typography variant="body2" color="text.secondary">
                 Showing {shifts.length} of {totalRecords} shifts
               </Typography>
@@ -316,14 +268,25 @@ function ShiftsReport({ user }: ShiftsReportProps) {
                 </Select>
               </FormControl>
             </Box>
-            <Pagination 
-              count={totalPages}
-              page={page}
-              onChange={(_, value) => setPage(value)}
-              color="primary"
-              showFirstButton
-              showLastButton
-            />
+            
+            {/* Pagination Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: { xs: 0, md: 2 },
+              }}
+            >
+              <Pagination 
+                count={totalPages}
+                page={page}
+                onChange={(_, value) => setPage(value)}
+                color="primary"
+                showFirstButton
+                showLastButton
+                size={isMobile ? "small" : "medium"}
+              />
+            </Box>
           </Box>
         )}
       </Box>
