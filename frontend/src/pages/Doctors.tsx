@@ -194,18 +194,9 @@ function Doctors({ user }: DoctorsProps) {
         </Box>
 
         {/* Search Bar */}
-        <Box
-          sx={{
-            mb: 3,
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            alignItems: "center",
-            gap: 2,
-          }}
-        >
+        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
           <TextField
             fullWidth
-            size="small"
             placeholder="Search doctors by name, email, or doctor ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

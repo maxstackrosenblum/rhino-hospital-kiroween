@@ -186,18 +186,9 @@ function Users({ user }: UsersProps) {
         </Box>
 
         {/* Search and Filter */}
-        <Box
-          sx={{
-            mb: 3,
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            alignItems: "center",
-            gap: 2,
-          }}
-        >
+        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
           <TextField
             fullWidth
-            size="small"
             placeholder="Search users by name, username, or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -211,7 +202,7 @@ function Users({ user }: UsersProps) {
               },
             }}
           />
-          <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 150 } }}>
+          <FormControl sx={{ minWidth: 150 }}>
             <Select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}

@@ -1,7 +1,6 @@
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  Edit as EditIcon,
   Search as SearchIcon,
 } from "@mui/icons-material";
 import {
@@ -9,7 +8,6 @@ import {
   Autocomplete,
   Box,
   Button,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -21,17 +19,12 @@ import {
   InputLabel,
   MenuItem,
   Pagination,
-  Paper,
   Select,
   Snackbar,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -44,6 +37,10 @@ import {
   usePrescriptions,
   useUpdatePrescription,
 } from "../api/prescriptions";
+import {
+  PrescriptionsStack,
+  PrescriptionsTable,
+} from "../components/prescriptions";
 import {
   MedicineItem,
   Patient,
@@ -58,6 +55,8 @@ interface PrescriptionsProps {
 
 function Prescriptions({ user }: PrescriptionsProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingPrescription, setEditingPrescription] =
@@ -93,7 +92,7 @@ function Prescriptions({ user }: PrescriptionsProps) {
   }, [user, navigate]);
 
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(2);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -364,6 +363,11 @@ function Prescriptions({ user }: PrescriptionsProps) {
     setDeleteDialogOpen(true);
   };
 
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setPrescriptionToDelete(null);
+  };
+
   const handleDeleteConfirm = () => {
     if (!prescriptionToDelete) return;
 
@@ -402,15 +406,7 @@ function Prescriptions({ user }: PrescriptionsProps) {
         </Box>
 
         {/* Search Bar, Filter, and Date Range */}
-        <Box
-          sx={{
-            mb: 3,
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            flexWrap: "wrap",
-          }}
-        >
+        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
           <TextField
             sx={{ flex: 1, minWidth: 250 }}
             placeholder="Search by patient name..."
@@ -449,7 +445,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
             sx={{ width: 160 }}
           />
           <TextField
@@ -457,7 +455,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
             sx={{ width: 160 }}
           />
         </Box>
@@ -468,106 +468,39 @@ function Prescriptions({ user }: PrescriptionsProps) {
           </Alert>
         )}
 
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 600 }}>Patient</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Medicines</TableCell>
-                {canWrite && (
-                  <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
-                )}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={canWrite ? 4 : 3}
-                    align="center"
-                    sx={{ py: 6 }}
-                  >
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : prescriptions.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={canWrite ? 4 : 3}
-                    align="center"
-                    sx={{ py: 6 }}
-                  >
-                    <Typography variant="h6" color="text.secondary">
-                      No prescriptions found
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                prescriptions.map((prescription) => (
-                  <TableRow key={prescription.id} hover>
-                    <TableCell>
-                      <Box>
-                        <Typography variant="body2" fontWeight={500}>
-                          {prescription.patient_first_name}{" "}
-                          {prescription.patient_last_name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Age: {prescription.patient_age} • ID:{" "}
-                          {prescription.patient_id}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(prescription.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {prescription.medicines.map((med, idx) => (
-                        <Box key={idx}>
-                          <strong>{med.name}</strong>
-                          {med.dosage && ` - ${med.dosage}`}
-                          {med.frequency && ` - ${med.frequency}`}
-                        </Box>
-                      ))}
-                    </TableCell>
-                    {canWrite && (
-                      <TableCell>
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                          <IconButton
-                            onClick={() => handleOpenDialog(prescription)}
-                            color="primary"
-                            size="small"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => handleDeleteClick(prescription)}
-                            color="error"
-                            size="small"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {/* Prescriptions Display - Table for desktop, Stack for mobile */}
+        {isMobile ? (
+          <PrescriptionsStack
+            prescriptions={prescriptions}
+            searchTerm={searchTerm}
+            isLoading={isLoading}
+            canWrite={canWrite}
+            onEdit={handleOpenDialog}
+            onDelete={handleDeleteClick}
+          />
+        ) : (
+          <PrescriptionsTable
+            prescriptions={prescriptions}
+            searchTerm={searchTerm}
+            isLoading={isLoading}
+            canWrite={canWrite}
+            onEdit={handleOpenDialog}
+            onDelete={handleDeleteClick}
+          />
+        )}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 3,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ mt: 3 }}>
+            {/* Info and Per Page Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: { xs: 2, md: 0 },
+              }}
+            >
               <Typography variant="body2" color="text.secondary">
                 Showing {prescriptions.length} of {totalRecords} prescriptions
               </Typography>
@@ -588,14 +521,25 @@ function Prescriptions({ user }: PrescriptionsProps) {
                 </Select>
               </FormControl>
             </Box>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, value) => setPage(value)}
-              color="primary"
-              showFirstButton
-              showLastButton
-            />
+
+            {/* Pagination Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: { xs: 0, md: 2 },
+              }}
+            >
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, value) => setPage(value)}
+                color="primary"
+                showFirstButton
+                showLastButton
+                size={isMobile ? "small" : "medium"}
+              />
+            </Box>
           </Box>
         )}
 
@@ -673,7 +617,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
                   }
                   required
                   fullWidth
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                  }}
                 />
               ) : (
                 <>
@@ -686,7 +632,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
                     }
                     required
                     fullWidth
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      inputLabel: { shrink: true },
+                    }}
                     helperText="First day of prescription period"
                   />
                   <TextField
@@ -698,7 +646,9 @@ function Prescriptions({ user }: PrescriptionsProps) {
                     }
                     required
                     fullWidth
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      inputLabel: { shrink: true },
+                    }}
                     helperText="Last day of prescription period"
                   />
                 </>
@@ -828,26 +778,43 @@ function Prescriptions({ user }: PrescriptionsProps) {
           </DialogActions>
         </Dialog>
 
-        {/* Delete Dialog */}
+        {/* Delete Confirmation Dialog */}
         <Dialog
           open={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
+          onClose={handleDeleteCancel}
+          maxWidth="sm"
+          fullWidth
         >
           <DialogTitle>Delete Prescription?</DialogTitle>
           <DialogContent>
             <Typography>
               Are you sure you want to delete this prescription?
+              {prescriptionToDelete && (
+                <>
+                  <br />
+                  <br />
+                  <strong>Patient:</strong>{" "}
+                  {prescriptionToDelete.patient_first_name}{" "}
+                  {prescriptionToDelete.patient_last_name}
+                  <br />
+                  <strong>Date:</strong>{" "}
+                  {new Date(prescriptionToDelete.date).toLocaleDateString()}
+                  <br />
+                  <strong>Medicines:</strong>{" "}
+                  {prescriptionToDelete.medicines.length} item(s)
+                </>
+              )}
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleDeleteCancel}>Cancel</Button>
             <Button
               onClick={handleDeleteConfirm}
               color="error"
               variant="contained"
               disabled={deleteMutation.isPending}
             >
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogActions>
         </Dialog>

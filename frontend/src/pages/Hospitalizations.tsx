@@ -1,7 +1,5 @@
 import {
   Add as AddIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
   Search as SearchIcon,
 } from "@mui/icons-material";
 import {
@@ -10,29 +8,22 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
-  IconButton,
   InputAdornment,
   InputLabel,
   MenuItem,
   Pagination,
-  Paper,
   Select,
   Snackbar,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -44,6 +35,10 @@ import {
   useUpdateHospitalization,
 } from "../api/hospitalizations";
 import { usePatients } from "../api/patients";
+import {
+  HospitalizationsStack,
+  HospitalizationsTable,
+} from "../components/hospitalizations";
 import {
   Hospitalization,
   HospitalizationCreate,
@@ -58,10 +53,12 @@ interface HospitalizationsProps {
 
 function Hospitalizations({ user }: HospitalizationsProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingHospitalization, setEditingHospitalization] =
     useState<Hospitalization | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [hospitalizationToDelete, setHospitalizationToDelete] =
     useState<Hospitalization | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>("");
@@ -72,7 +69,7 @@ function Hospitalizations({ user }: HospitalizationsProps) {
     "all" | "active" | "my-patients"
   >(user.role === "doctor" ? "my-patients" : "active");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(2);
 
   const [formData, setFormData] = useState({
     patient_id: "",
@@ -224,6 +221,11 @@ function Hospitalizations({ user }: HospitalizationsProps) {
     setDeleteDialogOpen(true);
   };
 
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setHospitalizationToDelete(null);
+  };
+
   const handleDeleteConfirm = () => {
     if (!hospitalizationToDelete) return;
 
@@ -302,120 +304,37 @@ function Hospitalizations({ user }: HospitalizationsProps) {
           </Alert>
         )}
 
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 600 }}>Patient</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Admission Date</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Discharge Date</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Diagnosis</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Doctors</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Summary</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : hospitalizations.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                    <Typography variant="h6" color="text.secondary">
-                      No hospitalizations found
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                hospitalizations.map((hospitalization) => (
-                  <TableRow key={hospitalization.id} hover>
-                    <TableCell>
-                      <Box>
-                        <Typography variant="body2" fontWeight={500}>
-                          {hospitalization.patient_first_name}{" "}
-                          {hospitalization.patient_last_name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Age: {hospitalization.patient_age} • ID:{" "}
-                          {hospitalization.patient_id}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(
-                        hospitalization.admission_date
-                      ).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {hospitalization.discharge_date
-                        ? new Date(
-                            hospitalization.discharge_date
-                          ).toLocaleDateString()
-                        : "Active"}
-                    </TableCell>
-                    <TableCell>{hospitalization.diagnosis}</TableCell>
-                    <TableCell>
-                      {hospitalization.doctors &&
-                      hospitalization.doctors.length > 0 ? (
-                        <Box
-                          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
-                        >
-                          {hospitalization.doctors.map((doctor) => (
-                            <Chip
-                              key={doctor.id}
-                              label={`Dr. ${doctor.first_name} ${doctor.last_name}`}
-                              size="small"
-                              variant="outlined"
-                            />
-                          ))}
-                        </Box>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No doctors assigned
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>{hospitalization.summary || "-"}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", gap: 1 }}>
-                        <IconButton
-                          onClick={() => handleOpenDialog(hospitalization)}
-                          color="primary"
-                          size="small"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => handleDeleteClick(hospitalization)}
-                          color="error"
-                          size="small"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {/* Hospitalizations Display - Table for desktop, Stack for mobile */}
+        {isMobile ? (
+          <HospitalizationsStack
+            hospitalizations={hospitalizations}
+            searchTerm={searchTerm}
+            isLoading={isLoading}
+            onEdit={handleOpenDialog}
+            onDelete={handleDeleteClick}
+          />
+        ) : (
+          <HospitalizationsTable
+            hospitalizations={hospitalizations}
+            searchTerm={searchTerm}
+            isLoading={isLoading}
+            onEdit={handleOpenDialog}
+            onDelete={handleDeleteClick}
+          />
+        )}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 3,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ mt: 3 }}>
+            {/* Info and Per Page Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: { xs: 2, md: 0 },
+              }}
+            >
               <Typography variant="body2" color="text.secondary">
                 Showing {hospitalizations.length} of {totalRecords}{" "}
                 hospitalizations
@@ -437,14 +356,25 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                 </Select>
               </FormControl>
             </Box>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, value) => setPage(value)}
-              color="primary"
-              showFirstButton
-              showLastButton
-            />
+            
+            {/* Pagination Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: { xs: 0, md: 2 },
+              }}
+            >
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, value) => setPage(value)}
+                color="primary"
+                showFirstButton
+                showLastButton
+                size={isMobile ? "small" : "medium"}
+              />
+            </Box>
           </Box>
         )}
 
@@ -515,7 +445,9 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                 }
                 required
                 fullWidth
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                }}
               />
               <TextField
                 label="Discharge Date"
@@ -525,7 +457,9 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                   setFormData({ ...formData, discharge_date: e.target.value })
                 }
                 fullWidth
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                }}
               />
               <TextField
                 label="Diagnosis"
@@ -575,15 +509,12 @@ function Hospitalizations({ user }: HospitalizationsProps) {
                     helperText="Optional: Select one or more doctors"
                   />
                 )}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      label={`Dr. ${option.first_name} ${option.last_name}`}
-                      {...getTagProps({ index })}
-                      key={option.id}
-                    />
-                  ))
-                }
+                slotProps={{
+                  chip: {
+                    color: "primary",
+                    variant: "outlined",
+                  },
+                }}
                 fullWidth
               />
             </Box>
@@ -604,26 +535,39 @@ function Hospitalizations({ user }: HospitalizationsProps) {
           </DialogActions>
         </Dialog>
 
-        {/* Delete Dialog */}
+        {/* Delete Confirmation Dialog */}
         <Dialog
           open={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
+          onClose={handleDeleteCancel}
+          maxWidth="sm"
+          fullWidth
         >
           <DialogTitle>Delete Hospitalization?</DialogTitle>
           <DialogContent>
             <Typography>
               Are you sure you want to delete this hospitalization record?
+              {hospitalizationToDelete && (
+                <>
+                  <br />
+                  <br />
+                  <strong>Patient:</strong> {hospitalizationToDelete.patient_first_name}{" "}
+                  {hospitalizationToDelete.patient_last_name}
+                  <br />
+                  <strong>Admission Date:</strong>{" "}
+                  {new Date(hospitalizationToDelete.admission_date).toLocaleDateString()}
+                </>
+              )}
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleDeleteCancel}>Cancel</Button>
             <Button
               onClick={handleDeleteConfirm}
               color="error"
               variant="contained"
               disabled={deleteMutation.isPending}
             >
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogActions>
         </Dialog>

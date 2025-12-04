@@ -192,18 +192,9 @@ function MedicalStaffList({ user }: MedicalStaffListProps) {
         </Box>
 
         {/* Search Bar */}
-        <Box
-          sx={{
-            mb: 3,
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            alignItems: "center",
-            gap: 2,
-          }}
-        >
+        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
           <TextField
             fullWidth
-            size="small"
             placeholder="Search medical staff by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
