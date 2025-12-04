@@ -17,6 +17,7 @@ import NetworkErrorHandler from "./components/NetworkErrorHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useIdleTimeout } from "./hooks/useIdleTimeout";
 import { AppThemeProvider } from "./hooks/useTheme";
+import Appointments from "./pages/Appointments";
 import Dashboard from "./pages/Dashboard";
 import Doctors from "./pages/Doctors";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -249,6 +250,14 @@ function AppContent() {
                   element={
                     <ProtectedRoute user={user}>
                       <Prescriptions user={user as any} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/appointments"
+                  element={
+                    <ProtectedRoute user={user}>
+                      <Appointments user={user as any} />
                     </ProtectedRoute>
                   }
                 />

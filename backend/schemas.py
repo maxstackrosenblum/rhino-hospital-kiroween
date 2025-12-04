@@ -17,6 +17,12 @@ class Gender(str, Enum):
     FEMALE = "female"
     OTHER = "other"
 
+class AppointmentStatus(str, Enum):
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
 # Base schemas for user creation (admin creates basic user accounts)
 class UserBase(BaseModel):
     email: EmailStr
@@ -762,3 +768,110 @@ class PaginatedShiftsResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+# Appointment Schemas
+class AppointmentCreate(BaseModel):
+    doctor_id: int
+    appointment_date: str  # ISO format datetime string
+    disease: str
+
+    @validator('disease')
+    def validate_disease(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Disease/reason for visit is required')
+        return v.strip()
+
+class AppointmentUpdate(BaseModel):
+    patient_id: Optional[int] = None
+    doctor_id: Optional[int] = None
+    appointment_date: Optional[str] = None
+    disease: Optional[str] = None
+    status: Optional[AppointmentStatus] = None
+
+    @validator('disease')
+    def validate_disease(cls, v):
+        if v is not None:
+            if not v or not v.strip():
+                raise ValueError('Disease/reason cannot be empty')
+            return v.strip()
+        return v
+
+class AppointmentStatusUpdate(BaseModel):
+    status: AppointmentStatus
+
+class DoctorInfoSimple(BaseModel):
+    id: int
+    doctor_id: str
+    first_name: str
+    last_name: str
+    specialization: Optional[str] = None
+    department: Optional[str] = None
+
+class PatientInfoSimple(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    age: Optional[int] = None
+    phone: Optional[str] = None
+
+class AppointmentResponse(BaseModel):
+    id: int
+    patient_id: int
+    doctor_id: int
+    appointment_date: datetime
+    disease: str
+    status: AppointmentStatus
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
+    # Patient info (computed fields)
+    patient_first_name: Optional[str] = None
+    patient_last_name: Optional[str] = None
+    patient_age: Optional[int] = None
+    patient_phone: Optional[str] = None
+    # Doctor info (computed fields)
+    doctor_first_name: Optional[str] = None
+    doctor_last_name: Optional[str] = None
+    doctor_specialization: Optional[str] = None
+    doctor_department: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
+class PaginatedAppointmentsResponse(BaseModel):
+    appointments: list[AppointmentResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+class AvailableDoctorResponse(BaseModel):
+    doctor_id: int
+    doctor_user_id: int
+    first_name: str
+    last_name: str
+    specialization: Optional[str] = None
+    department: Optional[str] = None
+    shift_start: datetime
+    shift_end: datetime
+    total_appointments: int
+
+class AvailableDoctorsResponse(BaseModel):
+    date: str
+    available_doctors: list[AvailableDoctorResponse]
+
+class AvailableSlot(BaseModel):
+    slot_time: str  # ISO format
+    is_available: bool
+
+class DoctorAvailableSlotsResponse(BaseModel):
+    doctor_id: int
+    date: str
+    shift_start: Optional[str] = None
+    shift_end: Optional[str] = None
+    has_shift: bool
+    available_slots: list[str]  # List of ISO datetime strings
+    booked_slots: list[str]  # List of ISO datetime strings

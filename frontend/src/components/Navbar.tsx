@@ -143,6 +143,16 @@ function Navbar({ user, onLogout }: any) {
                 Patients
               </Button>
             )}
+            {["admin", "doctor", "medical_staff", "receptionist", "patient", "undefined"].includes(
+              user.role
+            ) && (
+              <Button
+                color="primary"
+                onClick={() => navigate("/appointments")}
+              >
+                Appointments
+              </Button>
+            )}
             {["admin", "doctor", "medical_staff", "receptionist"].includes(
               user.role
             ) && (
@@ -271,6 +281,17 @@ function Navbar({ user, onLogout }: any) {
                 <ListItem disablePadding>
                   <ListItemButton onClick={() => handleNavigation("/patients")}>
                     <ListItemText primary="Patients" />
+                  </ListItemButton>
+                </ListItem>
+              )}
+              {["admin", "doctor", "medical_staff", "receptionist", "patient", "undefined"].includes(
+                user.role
+              ) && (
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => handleNavigation("/appointments")}
+                  >
+                    <ListItemText primary="Appointments" />
                   </ListItemButton>
                 </ListItem>
               )}
