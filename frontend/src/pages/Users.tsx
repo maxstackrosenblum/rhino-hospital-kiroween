@@ -9,7 +9,6 @@ import {
   InputAdornment,
   InputLabel,
   MenuItem,
-  Pagination,
   Select,
   Snackbar,
   TextField,
@@ -32,6 +31,7 @@ import {
   UsersStack,
   UsersTable,
 } from "../components/users";
+import { PaginationControls } from "../components/common";
 import { useDebounce } from "../hooks/useDebounce";
 import { AdminUserUpdate, User, UserCreate } from "../types";
 
@@ -258,58 +258,19 @@ function Users({ user }: UsersProps) {
         )}
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <Box sx={{ mt: 3 }}>
-            {/* Info and Per Page Controls */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: { xs: 2, md: 0 },
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                Showing {users.length} of {totalRecords} users
-              </Typography>
-              <FormControl size="small" sx={{ minWidth: 100 }}>
-                <InputLabel>Per page</InputLabel>
-                <Select
-                  value={pageSize}
-                  label="Per page"
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value={10}>10</MenuItem>
-                  <MenuItem value={25}>25</MenuItem>
-                  <MenuItem value={50}>50</MenuItem>
-                  <MenuItem value={100}>100</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            
-            {/* Pagination Controls */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                mt: { xs: 0, md: 2 },
-              }}
-            >
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
-                color="primary"
-                showFirstButton
-                showLastButton
-                size={isMobile ? "small" : "medium"}
-              />
-            </Box>
-          </Box>
-        )}
+        <PaginationControls
+          totalPages={totalPages}
+          currentPage={page}
+          pageSize={pageSize}
+          totalRecords={totalRecords}
+          currentRecords={users.length}
+          itemName="users"
+          onPageChange={setPage}
+          onPageSizeChange={(newPageSize) => {
+            setPageSize(newPageSize);
+            setPage(1);
+          }}
+        />
 
         {/* Create User Dialog */}
         <CreateUserDialog

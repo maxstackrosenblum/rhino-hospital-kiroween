@@ -4,12 +4,7 @@ import {
   Box,
   CircularProgress,
   Container,
-  FormControl,
   InputAdornment,
-  InputLabel,
-  MenuItem,
-  Pagination,
-  Select,
   Snackbar,
   TextField,
   Typography,
@@ -31,6 +26,7 @@ import {
   DoctorsTable,
   EditDoctorDialog,
 } from "../components/doctors";
+import { PaginationControls } from "../components/common";
 import { useDebounce } from "../hooks/useDebounce";
 import { Doctor, DoctorProfileCreate, DoctorUpdate, User } from "../types";
 
@@ -253,58 +249,19 @@ function Doctors({ user }: DoctorsProps) {
         )}
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <Box sx={{ mt: 3 }}>
-            {/* Info and Per Page Controls */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: { xs: 2, md: 0 },
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                Showing {doctors.length} of {totalRecords} doctors
-              </Typography>
-              <FormControl size="small" sx={{ minWidth: 100 }}>
-                <InputLabel>Per page</InputLabel>
-                <Select
-                  value={pageSize}
-                  label="Per page"
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value={10}>10</MenuItem>
-                  <MenuItem value={25}>25</MenuItem>
-                  <MenuItem value={50}>50</MenuItem>
-                  <MenuItem value={100}>100</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            {/* Pagination Controls */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                mt: { xs: 0, md: 2 },
-              }}
-            >
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
-                color="primary"
-                showFirstButton
-                showLastButton
-                size={isMobile ? "small" : "medium"}
-              />
-            </Box>
-          </Box>
-        )}
+        <PaginationControls
+          totalPages={totalPages}
+          currentPage={page}
+          pageSize={pageSize}
+          totalRecords={totalRecords}
+          currentRecords={doctors.length}
+          itemName="doctors"
+          onPageChange={setPage}
+          onPageSizeChange={(newPageSize) => {
+            setPageSize(newPageSize);
+            setPage(1);
+          }}
+        />
 
         {/* Complete Doctor Profile Dialog */}
         <CompleteDoctorProfileDialog
