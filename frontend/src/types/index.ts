@@ -186,6 +186,14 @@ export interface PaginatedDoctorsResponse {
   total_pages: number;
 }
 
+export interface PaginatedMedicalStaffResponse {
+  items: MedicalStaff[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 // Patient types
 export interface Patient {
   // Profile fields (nullable for incomplete profiles)

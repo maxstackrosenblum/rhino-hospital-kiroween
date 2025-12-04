@@ -4,10 +4,17 @@ import {
   Box,
   CircularProgress,
   Container,
+  FormControl,
   InputAdornment,
+  InputLabel,
+  MenuItem,
+  Pagination,
+  Select,
   Snackbar,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,10 +24,13 @@ import {
   useMedicalStaff,
   useUpdateMedicalStaff,
 } from "../api/staff";
-import CompleteMedicalStaffProfileDialog from "../components/medical-staff/CompleteMedicalStaffProfileDialog";
-import DeleteMedicalStaffDialog from "../components/medical-staff/DeleteMedicalStaffDialog";
-import EditMedicalStaffDialog from "../components/medical-staff/EditMedicalStaffDialog";
-import MedicalStaffTable from "../components/medical-staff/MedicalStaffTable";
+import {
+  CompleteMedicalStaffProfileDialog,
+  DeleteMedicalStaffDialog,
+  EditMedicalStaffDialog,
+  MedicalStaffStack,
+  MedicalStaffTable,
+} from "../components/medical-staff";
 import { useDebounce } from "../hooks/useDebounce";
 import {
   MedicalStaff,
@@ -35,8 +45,12 @@ interface MedicalStaffListProps {
 
 function MedicalStaffList({ user }: MedicalStaffListProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [completeProfileDialogOpen, setCompleteProfileDialogOpen] =
     useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -53,14 +67,21 @@ function MedicalStaffList({ user }: MedicalStaffListProps) {
     }
   }, [user, navigate]);
 
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm]);
+
   // API hooks
   const {
     data: staffResponse,
     isLoading,
     error: queryError,
-  } = useMedicalStaff(debouncedSearchTerm);
+  } = useMedicalStaff(page, pageSize, debouncedSearchTerm);
 
   const medicalStaff = staffResponse?.items || [];
+  const totalPages = staffResponse?.total_pages || 0;
+  const totalRecords = staffResponse?.total || 0;
 
   const createMedicalStaffMutation = useCreateMedicalStaff();
   const updateMedicalStaffMutation = useUpdateMedicalStaff();
@@ -171,9 +192,18 @@ function MedicalStaffList({ user }: MedicalStaffListProps) {
         </Box>
 
         {/* Search Bar */}
-        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
+        <Box
+          sx={{
+            mb: 3,
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
           <TextField
             fullWidth
+            size="small"
             placeholder="Search medical staff by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -192,8 +222,6 @@ function MedicalStaffList({ user }: MedicalStaffListProps) {
           )}
         </Box>
 
-        {/* Success Message */}
-
         {/* Query errors */}
         {queryError && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -201,15 +229,80 @@ function MedicalStaffList({ user }: MedicalStaffListProps) {
           </Alert>
         )}
 
-        {/* Medical Staff Table */}
-        <MedicalStaffTable
-          medicalStaff={medicalStaff}
-          searchTerm={debouncedSearchTerm}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDeleteClick}
-          onCompleteProfile={handleCompleteProfile}
-        />
+        {/* Medical Staff Display - Table for desktop, Stack for mobile */}
+        {isMobile ? (
+          <MedicalStaffStack
+            medicalStaff={medicalStaff}
+            searchTerm={debouncedSearchTerm}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            onCompleteProfile={handleCompleteProfile}
+          />
+        ) : (
+          <MedicalStaffTable
+            medicalStaff={medicalStaff}
+            searchTerm={debouncedSearchTerm}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            onCompleteProfile={handleCompleteProfile}
+          />
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Box sx={{ mt: 3 }}>
+            {/* Info and Per Page Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: { xs: 2, md: 0 },
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Showing {medicalStaff.length} of {totalRecords} medical staff
+              </Typography>
+              <FormControl size="small" sx={{ minWidth: 100 }}>
+                <InputLabel>Per page</InputLabel>
+                <Select
+                  value={pageSize}
+                  label="Per page"
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={25}>25</MenuItem>
+                  <MenuItem value={50}>50</MenuItem>
+                  <MenuItem value={100}>100</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            
+            {/* Pagination Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: { xs: 0, md: 2 },
+              }}
+            >
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, value) => setPage(value)}
+                color="primary"
+                showFirstButton
+                showLastButton
+                size={isMobile ? "small" : "medium"}
+              />
+            </Box>
+          </Box>
+        )}
 
         {/* Complete Profile Dialog */}
         <CompleteMedicalStaffProfileDialog
@@ -240,7 +333,7 @@ function MedicalStaffList({ user }: MedicalStaffListProps) {
           onConfirm={handleDeleteConfirm}
         />
 
-        {/* Auto-dismissing Snackbar */}
+        {/* Auto-dismissing Snackbar for success messages */}
         <Snackbar
           open={!!successMessage}
           autoHideDuration={4000}

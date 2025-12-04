@@ -108,12 +108,14 @@ async def create_medical_staff(
 
 @router.get("")
 async def get_medical_staff_list(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
     search: Optional[str] = Query(None, description="Search by first name, last name, or email"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin)
 ):
     """
-    Get list of all users with medical_staff or receptionist role, regardless of profile completion status.
+    Get paginated list of all users with medical_staff or receptionist role, regardless of profile completion status.
     
     Requires: Admin role
     """
@@ -140,7 +142,12 @@ async def get_medical_staff_list(
                 )
             )
         
-        users_data = query.options(joinedload(User.medical_staff)).order_by(User.created_at.desc()).all()
+        # Get total count before pagination
+        total_count = query.count()
+        
+        # Apply pagination
+        offset = (page - 1) * page_size
+        users_data = query.options(joinedload(User.medical_staff)).order_by(User.created_at.desc()).offset(offset).limit(page_size).all()
         
         # Convert to response format
         items = []
@@ -164,9 +171,15 @@ async def get_medical_staff_list(
                 "deleted_at": medical_staff.deleted_at if has_profile else None,
             })
         
+        # Calculate pagination info
+        total_pages = (total_count + page_size - 1) // page_size
+        
         return {
             "items": items,
-            "total": len(items)
+            "total": total_count,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages
         }
         
     except Exception as e:

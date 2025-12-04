@@ -275,7 +275,7 @@ class AdminUserUpdate(BaseModel):
 class MedicalStaffCreate(BaseModel):
     """Schema for creating a new medical staff member"""
     user_id: int
-    job_title: str | None = None
+    job_title: str
     department: str | None = None
     shift_schedule: str | None = None
 

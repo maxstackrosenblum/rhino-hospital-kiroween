@@ -45,7 +45,7 @@ function Doctors({ user }: DoctorsProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms debounce
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(2);
+  const [pageSize, setPageSize] = useState(10);
   const [completeProfileDialogOpen, setCompleteProfileDialogOpen] =
     useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
