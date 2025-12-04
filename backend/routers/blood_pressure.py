@@ -352,7 +352,7 @@ async def get_blood_pressure_readings(
     - Medical staff/doctors/receptionists/admins: See all readings with filters
     """
     try:
-        # Base query with user join
+        # Base query with user join (filter deleted users)
         query = db.query(
             BloodPressureReading,
             User.first_name,
@@ -360,6 +360,8 @@ async def get_blood_pressure_readings(
             User.email
         ).join(
             User, BloodPressureReading.user_id == User.id
+        ).filter(
+            User.deleted_at.is_(None)
         )
         
         # Role-based filtering
