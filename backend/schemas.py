@@ -156,6 +156,7 @@ class UserResponse(BaseModel):
     address: str | None = None
     gender: Gender | None = None
     role: UserRole
+    password_change_required: bool = False
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None

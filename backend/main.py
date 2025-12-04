@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.error_handlers import register_error_handlers
 from middleware.profanity import ProfanityFilterMiddleware
-from middleware.password_change import PasswordChangeMiddleware
+
 from routers import auth, users, health, patients, doctors, password_reset, sessions, medical_staff, hospitalizations, prescriptions, shifts, password_policy, appointments
 
 
@@ -19,7 +19,6 @@ app = FastAPI(
 )
 
 app.add_middleware(ProfanityFilterMiddleware)
-app.add_middleware(PasswordChangeMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

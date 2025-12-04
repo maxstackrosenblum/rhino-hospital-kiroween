@@ -20,6 +20,7 @@ export interface User {
   address: string;
   gender: string;
   role: UserRole;
+  password_change_required?: boolean;
   created_at: string;
   updated_at: string | null;
   deleted_at: string | null;
@@ -97,6 +98,11 @@ export interface UserCreateResponse {
 export interface TokenResponse {
   access_token: string;
   token_type: string;
+}
+
+export interface PasswordChangeRequest {
+  current_password: string;
+  new_password: string;
 }
 
 // Staff types - Medical Staff (includes both medical_staff and receptionist roles)
