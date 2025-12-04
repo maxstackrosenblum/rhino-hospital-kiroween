@@ -11,7 +11,9 @@ import {
   Select,
   TextField,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { Doctor, DoctorProfileCreate, DoctorUpdate } from "../../types";
 
@@ -82,6 +84,8 @@ function DoctorForm({
   isSubmitting = false,
   submitError = null,
 }: DoctorFormProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -199,24 +203,42 @@ function DoctorForm({
     const newErrors: FormErrors = {};
 
     // For profile mode, only validate doctor-specific fields
-    // For update mode, validate all fields
+    // For update mode, validate required fields (first_name, last_name, email are database constraints)
     if (mode === "update") {
+      // These fields are required at database level (nullable=False)
       newErrors.first_name = validateRequired(
         formData.first_name,
         "First name"
       );
       newErrors.last_name = validateRequired(formData.last_name, "Last name");
-      newErrors.gender = validateRequired(formData.gender, "Gender");
-      newErrors.phone = validatePhone(formData.phone);
-      newErrors.city = validateRequired(formData.city, "City");
+      if (formData.phone.trim()) {
+        newErrors.phone = validatePhone(formData.phone);
+      }
+      // Email is always required (database constraint)
       newErrors.email = validateEmail(formData.email);
-      newErrors.age = validateAge(formData.age);
-      newErrors.address = validateRequired(formData.address, "Address");
+      if (formData.age.trim()) {
+        newErrors.age = validateAge(formData.age);
+      }
+      // Gender, city, and address are optional in update mode
     }
 
-    // Doctor-specific fields validation
-    newErrors.doctor_id = validateDoctorId(formData.doctor_id);
-    newErrors.qualifications = validateQualifications(formData.qualifications);
+    // Doctor-specific fields validation (only required in profile mode)
+    if (mode === "profile") {
+      newErrors.doctor_id = validateDoctorId(formData.doctor_id);
+      newErrors.qualifications = validateQualifications(
+        formData.qualifications
+      );
+    } else {
+      // In update mode, only validate if values are provided
+      if (formData.doctor_id.trim()) {
+        newErrors.doctor_id = validateDoctorId(formData.doctor_id);
+      }
+      if (formData.qualifications.some((q) => q.trim())) {
+        newErrors.qualifications = validateQualifications(
+          formData.qualifications
+        );
+      }
+    }
 
     // Optional fields - no validation needed for department, specialization, license_number
 
@@ -410,7 +432,13 @@ function DoctorForm({
         {mode === "update" && (
           <>
             {/* Name Fields */}
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                gap: 2,
+              }}
+            >
               <TextField
                 name="first_name"
                 label="First Name"
@@ -440,10 +468,15 @@ function DoctorForm({
             </Box>
 
             {/* Gender and Age */}
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                gap: 2,
+              }}
+            >
               <FormControl
                 fullWidth
-                required
                 error={touched.gender && !!errors.gender}
                 disabled={isSubmitting}
                 size="small"
@@ -456,6 +489,7 @@ function DoctorForm({
                   onChange={(e) => handleSelectChange("gender", e.target.value)}
                   onBlur={() => handleBlur("gender")}
                 >
+                  <MenuItem value="">None</MenuItem>
                   <MenuItem value="male">Male</MenuItem>
                   <MenuItem value="female">Female</MenuItem>
                   <MenuItem value="other">Other</MenuItem>
@@ -475,7 +509,6 @@ function DoctorForm({
                 error={touched.age && !!errors.age}
                 helperText={touched.age && errors.age}
                 fullWidth
-                required
                 disabled={isSubmitting}
                 size="small"
                 slotProps={{
@@ -485,7 +518,13 @@ function DoctorForm({
             </Box>
 
             {/* Contact Information */}
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                gap: 2,
+              }}
+            >
               <TextField
                 name="phone"
                 label="Phone"
@@ -495,7 +534,6 @@ function DoctorForm({
                 error={touched.phone && !!errors.phone}
                 helperText={touched.phone && errors.phone}
                 fullWidth
-                required
                 disabled={isSubmitting}
                 size="small"
               />
@@ -525,7 +563,6 @@ function DoctorForm({
               error={touched.city && !!errors.city}
               helperText={touched.city && errors.city}
               fullWidth
-              required
               disabled={isSubmitting}
               size="small"
             />
@@ -542,7 +579,6 @@ function DoctorForm({
               fullWidth
               multiline
               rows={3}
-              required
               disabled={isSubmitting}
               size="small"
             />
@@ -617,7 +653,13 @@ function DoctorForm({
         </Box>
 
         {/* Department and Specialization */}
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
+          }}
+        >
           <TextField
             name="department"
             label="Department"
@@ -672,15 +714,27 @@ function DoctorForm({
 
         {/* Action Buttons */}
         <Box
-          sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+            justifyContent: "flex-end",
+            mt: 2,
+          }}
         >
-          <Button onClick={onCancel} disabled={isSubmitting} variant="outlined">
+          <Button
+            onClick={onCancel}
+            disabled={isSubmitting}
+            variant="outlined"
+            fullWidth={isMobile}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             variant="contained"
             disabled={isSubmitting || !isFormValid}
+            fullWidth={isMobile}
           >
             {isSubmitting
               ? mode === "profile"

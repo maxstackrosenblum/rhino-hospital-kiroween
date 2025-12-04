@@ -259,15 +259,16 @@ function Users({ user }: UsersProps) {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 3,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ mt: 3 }}>
+            {/* Info and Per Page Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: { xs: 2, md: 0 },
+              }}
+            >
               <Typography variant="body2" color="text.secondary">
                 Showing {users.length} of {totalRecords} users
               </Typography>
@@ -288,14 +289,25 @@ function Users({ user }: UsersProps) {
                 </Select>
               </FormControl>
             </Box>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, value) => setPage(value)}
-              color="primary"
-              showFirstButton
-              showLastButton
-            />
+            
+            {/* Pagination Controls */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: { xs: 0, md: 2 },
+              }}
+            >
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, value) => setPage(value)}
+                color="primary"
+                showFirstButton
+                showLastButton
+                size={isMobile ? "small" : "medium"}
+              />
+            </Box>
           </Box>
         )}
 

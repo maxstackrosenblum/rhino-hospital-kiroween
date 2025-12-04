@@ -3,4 +3,5 @@ export { default as CompletePatientProfileDialog } from "./CompletePatientProfil
 export { default as DeletePatientDialog } from "./DeletePatientDialog";
 export { default as EditPatientDialog } from "./EditPatientDialog";
 export { default as PatientForm } from "./PatientForm";
+export { default as PatientsStack } from "./PatientsStack";
 export { default as PatientsTable } from "./PatientsTable";
