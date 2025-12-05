@@ -8,6 +8,9 @@ import {
   Paper,
   TextField,
   Typography,
+  FormControlLabel,
+  Checkbox,
+  Divider,
 } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +25,10 @@ function Profile({ user }: any) {
     last_name: user.last_name,
     password: "",
     role: user.role,
+  });
+  const [emailPreferences, setEmailPreferences] = useState({
+    appointment_updates: user.email_preferences?.appointment_updates ?? true,
+    blood_pressure_alerts: user.email_preferences?.blood_pressure_alerts ?? true,
   });
   const updateProfileMutation = useUpdateCurrentUser();
 
@@ -40,6 +47,15 @@ function Profile({ user }: any) {
       updateData.last_name = profileData.last_name;
     if (profileData.password) updateData.password = profileData.password;
     if (profileData.role !== user.role) updateData.role = profileData.role;
+    
+    // Check if email preferences changed
+    const currentPrefs = user.email_preferences || {};
+    if (
+      emailPreferences.appointment_updates !== (currentPrefs.appointment_updates ?? true) ||
+      emailPreferences.blood_pressure_alerts !== (currentPrefs.blood_pressure_alerts ?? true)
+    ) {
+      updateData.email_preferences = emailPreferences;
+    }
 
     if (Object.keys(updateData).length === 0) {
       return;
@@ -138,6 +154,62 @@ function Profile({ user }: any) {
             {user.role !== "admin" && (
               <FormHelperText>Only admins can change roles</FormHelperText>
             )}
+
+            <Divider sx={{ my: 3 }} />
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+              Email Notification Preferences
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Choose which email notifications you'd like to receive. Security-related emails (password reset, account changes) will always be sent.
+            </Typography>
+
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={emailPreferences.appointment_updates}
+                    onChange={(e) =>
+                      setEmailPreferences({
+                        ...emailPreferences,
+                        appointment_updates: e.target.checked,
+                      })
+                    }
+                  />
+                }
+                label={
+                  <Box>
+                    <Typography variant="body1">Appointment Updates</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Receive confirmations and status changes for your appointments
+                    </Typography>
+                  </Box>
+                }
+              />
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={emailPreferences.blood_pressure_alerts}
+                    onChange={(e) =>
+                      setEmailPreferences({
+                        ...emailPreferences,
+                        blood_pressure_alerts: e.target.checked,
+                      })
+                    }
+                  />
+                }
+                label={
+                  <Box>
+                    <Typography variant="body1">Blood Pressure Alerts</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Get notified when your blood pressure readings are abnormal
+                    </Typography>
+                  </Box>
+                }
+              />
+
+            </Box>
 
             {updateProfileMutation.error && (
               <Alert severity="error" sx={{ mt: 2 }}>

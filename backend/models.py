@@ -55,6 +55,12 @@ class User(Base):
     deleted_at = Column(DateTime, nullable=True, default=None, index=True)
     reset_token = Column(String, nullable=True, index=True)
     reset_token_expires = Column(DateTime, nullable=True)
+    
+    # Email preferences (JSON field for granular control)
+    email_preferences = Column(JSON, nullable=False, default={
+        "appointment_updates": True,
+        "blood_pressure_alerts": True
+    })
 
     # Relationship
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")

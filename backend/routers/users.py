@@ -345,6 +345,25 @@ async def update_current_user(
     if user_update.role and current_user.role == models.UserRole.ADMIN:
         current_user.role = user_update.role
     
+    # Update email preferences if provided
+    if user_update.email_preferences is not None:
+        current_user.email_preferences = user_update.email_preferences.dict()
+        # Mark the field as modified (important for JSON columns)
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(current_user, "email_preferences")
+    
+    # Update other optional fields
+    if user_update.phone is not None:
+        current_user.phone = user_update.phone
+    if user_update.city is not None:
+        current_user.city = user_update.city
+    if user_update.age is not None:
+        current_user.age = user_update.age
+    if user_update.address is not None:
+        current_user.address = user_update.address
+    if user_update.gender is not None:
+        current_user.gender = user_update.gender
+    
     db.commit()
     db.refresh(current_user)
     return current_user
@@ -354,11 +373,30 @@ async def delete_current_user(
     current_user: models.User = Depends(auth_utils.get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Soft delete current user account"""
+    """
+    Soft delete current user account.
+    Anonymizes personal data for GDPR/HIPAA compliance (right to be forgotten).
+    """
     if current_user.deleted_at:
         raise HTTPException(status_code=400, detail="User already deleted")
     
-    current_user.deleted_at = datetime.utcnow()
+    deletion_time = datetime.utcnow()
+    
+    # Anonymize personal data (GDPR/HIPAA compliance)
+    import hashlib
+    user_hash = hashlib.sha256(f"{current_user.id}{deletion_time}".encode()).hexdigest()[:8]
+    
+    current_user.email = f"deleted_{user_hash}@deleted.local"
+    current_user.username = f"deleted_user_{user_hash}"
+    current_user.first_name = "Deleted"
+    current_user.last_name = "User"
+    current_user.phone = None
+    current_user.city = None
+    current_user.address = None
+    current_user.gender = None
+    current_user.age = None
+    current_user.deleted_at = deletion_time
+    
     db.commit()
     return {"message": "User account deleted successfully"}
 
@@ -368,7 +406,10 @@ async def delete_user_by_admin(
     current_user: models.User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    """Soft delete any user (admin only) - cascades to patient/doctor/medical_staff records"""
+    """
+    Soft delete any user (admin only) - cascades to patient/doctor/medical_staff records.
+    Anonymizes personal data for GDPR/HIPAA compliance (right to be forgotten).
+    """
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -377,6 +418,20 @@ async def delete_user_by_admin(
         raise HTTPException(status_code=400, detail="User already deleted")
     
     deletion_time = datetime.utcnow()
+    
+    # Anonymize personal data (GDPR/HIPAA compliance)
+    import hashlib
+    user_hash = hashlib.sha256(f"{user.id}{deletion_time}".encode()).hexdigest()[:8]
+    
+    user.email = f"deleted_{user_hash}@deleted.local"
+    user.username = f"deleted_user_{user_hash}"
+    user.first_name = "Deleted"
+    user.last_name = "User"
+    user.phone = None
+    user.city = None
+    user.address = None
+    user.gender = None
+    user.age = None
     
     # Soft delete user
     user.deleted_at = deletion_time
@@ -475,4 +530,97 @@ async def get_profile_completion_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve profile status"
+        )
+
+
+@router.post("/unsubscribe")
+async def unsubscribe_from_emails(
+    token: str = Query(..., description="Unsubscribe token from email"),
+    preference: str = Query("all", description="Which emails to unsubscribe from: all, appointments, blood_pressure"),
+    db: Session = Depends(get_db)
+):
+    """
+    Unsubscribe from email notifications using token from email link.
+    No authentication required - uses token from email.
+    """
+    try:
+        user_id = auth_utils.verify_unsubscribe_token(token)
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Initialize email_preferences if None
+        if user.email_preferences is None:
+            user.email_preferences = {
+                "appointment_updates": True,
+                "blood_pressure_alerts": True
+            }
+        
+        # Update preferences based on request
+        # Create a new dict to ensure SQLAlchemy detects the change
+        current_prefs = user.email_preferences.copy() if user.email_preferences else {}
+        
+        if preference == "all":
+            current_prefs["appointment_updates"] = False
+            current_prefs["blood_pressure_alerts"] = False
+        elif preference == "appointments":
+            current_prefs["appointment_updates"] = False
+        elif preference == "blood_pressure":
+            current_prefs["blood_pressure_alerts"] = False
+        
+        # Assign the new dict to trigger SQLAlchemy change detection
+        user.email_preferences = current_prefs
+        
+        # Mark the field as modified (important for JSON columns)
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(user, "email_preferences")
+        
+        db.commit()
+        
+        return {
+            "message": "Successfully unsubscribed from email notifications",
+            "email": user.email,
+            "preferences": user.email_preferences
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to unsubscribe: {str(e)}"
+        )
+
+
+@router.get("/unsubscribe/verify")
+async def verify_unsubscribe_token_endpoint(
+    token: str = Query(..., description="Unsubscribe token to verify"),
+    db: Session = Depends(get_db)
+):
+    """Verify unsubscribe token and return user info (for frontend display)"""
+    try:
+        user_id = auth_utils.verify_unsubscribe_token(token)
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return {
+            "valid": True,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "current_preferences": user.email_preferences or {
+                "appointment_updates": True,
+                "blood_pressure_alerts": True
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired token"
         )

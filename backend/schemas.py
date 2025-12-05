@@ -157,6 +157,10 @@ class UserResponse(BaseModel):
     gender: Gender | None = None
     role: UserRole
     password_change_required: bool = False
+    email_preferences: dict = {
+        "appointment_updates": True,
+        "blood_pressure_alerts": True
+    }
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
@@ -172,6 +176,16 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str | None = None
 
+class EmailPreferences(BaseModel):
+    """
+    Email notification preferences.
+    
+    Note: Security-related emails (password reset, account changes) 
+    cannot be disabled and will always be sent.
+    """
+    appointment_updates: bool = True  # Appointment confirmations and status changes
+    blood_pressure_alerts: bool = True  # High/low blood pressure warnings
+
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     first_name: str | None = None
@@ -183,6 +197,7 @@ class UserUpdate(BaseModel):
     gender: Gender | None = None
     password: str | None = None
     role: UserRole | None = None
+    email_preferences: EmailPreferences | None = None
 
     @validator('first_name', 'last_name')
     def validate_names(cls, v):

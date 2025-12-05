@@ -86,7 +86,7 @@ function Prescriptions({ user }: PrescriptionsProps) {
   const canWrite = ["admin", "doctor"].includes(user.role);
 
   useEffect(() => {
-    if (!["admin", "doctor", "medical_staff"].includes(user.role)) {
+    if (!["admin", "doctor", "medical_staff", "receptionist"].includes(user.role)) {
       navigate("/");
     }
   }, [user, navigate]);

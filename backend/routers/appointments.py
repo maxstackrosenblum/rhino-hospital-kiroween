@@ -51,9 +51,12 @@ def send_appointment_status_update_email(
     appointment_date: str,
     old_status: str,
     new_status: str,
-    disease: str
+    disease: str,
+    user_id: int
 ) -> bool:
     """Send email notification when appointment status changes."""
+    import auth as auth_utils
+    import os
     
     status_colors = {
         "pending": "#f57c00",
@@ -71,6 +74,11 @@ def send_appointment_status_update_email(
     
     new_status_color = status_colors.get(new_status, "#757575")
     status_message = status_messages.get(new_status, "Your appointment status has been updated.")
+    
+    # Generate unsubscribe link
+    unsubscribe_token = auth_utils.create_unsubscribe_token(user_id)
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    unsubscribe_url = f"{frontend_url}/unsubscribe?token={unsubscribe_token}&preference=appointments"
     
     html_content = f"""
     <!DOCTYPE html>
@@ -256,6 +264,10 @@ def send_appointment_status_update_email(
             </div>
             <div class="footer">
                 <p>This is an automated email. Please do not reply to this message.</p>
+                <p style="margin-top: 12px;">
+                    Don't want to receive appointment updates? 
+                    <a href="{unsubscribe_url}" style="color: #16a249; text-decoration: underline;">Unsubscribe from appointment updates</a>
+                </p>
                 <p>&copy; 2024 Hospital Management System. All rights reserved.</p>
             </div>
         </div>
@@ -390,16 +402,22 @@ async def create_appointment(
         patient_user = db.query(User).filter(User.id == patient.user_id).first()
         try:
             if patient_user and patient_user.email:
-                formatted_date = appointment_date.strftime("%B %d, %Y at %I:%M %p")
-                send_appointment_confirmation_email(
-                    to_email=patient_user.email,
-                    patient_name=f"{patient_user.first_name} {patient_user.last_name}",
-                    doctor_name=f"Dr. {doctor_user.first_name} {doctor_user.last_name}",
-                    appointment_date=formatted_date,
-                    department=doctor.department or "General",
-                    disease=appointment_data.disease
-                )
-                logger.info(f"Appointment confirmation email sent to {patient_user.email}")
+                # Check email preferences
+                email_prefs = patient_user.email_preferences or {}
+                if email_prefs.get("appointment_updates", True):
+                    formatted_date = appointment_date.strftime("%B %d, %Y at %I:%M %p")
+                    send_appointment_confirmation_email(
+                        to_email=patient_user.email,
+                        patient_name=f"{patient_user.first_name} {patient_user.last_name}",
+                        doctor_name=f"Dr. {doctor_user.first_name} {doctor_user.last_name}",
+                        appointment_date=formatted_date,
+                        department=doctor.department or "General",
+                        disease=appointment_data.disease,
+                        user_id=patient_user.id
+                    )
+                    logger.info(f"Appointment confirmation email sent to {patient_user.email}")
+                else:
+                    logger.info(f"Appointment emails disabled for user {patient_user.email}")
         except Exception as e:
             # Log error but don't fail the appointment creation
             logger.error(f"Failed to send appointment confirmation email: {str(e)}")
@@ -1127,17 +1145,23 @@ async def update_appointment_status(
         
         try:
             if patient_user and patient_user.email and old_status != status_update.status.value:
-                formatted_date = appointment.appointment_date.strftime("%B %d, %Y at %I:%M %p")
-                send_appointment_status_update_email(
-                    to_email=patient_user.email,
-                    patient_name=f"{patient_user.first_name} {patient_user.last_name}",
-                    doctor_name=f"Dr. {doctor_user.first_name} {doctor_user.last_name}" if doctor_user else "Doctor",
-                    appointment_date=formatted_date,
-                    old_status=old_status,
-                    new_status=status_update.status.value,
-                    disease=appointment.disease
-                )
-                logger.info(f"Status update email sent to {patient_user.email} for appointment {appointment_id}")
+                # Check email preferences
+                email_prefs = patient_user.email_preferences or {}
+                if email_prefs.get("appointment_updates", True):
+                    formatted_date = appointment.appointment_date.strftime("%B %d, %Y at %I:%M %p")
+                    send_appointment_status_update_email(
+                        to_email=patient_user.email,
+                        patient_name=f"{patient_user.first_name} {patient_user.last_name}",
+                        doctor_name=f"Dr. {doctor_user.first_name} {doctor_user.last_name}" if doctor_user else "Doctor",
+                        appointment_date=formatted_date,
+                        old_status=old_status,
+                        new_status=status_update.status.value,
+                        disease=appointment.disease,
+                        user_id=patient_user.id
+                    )
+                    logger.info(f"Status update email sent to {patient_user.email} for appointment {appointment_id}")
+                else:
+                    logger.info(f"Appointment update emails disabled for user {patient_user.email}")
         except Exception as e:
             # Log error but don't fail the status update
             logger.error(f"Failed to send status update email: {str(e)}")

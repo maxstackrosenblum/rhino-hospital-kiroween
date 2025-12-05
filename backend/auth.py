@@ -92,3 +92,39 @@ def get_current_user(
     db.commit()
     
     return user
+
+
+def create_unsubscribe_token(user_id: int) -> str:
+    """Create a token for email unsubscribe links (valid for 90 days)"""
+    from datetime import timedelta
+    from jose import jwt
+    from core.config import settings
+    import uuid
+    
+    to_encode = {
+        "sub": str(user_id),
+        "type": "unsubscribe",
+        "jti": str(uuid.uuid4()),
+        "iat": datetime.utcnow(),
+        "exp": datetime.utcnow() + timedelta(days=90)
+    }
+    
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
+
+def verify_unsubscribe_token(token: str) -> int:
+    """Verify unsubscribe token and return user_id"""
+    try:
+        payload = decode_token(token)
+        if payload.get("type") != "unsubscribe":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid token type"
+            )
+        user_id = int(payload.get("sub"))
+        return user_id
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired unsubscribe token"
+        )
