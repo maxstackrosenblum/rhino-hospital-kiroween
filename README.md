@@ -10,12 +10,12 @@
 
 **Live Demo:** // youtube link
 
-**Live Site:** // link to frontend
+**Live Site:** [Frontend](https://rhino-hospital-kiroween.onrender.com/)
 
 **Test Credentials:**
 - **Admin:** //credentials here
 - **Doctor:** //credentials here
-- **Receptionist:** //credentials here
+- **Patient:** //credentials here
 
 **Available Features:**
 - 🏥 Hospital administration and staff management
@@ -71,11 +71,11 @@ With the extracted business logic in hand, we turned to Kiro—our modern labora
 
 The result? A modern application built on FastAPI, React, and PostgreSQL—but containing the business logic and workflows from three legacy systems.
 
-### ⚡ The Timeline: 3.5 Days. Seriously.
+### ⚡ The Timeline: 4 Days. Seriously.
 
-Here's the shocking part: **this entire system was built in three and a half working days (9-5, Monday through Thursday morning) by a team of three developers.**
+Here's the shocking part: **this entire system was built in four working days (9-5, Monday through Thursday) by a team of three developers.**
 
-Not "three days of sprinting around the clock." Not "three days plus nights and weekends." Three and a half normal business days. We're not even at lunch on Thursday yet.
+Not "four days of sprinting around the clock." Not "four days plus nights and weekends." Four normal business days.
 
 Traditional legacy migration projects take months or years. Rewriting from scratch? Even longer. But with rhino.ai extracting the business logic and Kiro orchestrating the implementation, we compressed what would normally be a multi-month project into less than a standard work week.
 
@@ -90,11 +90,11 @@ Traditional legacy migration projects take months or years. Rewriting from scrat
 - Integrated all three legacy system functionalities
 - Continuous testing and verification throughout
 
-**Thursday Morning: Polish & Deploy**
+**Thursday: Polish & Deploy**
 - Final integration testing across modules
 - UI/UX refinements
 - Deployment preparation
-- **Done before lunch**
+- Production deployment complete
 
 ### 🤝 Team Collaboration: The Kiro Advantage
 
@@ -172,10 +172,10 @@ The logic can be extracted, understood, and reborn—and your team can work toge
 **What we actually did:**
 - ✅ Monday: rhino.ai extraction + Kiro specifications
 - ✅ Tuesday-Wednesday: Implementation with continuous verification
-- ✅ Thursday morning: Testing, polish, and deployment
-- ✅ **Total: 3.5 business days**
+- ✅ Thursday: Testing, polish, and deployment
+- ✅ **Total: 4 business days**
 
-That's not a typo. Three and a half days of normal 9-5 work. No crunch time. No all-nighters. No pizza-fueled coding marathons. Just structured, specification-driven development with AI assistance.
+That's not a typo. Four days of normal 9-5 work. No crunch time. No all-nighters. No pizza-fueled coding marathons. Just structured, specification-driven development with AI assistance.
 
 ### Technical Architecture
 
@@ -346,56 +346,76 @@ The result is a single, modern application that combines functionality from mult
 
 ```
 hospital-management-system/
-├── backend/                 # FastAPI backend
-│   ├── alembic/            # Database migrations
-│   ├── core/               # Core utilities and config
-│   ├── middleware/         # Custom middleware
-│   ├── models.py           # SQLAlchemy models
-│   ├── schemas.py          # Pydantic schemas
-│   ├── repositories/       # Data access layer
-│   ├── services/           # Business logic layer
-│   ├── routers/            # API route handlers
-│   ├── tests/              # Test suite
-│   └── main.py             # Application entry point
-├── frontend/               # React frontend
+├── .kiro/                   # Kiro configuration and specs
+│   ├── specs/              # Feature specifications
+│   │   ├── patient-doctor-management/
+│   │   ├── staff-management/
+│   │   ├── auto-profile-creation/
+│   │   ├── mailersend-integration/
+│   │   ├── user-creation-improvements/
+│   │   ├── user-table-restructuring/
+│   │   └── vite-mui-migration/
+│   └── steering/           # Development guidelines
+│       ├── project-context.md
+│       ├── coding-standards.md
+│       ├── git-workflow.md
+│       ├── database-guidelines.md
+│       ├── database-migrations.md
+│       ├── api-development.md
+│       ├── docker-commands.md
+│       └── testing-guide.md
+├── backend/                # FastAPI backend
+│   ├── alembic/           # Database migrations
+│   ├── core/              # Core utilities and config
+│   ├── middleware/        # Custom middleware
+│   ├── repositories/      # Data access layer
+│   ├── services/          # Business logic layer
+│   ├── routers/           # API route handlers
+│   ├── tests/             # Test suite
+│   ├── models.py          # SQLAlchemy models
+│   ├── schemas.py         # Pydantic schemas
+│   ├── auth.py            # Authentication logic
+│   ├── database.py        # Database connection
+│   └── main.py            # Application entry point
+├── frontend/              # React frontend with TypeScript
 │   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/          # Page components
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── types/          # TypeScript type definitions
-│   │   └── App.tsx         # Main application component
-│   └── public/             # Static assets
-├── docs/                   # Documentation
-│   ├── architecture/       # System design documents
-│   ├── features/           # Feature specifications
-│   └── setup/              # Setup and deployment guides
-├── KiroInput/              # Original stakeholder documents
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── hooks/         # Custom React hooks
+│   │   ├── types/         # TypeScript type definitions
+│   │   └── App.tsx        # Main application component
+│   ├── public/            # Static assets
+│   └── vite.config.js     # Vite configuration
+├── docs/                  # Documentation
+│   ├── architecture/      # System design documents
+│   │   ├── HIPAA_COMPLIANCE.md
+│   │   ├── INTERNATIONAL_COMPLIANCE.md
+│   │   ├── SESSION_MANAGEMENT.md
+│   │   └── USER_ROLE_MANAGEMENT.md
+│   ├── features/          # Feature documentation
+│   │   ├── APPOINTMENTS.md
+│   │   ├── BLOOD_PRESSURE_MONITORING.md
+│   │   ├── HOSPITALIZATIONS.md
+│   │   ├── MEDICAL_STAFF_MANAGEMENT.md
+│   │   ├── PATIENTS.md
+│   │   ├── PRESCRIPTIONS.md
+│   │   ├── SHIFTS.md
+│   │   └── PASSWORD_POLICY.md
+│   └── setup/             # Setup and deployment guides
+│       └── EMAIL_SETUP.md
+├── KiroInput/             # Original stakeholder documents
+│   ├── RhinoDocs/         # Rhino.ai generated user stories
+│   │   ├── appointment-management-stories.pdf
+│   │   ├── bloodpressure-report-stories.pdf
+│   │   └── hospital-admin-stories.pdf
+│   ├── Kiro-Technical-Prompt.txt
 │   ├── Person1-Patient-Doctor-Management.txt
 │   ├── Person2-Staff-Management.txt
 │   └── Person3-Authentication-Access.txt
-└── docker-compose.yml      # Container orchestration
+├── docker-compose.yml     # Container orchestration
+└── README.md              # This file
 
 ```
-
-## Contributing
-
-This project was built using specification-driven development with Kiro. To contribute:
-
-1. Review existing specs in `docs/features/`
-2. Create or update specifications for new features
-3. Follow the task-based implementation approach
-4. Ensure all tests pass before committing
-5. Reference task and requirement numbers in commits
-
-See the [Git Workflow Guidelines](.kiro/steering/git-workflow.md) for commit conventions.
-
-## Learn More
-
-Interested in this development approach?
-
-- **rhino.ai** - Extract structured business logic from conversations [LINK]
-- **Kiro** - AI-powered specification-driven development [LINK]
-- **Specification Framework** - Learn about requirements → design → tasks [LINK]
 
 ## License
 
@@ -403,8 +423,8 @@ Interested in this development approach?
 
 ---
 
-*Three legacy systems. Three developers. Three and a half days. One living, breathing application.*
+*Three legacy systems. Three developers. Four days. One living, breathing application.*
 
-**Monday to Thursday morning. 9-5. No overtime. No crunch.**
+**Monday through Thursday. 9-5. No overtime. No crunch.**
 
 **Built with rhino.ai extraction, Kiro collaboration, and a little mad science.** 🧪⚡
