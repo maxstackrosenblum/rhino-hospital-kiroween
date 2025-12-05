@@ -422,7 +422,7 @@ hospital-management-system/
 
 ## License
 
-[Your License Here]
+[MIT](https://choosealicense.com/licenses/mit/)
 
 ---
 
