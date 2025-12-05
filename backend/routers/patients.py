@@ -216,21 +216,14 @@ async def get_patients(
         
         # Build base query differently based on hospitalization filter
         if hospitalization_status in ["hospitalized", "my-patients"]:
-            # For hospitalization filters, use inner join (only patients with profiles)
-            query = db.query(User).join(
-                Patient,
-                and_(
-                    User.id == Patient.user_id,
-                    Patient.deleted_at.is_(None)
-                )
-            ).filter(User.role == UserRole.PATIENT)
-            
+            # For hospitalization filters, use a more efficient approach
+            # Get user IDs first to avoid DISTINCT on JSON columns
             current_date = datetime.utcnow().date()
             
             if hospitalization_status == "hospitalized":
-                # Join with Hospitalization to filter only currently hospitalized patients
-                # Compare dates only (not time) to handle timezone issues
-                query = query.join(
+                # Optimized: Get patient IDs directly, then join to users
+                # This is more efficient than joining through User first
+                patient_ids = db.query(Patient.id).join(
                     Hospitalization,
                     and_(
                         Patient.id == Hospitalization.patient_id,
@@ -241,7 +234,19 @@ async def get_patients(
                         ),
                         Hospitalization.deleted_at.is_(None)
                     )
-                ).distinct()
+                ).filter(
+                    Patient.deleted_at.is_(None)
+                ).distinct().subquery()
+                
+                # Now query User objects via Patient IDs
+                query = db.query(User).join(
+                    Patient,
+                    and_(
+                        User.id == Patient.user_id,
+                        Patient.id.in_(db.query(patient_ids.c.id)),
+                        Patient.deleted_at.is_(None)
+                    )
+                ).filter(User.role == UserRole.PATIENT)
             
             elif hospitalization_status == "my-patients" and current_user.role == UserRole.DOCTOR:
                 # Get current doctor's ID
@@ -253,9 +258,9 @@ async def get_patients(
                 ).first()
                 
                 if doctor:
-                    # Join with Hospitalization and filter by doctor assignment
+                    # Optimized: Get patient IDs directly filtered by doctor
                     from models import hospitalization_doctors
-                    query = query.join(
+                    patient_ids = db.query(Patient.id).join(
                         Hospitalization,
                         and_(
                             Patient.id == Hospitalization.patient_id,
@@ -270,8 +275,19 @@ async def get_patients(
                         hospitalization_doctors,
                         Hospitalization.id == hospitalization_doctors.c.hospitalization_id
                     ).filter(
+                        Patient.deleted_at.is_(None),
                         hospitalization_doctors.c.doctor_id == doctor.id
-                    ).distinct()
+                    ).distinct().subquery()
+                    
+                    # Now query User objects via Patient IDs
+                    query = db.query(User).join(
+                        Patient,
+                        and_(
+                            User.id == Patient.user_id,
+                            Patient.id.in_(db.query(patient_ids.c.id)),
+                            Patient.deleted_at.is_(None)
+                        )
+                    ).filter(User.role == UserRole.PATIENT)
         else:
             # For no filter or "all", use left outer join to show all patients
             query = db.query(User).outerjoin(

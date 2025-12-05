@@ -315,9 +315,17 @@ def send_appointment_confirmation_email(
     doctor_name: str,
     appointment_date: str,
     department: str,
-    disease: str
+    disease: str,
+    user_id: int
 ) -> bool:
     """Send appointment confirmation email"""
+    import auth as auth_utils
+    import os
+    
+    # Generate unsubscribe link
+    unsubscribe_token = auth_utils.create_unsubscribe_token(user_id)
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    unsubscribe_url = f"{frontend_url}/unsubscribe?token={unsubscribe_token}&preference=appointments"
     
     html_content = f"""
     <!DOCTYPE html>
@@ -498,6 +506,10 @@ def send_appointment_confirmation_email(
             </div>
             <div class="footer">
                 <p>This is an automated email. Please do not reply to this message.</p>
+                <p style="margin-top: 12px;">
+                    Don't want to receive appointment updates? 
+                    <a href="{unsubscribe_url}" style="color: #16a249; text-decoration: underline;">Unsubscribe from appointment updates</a>
+                </p>
                 <p>&copy; 2024 Hospital Management System. All rights reserved.</p>
             </div>
         </div>

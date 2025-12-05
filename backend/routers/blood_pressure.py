@@ -28,6 +28,12 @@ def send_blood_pressure_recommendation(user: User, systolic: int, reading_date: 
         if not user.email:
             return False
         
+        # Check email preferences
+        email_prefs = user.email_preferences or {}
+        if not email_prefs.get("blood_pressure_alerts", True):
+            logger.info(f"Blood pressure alerts disabled for user {user.email}")
+            return False
+        
         # Determine if high or low
         is_high = systolic > 120
         is_low = systolic < 90
@@ -40,6 +46,13 @@ def send_blood_pressure_recommendation(user: User, systolic: int, reading_date: 
         
         # Prepare email content
         patient_name = f"{user.first_name} {user.last_name}"
+        
+        # Generate unsubscribe token and link
+        unsubscribe_token = auth_utils.create_unsubscribe_token(user.id)
+        # Get frontend URL from environment or use default
+        import os
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        unsubscribe_url = f"{frontend_url}/unsubscribe?token={unsubscribe_token}&preference=blood_pressure"
         
         if is_high:
             subject = "Important: High Blood Pressure Reading Detected"
@@ -215,6 +228,10 @@ def send_blood_pressure_recommendation(user: User, systolic: int, reading_date: 
                 </div>
                 <div class="footer">
                     <p>This is an automated email. Please do not reply to this message.</p>
+                    <p style="margin-top: 12px;">
+                        Don't want to receive blood pressure alerts? 
+                        <a href="{unsubscribe_url}" style="color: #16a249; text-decoration: underline;">Unsubscribe from blood pressure alerts</a>
+                    </p>
                     <p>&copy; 2024 Hospital Management System. All rights reserved.</p>
                 </div>
             </div>

@@ -35,6 +35,7 @@ import Shifts from "./pages/Shifts";
 import ShiftsReport from "./pages/ShiftsReport";
 import BloodPressure from "./pages/BloodPressure";
 import Users from "./pages/Users";
+import Unsubscribe from "./pages/Unsubscribe";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -325,6 +326,10 @@ function AppContent() {
                       <Sessions />
                     </ProtectedRoute>
                   }
+                />
+                <Route
+                  path="/unsubscribe"
+                  element={<Unsubscribe />}
                 />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
