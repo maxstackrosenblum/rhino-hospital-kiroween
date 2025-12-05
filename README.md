@@ -8,14 +8,17 @@
 
 ## 🎃 Try It Yourself!
 
-**Live Demo:** // youtube link
+**Live Demo:** [YouTube Link](https://youtu.be/NEFTtyJi_r8)
 
 **Live Site:** [Frontend](https://rhino-hospital-kiroween.onrender.com/)
 
 **Test Credentials:**
-- **Admin:** //credentials here
-- **Doctor:** //credentials here
-- **Patient:** //credentials here
+
+| Role | Username | Password |
+|------|----------|----------|
+| Doctor | `jekill` | `SendMails123@` |
+| Nurse | `abby` | `SendMails123@` |
+| Patient | `victor` | `SendMails123@` |
 
 **Available Features:**
 - 🏥 Hospital administration and staff management
