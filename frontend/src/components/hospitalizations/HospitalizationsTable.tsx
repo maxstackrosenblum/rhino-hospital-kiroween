@@ -112,7 +112,20 @@ function HospitalizationsTable({
                     </Typography>
                   )}
                 </TableCell>
-                <TableCell>{hospitalization.summary || "-"}</TableCell>
+                <TableCell>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      maxWidth: 300,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    title={hospitalization.summary || ""}
+                  >
+                    {hospitalization.summary || "-"}
+                  </Typography>
+                </TableCell>
                 <TableCell>
                   <Box sx={{ display: "flex", gap: 1 }}>
                     <IconButton

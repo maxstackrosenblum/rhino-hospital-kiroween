@@ -892,3 +892,64 @@ class DoctorAvailableSlotsResponse(BaseModel):
     has_shift: bool
     available_slots: list[str]  # List of ISO datetime strings
     booked_slots: list[str]  # List of ISO datetime strings
+
+
+# ============================================================================
+# Blood Pressure Schemas
+# ============================================================================
+
+class BloodPressureCreate(BaseModel):
+    """Schema for creating a new blood pressure reading"""
+    systolic: int
+    diastolic: Optional[int] = None
+    reading_date: Optional[datetime] = None  # If not provided, use current time
+    
+    @validator('systolic')
+    def validate_systolic(cls, v):
+        if v < 50 or v > 300:
+            raise ValueError('Systolic pressure must be between 50 and 300 mmHg')
+        return v
+    
+    @validator('diastolic')
+    def validate_diastolic(cls, v):
+        if v is not None and (v < 30 or v > 200):
+            raise ValueError('Diastolic pressure must be between 30 and 200 mmHg')
+        return v
+
+
+class BloodPressureResponse(BaseModel):
+    """Schema for blood pressure reading response"""
+    id: int
+    user_id: int
+    systolic: int
+    diastolic: Optional[int]
+    reading_date: datetime
+    is_high_risk: bool  # Computed: systolic > 120
+    created_at: datetime
+    
+    # User information
+    user_first_name: Optional[str] = None
+    user_last_name: Optional[str] = None
+    user_email: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class PaginatedBloodPressureResponse(BaseModel):
+    """Schema for paginated blood pressure readings"""
+    readings: list[BloodPressureResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class BloodPressureStatistics(BaseModel):
+    """Schema for blood pressure statistics"""
+    total_readings: int
+    high_risk_count: int
+    normal_count: int
+    average_systolic: Optional[float] = None
+    average_diastolic: Optional[float] = None
+    latest_reading_date: Optional[datetime] = None

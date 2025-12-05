@@ -474,7 +474,11 @@ async def get_appointments(
         ).join(
             User, Patient.user_id == User.id
         ).filter(
-            Appointment.deleted_at.is_(None)
+            and_(
+                Appointment.deleted_at.is_(None),
+                Patient.deleted_at.is_(None),
+                User.deleted_at.is_(None)
+            )
         )
         
         # Role-based filtering
@@ -550,9 +554,19 @@ async def get_appointments(
         # Build response
         appointments = []
         for appointment, patient_first_name, patient_last_name, patient_age, patient_phone in results:
-            # Get doctor info
-            doctor = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
-            doctor_user = db.query(User).filter(User.id == doctor.user_id).first() if doctor else None
+            # Get doctor info (filter deleted doctors)
+            doctor = db.query(Doctor).filter(
+                and_(
+                    Doctor.id == appointment.doctor_id,
+                    Doctor.deleted_at.is_(None)
+                )
+            ).first()
+            doctor_user = db.query(User).filter(
+                and_(
+                    User.id == doctor.user_id,
+                    User.deleted_at.is_(None)
+                )
+            ).first() if doctor else None
             
             appointments.append({
                 "id": appointment.id,
@@ -809,12 +823,32 @@ async def get_appointment(
                     detail="Access denied"
                 )
         
-        # Get patient and doctor info
-        patient = db.query(Patient).filter(Patient.id == appointment.patient_id).first()
-        patient_user = db.query(User).filter(User.id == patient.user_id).first() if patient else None
+        # Get patient and doctor info (filter deleted records)
+        patient = db.query(Patient).filter(
+            and_(
+                Patient.id == appointment.patient_id,
+                Patient.deleted_at.is_(None)
+            )
+        ).first()
+        patient_user = db.query(User).filter(
+            and_(
+                User.id == patient.user_id,
+                User.deleted_at.is_(None)
+            )
+        ).first() if patient else None
         
-        doctor = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
-        doctor_user = db.query(User).filter(User.id == doctor.user_id).first() if doctor else None
+        doctor = db.query(Doctor).filter(
+            and_(
+                Doctor.id == appointment.doctor_id,
+                Doctor.deleted_at.is_(None)
+            )
+        ).first()
+        doctor_user = db.query(User).filter(
+            and_(
+                User.id == doctor.user_id,
+                User.deleted_at.is_(None)
+            )
+        ).first() if doctor else None
         
         return {
             "id": appointment.id,
@@ -895,8 +929,18 @@ async def update_appointment(
                     new_date = datetime.fromisoformat(value.replace('Z', '+00:00'))
                     
                     # Check doctor has shift on new date
-                    doctor = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
-                    doctor_user = db.query(User).filter(User.id == doctor.user_id).first()
+                    doctor = db.query(Doctor).filter(
+                        and_(
+                            Doctor.id == appointment.doctor_id,
+                            Doctor.deleted_at.is_(None)
+                        )
+                    ).first()
+                    doctor_user = db.query(User).filter(
+                        and_(
+                            User.id == doctor.user_id,
+                            User.deleted_at.is_(None)
+                        )
+                    ).first() if doctor else None
                     shift = db.query(Shift).filter(
                         and_(
                             Shift.user_id == doctor_user.id,
@@ -946,11 +990,31 @@ async def update_appointment(
         db.refresh(appointment)
         
         # Build response
-        patient = db.query(Patient).filter(Patient.id == appointment.patient_id).first()
-        patient_user = db.query(User).filter(User.id == patient.user_id).first() if patient else None
+        patient = db.query(Patient).filter(
+            and_(
+                Patient.id == appointment.patient_id,
+                Patient.deleted_at.is_(None)
+            )
+        ).first()
+        patient_user = db.query(User).filter(
+            and_(
+                User.id == patient.user_id,
+                User.deleted_at.is_(None)
+            )
+        ).first() if patient else None
         
-        doctor = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
-        doctor_user = db.query(User).filter(User.id == doctor.user_id).first() if doctor else None
+        doctor = db.query(Doctor).filter(
+            and_(
+                Doctor.id == appointment.doctor_id,
+                Doctor.deleted_at.is_(None)
+            )
+        ).first()
+        doctor_user = db.query(User).filter(
+            and_(
+                User.id == doctor.user_id,
+                User.deleted_at.is_(None)
+            )
+        ).first() if doctor else None
         
         return {
             "id": appointment.id,
@@ -1036,10 +1100,30 @@ async def update_appointment_status(
         db.refresh(appointment)
         
         # Send status update email
-        patient = db.query(Patient).filter(Patient.id == appointment.patient_id).first()
-        patient_user = db.query(User).filter(User.id == patient.user_id).first() if patient else None
-        doctor = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
-        doctor_user = db.query(User).filter(User.id == doctor.user_id).first() if doctor else None
+        patient = db.query(Patient).filter(
+            and_(
+                Patient.id == appointment.patient_id,
+                Patient.deleted_at.is_(None)
+            )
+        ).first()
+        patient_user = db.query(User).filter(
+            and_(
+                User.id == patient.user_id,
+                User.deleted_at.is_(None)
+            )
+        ).first() if patient else None
+        doctor = db.query(Doctor).filter(
+            and_(
+                Doctor.id == appointment.doctor_id,
+                Doctor.deleted_at.is_(None)
+            )
+        ).first()
+        doctor_user = db.query(User).filter(
+            and_(
+                User.id == doctor.user_id,
+                User.deleted_at.is_(None)
+            )
+        ).first() if doctor else None
         
         try:
             if patient_user and patient_user.email and old_status != status_update.status.value:
@@ -1058,10 +1142,7 @@ async def update_appointment_status(
             # Log error but don't fail the status update
             logger.error(f"Failed to send status update email: {str(e)}")
         
-        # Build response
-        
-        doctor = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
-        doctor_user = db.query(User).filter(User.id == doctor.user_id).first() if doctor else None
+        # Build response (reuse already fetched doctor and patient data)
         
         return {
             "id": appointment.id,

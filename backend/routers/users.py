@@ -368,7 +368,7 @@ async def delete_user_by_admin(
     current_user: models.User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    """Soft delete any user (admin only)"""
+    """Soft delete any user (admin only) - cascades to patient/doctor/medical_staff records"""
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -376,7 +376,38 @@ async def delete_user_by_admin(
     if user.deleted_at:
         raise HTTPException(status_code=400, detail="User already deleted")
     
-    user.deleted_at = datetime.utcnow()
+    deletion_time = datetime.utcnow()
+    
+    # Soft delete user
+    user.deleted_at = deletion_time
+    
+    # Cascade soft delete to related records
+    # Soft delete patient record if exists
+    if user.patient:
+        user.patient.deleted_at = deletion_time
+        
+        # Soft delete patient's hospitalizations
+        for hospitalization in user.patient.hospitalizations:
+            if not hospitalization.deleted_at:
+                hospitalization.deleted_at = deletion_time
+        
+        # Soft delete patient's prescriptions
+        for prescription in user.patient.prescriptions:
+            if not prescription.deleted_at:
+                prescription.deleted_at = deletion_time
+    
+    # Soft delete doctor record if exists
+    if user.doctor:
+        user.doctor.deleted_at = deletion_time
+    
+    # Soft delete medical_staff record if exists
+    if user.medical_staff:
+        user.medical_staff.deleted_at = deletion_time
+    
+    # Soft delete blood pressure readings (direct user relationship)
+    for bp_reading in user.blood_pressure_readings:
+        db.delete(bp_reading)  # Hard delete blood pressure readings
+    
     db.commit()
     return {"message": f"User {user.username} deleted successfully"}
 

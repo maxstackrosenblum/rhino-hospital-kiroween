@@ -159,7 +159,13 @@ function HospitalizationsStack({
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ mb: 0.5 }}
+                    sx={{
+                      mb: 0.5,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    title={hospitalization.summary}
                   >
                     <strong>Summary:</strong> {hospitalization.summary}
                   </Typography>
