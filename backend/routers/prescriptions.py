@@ -27,12 +27,12 @@ def require_prescription_write_access(current_user: User = Depends(auth_utils.ge
 
 def require_prescription_read_access(current_user: User = Depends(auth_utils.get_current_user)) -> User:
     """
-    Require admin, doctor, or medical_staff role for prescription read access.
+    Require admin, doctor, medical_staff, or receptionist role for prescription read access.
     """
-    if current_user.role not in [UserRole.ADMIN, UserRole.DOCTOR, UserRole.MEDICAL_STAFF]:
+    if current_user.role not in [UserRole.ADMIN, UserRole.DOCTOR, UserRole.MEDICAL_STAFF, UserRole.RECEPTIONIST]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied. Requires admin, doctor, or medical staff role."
+            detail="Access denied. Requires admin, doctor, medical staff, or receptionist role."
         )
     return current_user
 
