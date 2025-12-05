@@ -18,6 +18,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { useIdleTimeout } from "./hooks/useIdleTimeout";
 import { AppThemeProvider } from "./hooks/useTheme";
 import Appointments from "./pages/Appointments";
+import ChangePassword from "./pages/ChangePassword";
 import Dashboard from "./pages/Dashboard";
 import Doctors from "./pages/Doctors";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -84,6 +85,11 @@ function AppContent() {
     localStorage.removeItem("refreshToken");
     setToken(null);
     queryClient.clear();
+  };
+
+  const handlePasswordChanged = () => {
+    // After password change, logout and redirect to login
+    handleLogout();
   };
 
   // Idle timeout - 30 minutes with 2 minute warning
@@ -176,9 +182,23 @@ function AppContent() {
                   path="/login"
                   element={
                     user ? (
-                      <Navigate to="/" replace />
+                      user.password_change_required ? (
+                        <Navigate to="/change-password" replace />
+                      ) : (
+                        <Navigate to="/" replace />
+                      )
                     ) : (
                       <Login onLogin={handleLogin} />
+                    )
+                  }
+                />
+                <Route
+                  path="/change-password"
+                  element={
+                    user ? (
+                      <ChangePassword onPasswordChanged={handlePasswordChanged} user={user} />
+                    ) : (
+                      <Navigate to="/login" replace />
                     )
                   }
                 />

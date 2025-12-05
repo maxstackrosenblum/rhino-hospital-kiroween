@@ -4,6 +4,7 @@ import {
   PaginatedUsersResponse,
   User,
   UserCreate,
+  UserCreateResponse,
 } from "../types";
 import {
   API_URL,
@@ -55,13 +56,13 @@ export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userData: UserCreate): Promise<User> => {
+    mutationFn: async (userData: UserCreate): Promise<UserCreateResponse> => {
       const response = await fetch(`${API_URL}/api/users`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify(userData),
       });
-      return handleApiError<User>(response);
+      return handleApiError<UserCreateResponse>(response);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });

@@ -6,7 +6,7 @@ import auth as auth_utils
 import models
 import schemas
 from database import get_db
-from core.security import create_access_token, create_refresh_token, decode_token
+from core.security import create_access_token, create_refresh_token, decode_token, get_password_hash
 from core.password_policy import PasswordPolicy
 
 router = APIRouter(prefix="/api", tags=["authentication"])
@@ -186,6 +186,43 @@ def login(user: schemas.UserLogin, request: Request, db: Session = Depends(get_d
         "token_type": "bearer"
     }
 
+
+@router.post("/change-password")
+async def change_password(
+    password_change: schemas.PasswordChangeRequest,
+    current_user: models.User = Depends(auth_utils.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Change password for users with password_change_required flag"""
+    
+    # Verify current password
+    if not auth_utils.verify_password(password_change.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Validate new password against policy
+    is_valid, errors = PasswordPolicy.validate(password_change.new_password, current_user.username)
+    if not is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail={"message": "Password does not meet requirements", "errors": errors}
+        )
+    
+    # Update password and remove change requirement
+    current_user.hashed_password = auth_utils.get_password_hash(password_change.new_password)
+    current_user.password_change_required = False
+    
+    # Invalidate all existing sessions for security
+    db.query(models.Session).filter(
+        models.Session.user_id == current_user.id,
+        models.Session.revoked_at.is_(None)
+    ).update({"revoked_at": datetime.utcnow()})
+    
+    db.commit()
+    
+    return {"message": "Password changed successfully"}
 
 @router.get("/me/profile-status", response_model=schemas.ProfileCompletionStatus)
 async def get_current_user_profile_status(

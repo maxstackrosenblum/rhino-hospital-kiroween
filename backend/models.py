@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Index, Enum, ForeignKey, Text, ForeignKey, JSON, Table
+from sqlalchemy import Column, Integer, String, DateTime, Index, Enum, ForeignKey, Text, ForeignKey, JSON, Table, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
@@ -48,6 +48,7 @@ class User(Base):
     address = Column(Text, nullable=True)  # Optional for registration
     gender = Column(String, nullable=True) # Optional for registration - Gender enum
     hashed_password = Column(String, nullable=False)
+    password_change_required = Column(Boolean, default=False, nullable=False, index=True)
     role = Column(String, nullable=False, index=True)  # UserRole enum
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -235,4 +236,30 @@ class Appointment(Base):
         Index('ix_appointments_date_deleted', 'appointment_date', 'deleted_at'),
         Index('ix_appointments_status_deleted', 'status', 'deleted_at'),
         Index('ix_appointments_doctor_date', 'doctor_id', 'appointment_date', 'deleted_at'),
+    )
+
+
+class BloodPressureReading(Base):
+    """
+    Blood Pressure Reading model for tracking user blood pressure measurements.
+    Supports the Patient Blood Pressure Report system for monitoring and analysis.
+    Users can track their BP without being hospital patients.
+    """
+    __tablename__ = "blood_pressure_checks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    systolic = Column(Integer, nullable=False, index=True)  # Systolic blood pressure (mmHg)
+    diastolic = Column(Integer, nullable=True)  # Diastolic blood pressure (mmHg) - optional
+    reading_date = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", backref="blood_pressure_readings")
+
+    __table_args__ = (
+        Index('ix_bp_user_date', 'user_id', 'reading_date'),
     )

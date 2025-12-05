@@ -160,7 +160,7 @@ function Navbar({ user, onLogout }: any) {
               </>
             )}
             {/* Blood Pressure Link */}
-            {["admin", "doctor", "nurse", "medical_staff"].includes(user.role) && (
+            {["admin", "doctor", "nurse", "medical_staff", "patient", "undefined"].includes(user.role) && (
               <>
                 <Button
                   color="primary"
@@ -375,7 +375,7 @@ function Navbar({ user, onLogout }: any) {
                 </>
               )}
               {/* Blood Pressure Checks */}
-              {["admin", "doctor", "nurse", "medical_staff"].includes(user.role) && (
+              {["admin", "doctor", "nurse", "medical_staff", "patient", "undefined"].includes(user.role) && (
                 <ListItem disablePadding>
                   <ListItemButton
                     onClick={() => handleNavigation("/blood-pressure")}

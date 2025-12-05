@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { LoginCredentials, RegisterData, TokenResponse } from '../types';
+import { LoginCredentials, RegisterData, TokenResponse, PasswordChangeRequest } from '../types';
 import { API_URL } from './common';
 
 // Auth mutations
@@ -49,4 +49,27 @@ export const refreshAccessToken = async (refreshToken: string): Promise<TokenRes
   }
   
   return response.json();
+};
+
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: async (passwordData: { current_password: string; new_password: string }): Promise<{ message: string }> => {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/change-password`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(passwordData),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Password change failed');
+      }
+      
+      return response.json();
+    },
+  });
 };
